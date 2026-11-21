@@ -185,6 +185,7 @@ input:focus{outline:none;box-shadow:inset 0 0 0 1px rgba(255,207,74,.55)}
     <div class="tab" data-v="shop">SHOP<span class="fn">buyPack(tier)</span></div>
     <div class="tab" data-v="tasks">TASKS<span class="fn">13 daily</span></div>
     <div class="tab" data-v="verify">VERIFY<span class="fn">claimIntoPool()</span></div>
+    <div class="tab" data-v="chain">CHAIN<span class="fn">真交易</span></div>
   </div>
 </div>
 
@@ -283,6 +284,23 @@ input:focus{outline:none;box-shadow:inset 0 0 0 1px rgba(255,207,74,.55)}
   </div>
 </div>
 
+<div class="view" id="v-chain">
+  <div class="card">
+    <h2>CHAIN · 主网真交易</h2>
+    <p class="sub">本页动作全部由链上 <span class="mono">AgentPackCore</span> 合约执行并校验你的 Agent ID——与演示档同一套规则。合约部署后把地址粘贴到下方即可启用。</p>
+    <div class="row" style="align-items:stretch">
+      <input class="nmin" id="cAddr" style="flex:1;margin:0" placeholder="AgentPackCore 合约地址 0x…（DEPLOY.md 部署后回填）" value="">
+      <button class="btn p" id="bSaveAddr">保存地址</button>
+    </div>
+    <div class="row">
+      <span class="chip" id="cChain">网络：BNB 主网(56)</span>
+      <button class="btn sm" id="bTogChain">切换 主网56/测试网97</button>
+    </div>
+    <div id="chainBox" style="margin-top:12px"></div>
+    <div class="banner">开包 = <span class="mono">claimDailyPack → packCommit →（等一个区块）→ packReveal</span> 两笔交易，与合约测试同流程。交易哈希点击可跳 BscScan。</div>
+  </div>
+</div>
+
 </div>
 
 <div id="ovl">
@@ -296,6 +314,7 @@ input:focus{outline:none;box-shadow:inset 0 0 0 1px rgba(255,207,74,.55)}
 <div id="mmodal"><div class="mbox" id="mbox"></div></div>
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 <script>
 /*══════════ 定义 ════════*/
 const RAR=['C','UC','R','SR','SSR','UR','LR'];
@@ -448,6 +467,7 @@ function switchTab(v){
   $('#v-'+v).classList.add('on');
   $('#land').style.display='none';
   renderAll();
+  if(v==='chain')renderChain();
 }
 function renderAll(){regenFree();
   $('#chPts').textContent=S.pts+' 分';
@@ -776,6 +796,147 @@ $('#bOpen5').onclick=()=>{if(S.packs.length<5)return toast('至少要 5 个包�
 $('#bLandOpen').onclick=()=>{if(!S.packs.length)S.packs.push(1);switchTab('open');S.packs.pop();save();startOpen()};
 $('#bLandPool').onclick=()=>switchTab('verify');
 $$('.tab').forEach(t=>t.onclick=()=>switchTab(t.dataset.v));
+
+/*══════════ CHAIN · 主网真交易（ethers v5 + window.ethereum）══════════*/
+const CHAIN_ABI=[
+ "function claimDailyPack() returns (uint256)",
+ "function buyPack(uint8) payable",
+ "function packCommit(uint256,bytes32)",
+ "function packReveal(uint256,bytes32)",
+ "function claimIntoPool()","function leavePool()",
+ "function equip(uint256)","function unequip()",
+ "function invite(address)",
+ "function isAgentIdHolder(address) view returns (bool)",
+ "function packPoints(address) view returns (uint256)",
+ "function packCount() view returns (uint256)",
+ "function cardCount() view returns (uint256)",
+ "function cardInfo(uint256) view returns ((uint8,uint8,uint8,uint32))"
+];
+let chainAcc=null,chainPending=null;
+try{chainPending=JSON.parse(localStorage.getItem('ap_pending')||'null')}catch(e){}
+function coreAddr(){return localStorage.getItem('ap_core')||''}
+function netId(){return localStorage.getItem('ap_chain')||'38'}
+function netName(){return netId()==='97'?'BNB 测试网(97)':'BNB 主网(56)'}
+function chainScan(){return netId()==='97'?'https://testnet.bscscan.com':'https://bscscan.com'}
+function savePending(){localStorage.setItem('ap_pending',chainPending?JSON.stringify(chainPending):'')}
+async function chainProvider(){const p=new ethers.providers.Web3Provider(window.ethereum);return p}
+async function getSigner(){const p=await chainProvider();await p.send('eth_requestAccounts',[]);return p.getSigner()}
+async function ensureChain(){
+  const id='0x'+netId();
+  try{await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:id}]})}
+  catch(e){if(id==='0x61'){try{await window.ethereum.request({method:'wallet_addEthereumChain',params:[{chainId:'0x61',chainName:'BNB Smart Chain Testnet',nativeCurrency:{name:'tBNB',symbol:'tBNB',decimals:18},rpcUrls:['https://data-seed-prebsc-1-s1.binance.org:8545'],blockExplorerUrls:['https://testnet.bscscan.com']}]})}catch(_){}}}
+}
+async function chainSend(fn,args,opts){
+  const s=await getSigner();await ensureChain();
+  const core=new ethers.Contract(coreAddr(),CHAIN_ABI,s);
+  const tx=await core[fn](...(args||[]),opts||{});
+  const rc=await tx.wait();
+  return rc;
+}
+function txLink(hash){return '<a href="'+chainScan()+'/tx/'+hash+'" target="_blank" style="color:var(--gold)" class="mono">'+hash.slice(0,12)+'…↗</a>'}
+async function chainRead(fn,args){
+  const p=await chainProvider();
+  const core=new ethers.Contract(coreAddr(),CHAIN_ABI,p);
+  return await core[fn](...(args||[]));
+}
+async function commitPending(){
+  const pid=Number(await chainRead('packCount'))+0;
+  const salt=ethers.utils.hexlify(ethers.utils.randomBytes(32));
+  const commit=ethers.utils.keccak256(salt);
+  const rc=await chainSend('packCommit',[pid,commit]);
+  chainPending={pid,salt};savePending();
+  return {pid,rc};
+}
+function renderChain(){
+  const box=$('#chainBox');if(!box)return;
+  $('#cAddr').value=coreAddr();
+  $('#cChain').textContent='网络：'+netName();
+  if(!coreAddr()){
+    box.innerHTML='<div class="sub" style="margin-top:10px">⏳ 未配置合约地址——按 <span class="mono">contracts/DEPLOY.md</span> 部署 AgentPackCore 后，把地址粘贴到上面保存，本页即切换为真交易模式。</div>';
+    return;
+  }
+  if(typeof ethers==='undefined'){box.innerHTML='<div class="sub" style="margin-top:10px">⚠ ethers 库加载失败（离线环境）——联网后刷新。</div>';return}
+  if(!window.ethereum){box.innerHTML='<div class="sub" style="margin-top:10px">⚠ 未检测到浏览器钱包——请用 Binance Wallet / MetaMask 内置浏览器打开本页。</div>';return}
+  box.innerHTML=`<div class="row">
+    <button class="btn p" id="bCC">连接钱包</button>
+    <button class="btn p" id="bCClaim">领包+承诺 claimDailyPack→packCommit</button>
+    <button class="btn g" id="bCReveal" ${chainPending?'':'disabled'}>揭示 packReveal ${chainPending?'(#'+chainPending.pid+')':''}</button>
+  </div>
+  <div class="row">
+    <button class="btn" id="bCBuy">买首充包 0.002 BNB +承诺</button>
+    <button class="btn" id="bCJoin">入池 claimIntoPool</button>
+    <button class="btn" id="bCLeave">退池 leavePool</button>
+  </div>
+  <div class="row" style="align-items:stretch">
+    <input class="nmin" id="cCard" style="flex:0 0 150px;margin:0" placeholder="卡号 #">
+    <button class="btn" id="bCEquip">穿卡 equip</button>
+    <button class="btn" id="bCPts">查积分 packPoints</button>
+  </div>
+  <div class="sub" id="cStatus" style="margin-top:10px"></div>`;
+  const st=t=>{$('#cStatus').innerHTML=t};
+  if(chainAcc)st('已连接：<span class="mono">'+chainAcc+'</span>');
+  $('#bCC').onclick=async()=>{
+    try{chainAcc=(await window.ethereum.request({method:'eth_requestAccounts'}))[0];
+      await ensureChain();st('已连接：<span class="mono">'+chainAcc+'</span>');
+      const held=await chainRead('isAgentIdHolder',[chainAcc]);
+      st('已连接：<span class="mono">'+chainAcc+'</span><br>Agent ID 持有：<b style="color:'+(held?'var(--teal)':'var(--red)')+'">'+(held?'✓ 持有 .ai':'✗ 未持有')+'</b>'+(held?'':' — 请在 Binance App 领取 Agent ID'));
+    }catch(e){toast('连接失败：'+(e.message||e))}};
+  $('#bCClaim').onclick=async()=>{
+    try{st('发送 claimDailyPack…');
+      const before=Number(await chainRead('packCount'));
+      const rc1=await chainSend('claimDailyPack');
+      const pid=before+1;
+      const salt=ethers.utils.hexlify(ethers.utils.randomBytes(32));
+      const rc2=await chainSend('packCommit',[pid,ethers.utils.keccak256(salt)]);
+      chainPending={pid,salt};savePending();
+      st('✓ 领包+承诺完成（pack #'+pid+'）'+txLink(rc1.transactionHash)+'<br>等 ~3 秒（一个区块）后点「揭示」');
+      renderChain();
+    }catch(e){st('✗ '+(e.reason||e.message||e))}};
+  $('#bCReveal').onclick=async()=>{
+    if(!chainPending)return toast('先完成领包+承诺');
+    try{st('揭示 packReveal #'+chainPending.pid+'…');
+      const rc=await chainSend('packReveal',[chainPending.pid,chainPending.salt]);
+      const start=Number(await chainRead('cardCount'));
+      let ids='';for(let i=start-4;i<=start;i++){try{
+        const c=await chainRead('cardInfo',[i]);ids+=' #'+i+'·'+RAR[c[0]];}catch(e){}}
+      chainPending=null;savePending();
+      st('✓ 开包成功 '+txLink(rc.transactionHash)+'<br>开出：'+ids);
+      beep(784,.25,'triangle',.09);
+    }catch(e){st('✗ '+(e.reason||e.message||e))}};
+  $('#bCBuy').onclick=async()=>{
+    try{st('发送 buyPack(0) 0.002 BNB…');
+      const before=Number(await chainRead('packCount'));
+      const rc1=await chainSend('buyPack',[0],{value:ethers.utils.parseEther('0.002')});
+      const pid=before+1;
+      const salt=ethers.utils.hexlify(ethers.utils.randomBytes(32));
+      await chainSend('packCommit',[pid,ethers.utils.keccak256(salt)]);
+      chainPending={pid,salt};savePending();
+      st('✓ 付费包+承诺完成（pack #'+pid+'）'+txLink(rc1.transactionHash)+' — 等 ~3 秒后点「揭示」');
+      renderChain();
+    }catch(e){st('✗ '+(e.reason||e.message||e))}};
+  $('#bCJoin').onclick=async()=>{try{const rc=await chainSend('claimIntoPool');st('✓ 已入池 '+txLink(rc.transactionHash));beep(784,.2)}catch(e){st('✗ '+(e.reason||e.message||e))}};
+  $('#bCLeave').onclick=async()=>{try{const rc=await chainSend('leavePool');st('✓ 已退池（绝版处理）'+txLink(rc.transactionHash))}catch(e){st('✗ '+(e.reason||e.message||e))}};
+  $('#bCEquip').onclick=async()=>{try{
+      const id=$('#cCard').value.trim().replace('#','');if(!id)return toast('填卡号');
+      const rc=await chainSend('equip',[Number(id)]);
+      st('✓ 已穿卡 #'+id+' '+txLink(rc.transactionHash));beep(660,.15);
+    }catch(e){st('✗ '+(e.reason||e.message||e))}};
+  $('#bCPts').onclick=async()=>{try{
+      if(!chainAcc)chainAcc=(await window.ethereum.request({method:'eth_requestAccounts'}))[0];
+      const pts=await chainRead('packPoints',[chainAcc]);
+      st('packPoints = <b style="color:var(--gold)">'+pts+'</b> 分');
+    }catch(e){st('✗ '+(e.reason||e.message||e))}};
+}
+$('#bSaveAddr').onclick=()=>{
+  const v=$('#cAddr').value.trim();
+  if(v&&!/^0x[0-9a-fA-F]{40}$/.test(v))return toast('地址格式不对');
+  localStorage.setItem('ap_core',v);
+  toast(v?'合约地址已保存':'已清空');renderChain();
+};
+$('#bTogChain').onclick=()=>{
+  localStorage.setItem('ap_chain',netId()==='38'?'97':'38');
+  renderChain();toast('切换到 '+netName());
+};
 
 /*══════════ 主循环 ════════*/
 if(S.day===today()&&S.cards.length&&S.name){switchTab('open')}
