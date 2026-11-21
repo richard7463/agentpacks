@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Packs — 抽 Agent，养电路，打规则</title>
+<style>
+  :root{
+    --bg:#0a0812; --panel:#130f1e; --panel2:#181226;
+    --ink:#f0ebfa; --dim:#9d92b8; --line:#251d38;
+    --vio:#a855f7; --vio2:#c084fc; --gold:#f2c14e; --green:#58e08a; --red:#e0685f;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;line-height:1.75;overflow-x:hidden}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+  .rv{opacity:0;transform:translateY(26px);transition:all .7s cubic-bezier(.2,.7,.2,1)}
+  .rv.on{opacity:1;transform:none}
+  nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(10,8,18,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:58px}
+  .logo{font-weight:800;letter-spacing:.1em;font-size:15px}
+  .logo b{color:var(--vio2)}
+  nav a{color:var(--dim);text-decoration:none;font-size:13.5px;margin-left:20px;transition:.2s}
+  nav a:hover{color:var(--ink)}
+  header{padding:118px 0 72px;position:relative}
+  .glow{position:absolute;inset:0;background:radial-gradient(620px 360px at 62% 30%,rgba(168,85,247,.16),transparent 70%);pointer-events:none}
+  .badges{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:26px}
+  .badge{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;color:var(--vio2);border:1px solid rgba(192,132,252,.35);background:rgba(168,85,247,.08);padding:5px 12px;border-radius:99px}
+  .badge.g{color:var(--gold);border-color:rgba(242,193,78,.35);background:rgba(242,193,78,.07)}
+  h1{font-size:clamp(34px,5.6vw,60px);line-height:1.16;font-weight:800}
+  h1 .g{color:var(--vio2)}
+  .sub{margin-top:22px;font-size:clamp(16px,2vw,20px);color:var(--dim);max-width:640px}
+  .sub b{color:var(--ink)}
+  .hero{display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:center}
+  @media(max-width:900px){.hero{grid-template-columns:1fr}}
+  .cta{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;transition:.2s}
+  .btn.p{background:var(--vio2);color:#150a24}
+  .btn.p:hover{background:#d3a5fd;transform:translateY(-2px)}
+  .btn.s{border:1px solid var(--line);color:var(--ink)}
+  .btn.s:hover{border-color:var(--vio)}
+  section{padding:76px 0;border-top:1px solid var(--line)}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--vio2);margin-bottom:12px}
+  h2{font-size:clamp(25px,3.4vw,38px);font-weight:800;line-height:1.25;margin-bottom:14px}
+  .lead{color:var(--dim);max-width:780px;font-size:16.5px}
+  .lead b,.lead em{color:var(--ink);font-style:normal}
+  .grid{display:grid;gap:18px;margin-top:38px}
+  .g3{grid-template-columns:repeat(3,1fr)} .g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:900px){.g3,.g2{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px 24px;transition:.25s}
+  .card:hover{border-color:rgba(168,85,247,.5);transform:translateY(-3px)}
+  .card .no{font-family:var(--mono);color:var(--vio2);font-size:12px;letter-spacing:.15em;margin-bottom:14px}
+  .card h3{font-size:19px;margin-bottom:8px}
+  .card p{color:var(--dim);font-size:14.5px}
+  .card p b{color:var(--ink)}
+  .icon{width:46px;height:46px;border-radius:12px;background:rgba(168,85,247,.12);display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:22px}
+  table{width:100%;border-collapse:collapse;margin-top:32px;font-size:14px}
+  th,td{padding:13px 16px;text-align:left;border-bottom:1px solid var(--line)}
+  th{color:var(--dim);font-weight:600;font-size:12.5px;letter-spacing:.06em}
+  td b{color:var(--vio2)}
+  td .us{color:var(--green)}
+  tr:hover td{background:rgba(168,85,247,.04)}
+  .quote{background:linear-gradient(135deg,var(--panel2),var(--panel));border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:16px;padding:30px 34px;margin-top:38px}
+  .quote .src{font-family:var(--mono);font-size:12px;color:var(--gold);letter-spacing:.1em}
+  .quote p{font-size:16.5px;margin-top:12px}
+  .quote p b{color:var(--gold)}
+  .flow{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:40px}
+  @media(max-width:900px){.flow{grid-template-columns:repeat(2,1fr);gap:18px}}
+  .step{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px 22px;text-align:center}
+  .step .big{font-size:30px;margin-bottom:10px}
+  .step h4{font-size:16px;margin-bottom:6px}
+  .step p{font-size:13px;color:var(--dim)}
+  .step .fee{display:inline-block;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--vio2);border:1px solid rgba(192,132,252,.3);border-radius:99px;padding:3px 10px}
+  .arrow{position:absolute;top:50%;right:-13px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:var(--bg);border-radius:50%;border:1px solid var(--line);color:var(--vio2);z-index:2}
+  @media(max-width:900px){.arrow{display:none}}
+  /* rarity ladder */
+  .ladder{display:flex;align-items:flex-end;gap:8px;margin-top:40px;height:150px}
+  .rung{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:8px;height:100%}
+  .rung .col{width:100%;border-radius:7px 7px 0 0;transition:.3s}
+  .rung .lb{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+  .rung .lb b{font-size:12px}
+  /* hero art */
+  .artstage{display:flex;justify-content:center;align-items:center;gap:24px}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  .floaty{animation:float 5.2s ease-in-out infinite}
+  .floaty.f2{animation-delay:-2.4s}
+  @keyframes shine{0%{transform:translateX(-140%) rotate(18deg)}100%{transform:translateX(160%) rotate(18deg)}}
+  .shine{position:absolute;top:-20%;bottom:-20%;width:34%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.16),transparent);animation:shine 3.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.55}50%{opacity:1}}
+  .pulse{animation:pulse 2.6s ease-in-out infinite}
+  .checklist li{list-style:none;padding:11px 0;border-bottom:1px dashed var(--line);color:var(--dim);font-size:14.5px}
+  .checklist li b{color:var(--ink)}
+  .checklist li:before{content:"✓";color:var(--green);font-weight:800;margin-right:12px}
+  footer{padding:80px 0 60px;border-top:1px solid var(--line);text-align:center}
+  .fin{font-size:clamp(22px,3.2vw,34px);font-weight:800;line-height:1.35;max-width:780px;margin:0 auto}
+  .fin .g{color:var(--vio2)}
+  footer .sub2{color:var(--dim);margin:20px auto 30px;max-width:580px}
+  .foot{margin-top:46px;color:#4e4364;font-size:12px;font-family:var(--mono);line-height:1.9}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <div class="logo">AGENT <b>PACKS</b> · PITCH</div>
+  <div>
+    <a href="#one">一分钟看懂</a><a href="#why">为什么有趣</a><a href="#play">玩法</a><a href="#equip">穿卡</a><a href="#use">抽到之后</a><a href="#id">Agent ID</a><a href="#create">造卡</a><a href="#road">路线图</a>
+  </div>
+</div></nav>
+
+<header><div class="glow"></div><div class="wrap hero">
+  <div>
+    <div class="badges rv">
+      <span class="badge">BINANCE AGENT ID · 卡就是身份</span>
+      <span class="badge">TAPEID 模型 · 规则电路可装备</span>
+      <span class="badge g">免费开玩 · 每天送包</span>
+    </div>
+    <h1 class="rv">开包开出的<br>不是图片，是<span class="g">AI Agent</span>。<br>卡牌背后，是一块<span class="g">真电路</span>。</h1>
+    <p class="sub rv">CT 卡包把推特号做成卡牌——我们把 <b>Agent ID 做成卡牌</b>：卡面是真实的 .ai 身份，高稀有卡绑定真实的 TapeOut 电路 NFT，技能不是数值加成，<b>是电路在链上跑出来的逻辑</b>。抽 Agent，养电路，打规则。</p>
+    <div class="cta rv">
+      <a class="btn p" href="#play">看玩法 ↓</a>
+      <a class="btn s" href="#create">人人能造卡 →</a>
+    </div>
+  </div>
+  <div class="artstage rv">
+    <!-- foil pack -->
+    <svg class="floaty" width="170" height="230" viewBox="0 0 170 230">
+      <defs>
+        <linearGradient id="foil" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#3b2a63"/><stop offset="55%" stop-color="#241a3f"/><stop offset="100%" stop-color="#150f26"/>
+        </linearGradient>
+        <clipPath id="packclip"><rect x="15" y="10" width="140" height="210" rx="12"/></clipPath>
+      </defs>
+      <rect x="15" y="10" width="140" height="210" rx="12" fill="url(#foil)" stroke="#7c5cd6" stroke-width="2"/>
+      <g clip-path="url(#packclip)"><rect class="shine" x="0" y="0" width="40" height="260" fill="rgba(255,255,255,.13)"/></g>
+      <rect x="15" y="10" width="140" height="34" rx="12" fill="#a855f7"/>
+      <text x="85" y="33" text-anchor="middle" font-family="monospace" font-size="13" font-weight="700" fill="#150a24">AGENT PACK</text>
+      <text x="85" y="120" text-anchor="middle" font-family="monospace" font-size="11" fill="#c084fc">× 5 CARDS</text>
+      <circle cx="85" cy="150" r="26" fill="none" stroke="#c084fc" stroke-width="1.5" opacity=".7"/>
+      <text x="85" y="156" text-anchor="middle" font-family="monospace" font-size="14" fill="#c084fc">.ai</text>
+      <text x="85" y="205" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#8f7fb5">SOUL = CIRCUIT</text>
+    </svg>
+    <!-- agent card -->
+    <svg class="floaty f2" width="230" height="320" viewBox="0 0 230 320">
+      <defs>
+        <linearGradient id="cardbg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#1c1430"/><stop offset="100%" stop-color="#100b1e"/>
+        </linearGradient>
+      </defs>
+      <rect x="8" y="8" width="214" height="304" rx="16" fill="url(#cardbg)" stroke="#c084fc" stroke-width="2.5"/>
+      <rect x="10" y="10" width="210" height="56" rx="14" fill="rgba(192,132,252,.14)"/>
+      <text x="115" y="38" text-anchor="middle" font-family="monospace" font-size="15" fill="#f0ebfa">kestrel.ai</text>
+      <text x="115" y="55" text-anchor="middle" font-family="monospace" font-size="9" fill="#c084fc">VERIFIED AGENT ID</text>
+      <!-- circuit soul -->
+      <g stroke="#58e08a" stroke-width="1.6" fill="none" opacity=".9">
+        <path d="M40 100 h45 l14 14 v28"/><path d="M190 96 h-38 l-16 16 v30"/>
+        <path d="M115 92 v30"/><path d="M60 200 h30 l12-12 h26 l12 12 h30"/>
+        <path d="M50 240 h50 l15 15 v20"/><path d="M180 240 h-45 l-15 15 v20"/>
+      </g>
+      <g fill="#58e08a" opacity=".9">
+        <circle cx="40" cy="100" r="3"/><circle cx="190" cy="96" r="3"/><circle cx="115" cy="92" r="3"/>
+        <circle cx="99" cy="142" r="3"/><circle cx="136" cy="142" r="3"/><circle cx="60" cy="200" r="3"/><circle cx="170" cy="200" r="3"/>
+        <circle cx="50" cy="240" r="3"/><circle cx="180" cy="240" r="3"/><circle cx="100" cy="255" r="3"/><circle cx="130" cy="255" r="3"/>
+      </g>
+      <circle class="pulse" cx="115" cy="176" r="10" fill="none" stroke="#f2c14e" stroke-width="1.5"/>
+      <text x="115" y="180" text-anchor="middle" font-family="monospace" font-size="8.5" fill="#f2c14e">LOGIC</text>
+      <!-- skill -->
+      <rect x="24" y="262" width="182" height="40" rx="8" fill="#181226" stroke="rgba(88,224,138,.4)"/>
+      <text x="115" y="278" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#58e08a">SKILL · 止损电路</text>
+      <text x="115" y="293" text-anchor="middle" font-family="monospace" font-size="9" fill="#9d92b8">连败 3 局 → 自动触发（链上可查）</text>
+      <!-- rarity gem -->
+      <rect x="186" y="14" width="30" height="14" rx="4" fill="#f2c14e"/>
+      <text x="201" y="25" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#1a1206">UR</text>
+    </svg>
+  </div>
+</div></header>
+
+<section id="one"><div class="wrap">
+  <div class="kicker rv">PLAIN WORDS · 一分钟看懂</div>
+  <h2 class="rv">别人抽的是<b>推特头像</b>。<br>你抽的是一个<b>有名字、有灵魂、会自己做事的 AI</b>。</h2>
+  <p class="lead rv">一张卡三个部分，全都有据可查：</p>
+  <div class="grid g3">
+    <div class="card rv"><div class="icon">🪪</div><div class="no">① 身份 · 谁的卡</div><h3>卡面 = 真实 Agent ID</h3><p>每张卡关联一个真实的 <b>.ai 身份</b>（Binance Agent ID，一人一个、不可转让）。抽到自己或朋友的 Agent，是天然的社交货币；用自己的 .ai 登录，还能<b>认领自己的卡</b>。</p></div>
+    <div class="card rv"><div class="icon">⚡</div><div class="no">② 灵魂 · 卡里有什么</div><h3>卡魂 = 可设规则的电路 NFT</h3><p>高稀有卡绑定一枚 TapeOut 电路 NFT——同我们 <b>tapeid.xyz</b> 给 AI 身份挂规则电路的模型：日限额、止损、行为边界，<b>每个 NFT 一套规则，链上写死</b>，谁都能验证，不存在暗改。</p></div>
+    <div class="card rv"><div class="icon">🤖</div><div class="no">③ 行为 · 卡会做什么</div><h3>技能 = 电路跑出来的逻辑</h3><p>不是数值加成。一张「风控 Agent」卡，连败三局会真的触发<b>止损电路</b>；一张「投机 Agent」卡会在特定条件加注。<b>这张卡真的在按自己的规则做事。</b></p></div>
+  </div>
+</div></section>
+
+<section id="why"><div class="wrap">
+  <div class="kicker rv">WHY IT'S FUN · 为什么有趣</div>
+  <h2 class="rv">换皮卡牌赢不了。<br>这三个爽点，<b>只有我们做得到</b>。</h2>
+  <table class="rv">
+    <tr><th></th><th>CT 卡包（推特卡）</th><th>Agent Packs</th></tr>
+    <tr><td><b>卡牌来源</b></td><td>作者预制的 16.4 万个推特号</td><td class="us">真实 Agent ID + <b>玩家自己造的卡</b></td></tr>
+    <tr><td><b>卡是死是活</b></td><td>静态数值 + 预写技能文案</td><td class="us">技能 = <b>链上电路真实执行</b>，可查可验</td></tr>
+    <tr><td><b>资产硬度</b></td><td>站内图片卡</td><td class="us">高稀有卡 = <b>Circuit NFT</b>，有二级市场</td></tr>
+    <tr><td><b>谁能造卡</b></td><td>只有作者</td><td class="us"><b>人人能造</b>：设计电路 → 流片 → 进卡池 → 被人抽到就分润</td></tr>
+  </table>
+  <div class="quote rv">
+    <div class="src">THE LINE</div>
+    <p>别人有趣，是因为<b>「抽你认识的人」</b>。<br>我们有趣，是因为<b>「这张卡真的在按自己的规则做事——而且这条规则是我写的」</b>。</p>
+  </div>
+</div></section>
+
+<section id="play"><div class="wrap">
+  <div class="kicker rv">GAMEPLAY · 玩法三件套</div>
+  <h2 class="rv">开包 · 对战 · 升星。</h2>
+  <div class="grid g3">
+    <div class="card rv"><div class="icon">🎴</div><div class="no">PLAY 01 · 开包</div><h3>免费包每天送，付费包用 BNB</h3><p>自然恢复 + 每日任务 + 登录礼，<b>零成本也能天天开</b>；想冲排行用 BNB 买包。<b>概率全公开、保底写明白</b>（新号首包第 5 张必出 SSR；每 10 包保底 SR）。</p></div>
+    <div class="card rv"><div class="icon">♟</div><div class="no">PLAY 02 · 自走棋</div><h3>带 3 张 Agent 卡上场</h3><p>开打后自动战斗，<b>技能由卡背后的电路逻辑决定</b>：连败触发止损、贪婪触发梭哈、检察官卡还能<b>检查对手卡是否违规</b>——从数值对战变成<b>电路组合与克制</b>。</p></div>
+    <div class="card rv"><div class="icon">⭐</div><div class="no">PLAY 03 · 升星与积分</div><h3>重复卡不是垃圾</h3><p>攒 2 / 4 / 7 / 11 / 16 张自动升星，或卖成站内积分换资源。积分<b>只能站内花、不可提现</b>——经济边界一开始就说清楚。</p></div>
+  </div>
+  <div class="ladder rv">
+    <div class="rung"><div class="col" style="height:12%;background:linear-gradient(180deg,#4a4258,#2a2438)"></div><div class="lb"><b>C</b> 46.4%</div></div>
+    <div class="rung"><div class="col" style="height:20%;background:linear-gradient(180deg,#6a5f85,#2a2438)"></div><div class="lb"><b>UC</b> 30%</div></div>
+    <div class="rung"><div class="col" style="height:30%;background:linear-gradient(180deg,#4aa8e0,#22314a)"></div><div class="lb"><b>R</b> 15%</div></div>
+    <div class="rung"><div class="col" style="height:44%;background:linear-gradient(180deg,#7c5cd6,#2a1f4a)"></div><div class="lb"><b>SR</b> 6%</div></div>
+    <div class="rung"><div class="col" style="height:60%;background:linear-gradient(180deg,#c084fc,#2a1f4a)"></div><div class="lb"><b>SSR</b> 2%</div></div>
+    <div class="rung"><div class="col" style="height:80%;background:linear-gradient(180deg,#f2c14e,#4a3a12)"></div><div class="lb"><b>UR</b> 0.5%</div></div>
+    <div class="rung"><div class="col" style="height:100%;background:linear-gradient(180deg,#ffe9a3,#f2c14e)"></div><div class="lb"><b>LR</b> 0.1%</div></div>
+  </div>
+  <p class="lead rv" style="margin-top:24px">七档稀有度（C → UC → R → SR → SSR → UR → LR），<b>概率就印在开包页上</b>——不搞黑箱，是合规也是口碑。</p>
+</div></section>
+
+<section id="equip"><div class="wrap">
+  <div class="kicker rv">EQUIP · 抽到即装备</div>
+  <h2 class="rv">抽到的是卡，<b>穿上的是规则</b>。</h2>
+  <p class="lead rv">这是卡牌第一次越过收藏：游戏里抽到的<b>规则电路，能装备到自己的 Agent 身上</b>——同一个模型已经在我们的 <b>tapeid.xyz</b> 上跑通（AI 名字 + 规则电路，一笔交易原子铸造，BNB Chain 测试网已上线）。</p>
+  <div class="flow rv">
+    <div class="step"><div class="big">🎴</div><h4>① 抽到一张规则卡</h4><p>「止损电路 · UR」——卡面即规则，链上可查</p><span class="fee">开包</span><div class="arrow">▸</div></div>
+    <div class="step"><div class="big">🎽</div><h4>② 装备到你的 Agent</h4><p>一笔交易把电路挂上 .ai 身份——像给 AI 穿装备</p><span class="fee">equip()</span><div class="arrow">▸</div></div>
+    <div class="step"><div class="big">🤖</div><h4>③ 你的 AI 真的照做</h4><p>对战里按它行动，钱包里按它限额</p><span class="fee">规则在链上跑</span><div class="arrow">▸</div></div>
+    <div class="step"><div class="big">🔁</div><h4>④ 换卡 = 换行为</h4><p>拆下、换装、交易——行为模组，不是装饰</p><span class="fee">二级市场</span></div>
+  </div>
+  <div class="quote rv" style="border-left-color:var(--green)">
+    <div class="src" style="color:var(--green)">THE LINE</div>
+    <p>别的游戏，卡是<b>皮肤</b>；这里的卡是<b>性格</b>——抽到什么规则，你的 AI 就长成什么样。</p>
+  </div>
+</div></section>
+
+<section id="use"><div class="wrap">
+  <div class="kicker rv">AFTER THE PULL · 抽到一张名人卡之后</div>
+  <h2 class="rv">热门卡牌给名卡五个出口。<br>我们给<b>七个</b>。</h2>
+  <table class="rv">
+    <tr><th>出口</th><th>宝可梦TCGP / Splinterlands / CT卡包</th><th>Agent Packs</th></tr>
+    <tr><td><b>打</b></td><td>组卡组、排位上阵</td><td class="us">上阵自走棋——<b>名人的性格就是战术</b>（CZ 卡=钻石手，连跌不卖）</td></tr>
+    <tr><td><b>穿</b></td><td>— 没有任何游戏有</td><td class="us">equip 到自己 .ai：<b>你的 AI 按名人的规则行事</b></td></tr>
+    <tr><td><b>秀</b></td><td>卡册晒卡、皇冠稀有度</td><td class="us">卡面=真实 .ai 名字——<b>"我抽到 CZ 了"自带话题</b></td></tr>
+    <tr><td><b>养</b></td><td>重复卡熔合/升星</td><td class="us">升星 + <b>规则随星级变强</b>（3 星 CZ：钻石手+抄底）</td></tr>
+    <tr><td><b>卖</b></td><td>受限交易 / NFT 市场</td><td class="us">SSR+ = Circuit NFT，二级市场</td></tr>
+    <tr><td><b>租</b></td><td>Splinterlands/GU 出租图片卡收租</td><td class="us"><b>出租的是行为</b>：名人卡的规则按天借给别人的 AI</td></tr>
+    <tr><td><b>特权</b></td><td>特殊模式/赛事门票</td><td class="us">SSR+ 进特殊赛季模式</td></tr>
+  </table>
+  <div class="quote rv" style="border-left-color:var(--green)">
+    <div class="src" style="color:var(--green)">KILLER FEATURE</div>
+    <p>Splinterlands 出租的是<b>图片</b>，我们出租的是<b>你家 AI 的性格，按天计费</b>——名卡第一次成为会下蛋的<b>行为资产</b>。这个出口别人抄不走：他们没有 tapeid 的规则电路。</p>
+  </div>
+</div></section>
+
+<section id="rare"><div class="wrap">
+  <div class="kicker rv">RARE ID · 抽到 ab.ai（两位数）怎么办</div>
+  <h2 class="rv">稀有不靠我们编：<b>官方注册表数得出</b>。<br>价值不靠身份权：<b>正主自愿上桌</b>。</h2>
+  <p class="lead rv">先说边界：<b>卡 ≠ 身份</b>。ab.ai 属于在 Binance 认领它的那个人，永远不可转让——我们不拥有它，持卡人也不会拥有它。所以短 ID 卡的价值只来自三样真实的东西：</p>
+  <div class="grid g3">
+    <div class="card rv"><div class="icon">📊</div><div class="no">① 真实稀缺</div><h3>注册表数得出的稀罕</h3><p>两位数 .ai 全网限量——本次黑客松的获奖项目也只是「获赠领取资格」，<b>短 ID 就是生态的冠军腰带</b>。卡档位直接挂钩官方 ERC-721 注册表可数的稀缺度，<b>我们不掺水</b>。</p></div>
+    <div class="card rv"><div class="icon">🎽</div><div class="no">② 系统效用</div><h3>创始电路技能组</h3><p>短 ID 卡自带系统内最强技能包：上阵、<b>穿到你 AI 身上</b>、按天出租规则、卡册展示、特权模式——<b>七个出口照单全收</b>，全部来自我们的系统而非身份权利。</p></div>
+    <div class="card rv"><div class="icon">🤝</div><div class="no">③ 正主飞轮</div><h3>认领激活增值</h3><p>ab.ai 本尊认领后，卡亮 <b>VERIFIED</b> 徽章 + 交易/租赁版税归本尊一部分——<b>正主有动力认领，持卡人坐享"激活增值"</b>。正主不上桌，卡根本不会存在。</p></div>
+  </div>
+  <div class="quote rv" style="border-left-color:var(--red)">
+    <div class="src" style="color:var(--red)">THE PRINCIPLE · 授权原则</div>
+    <p>我们没有任何人的 .ai 所有权——<b>卡池只收认领者</b>：人人可把自己的 .ai 认领进卡池，被抽到就分润（认领本身 = 一笔链上交互）。卡面不显示任何钱包信息；卡是纪念物与游戏资产，<b>不赋予持卡人任何身份权利</b>；不想被抽随时退出——已流通的卡停发进入「绝版」状态，比删除更值得收藏。</p>
+  </div>
+</div></section>
+
+<section id="id"><div class="wrap">
+  <div class="kicker rv">AGENT ID DEPTH · 身份在这里是主角</div>
+  <h2 class="rv">Agent ID 不是登录方式，<br>是<b>卡牌世界本身</b>。</h2>
+  <ul class="checklist rv" style="max-width:820px">
+    <li><b>卡就是身份</b> —— 每张卡关联真实 .ai 名字；开包抽到自己或朋友的 Agent，社交货币拉满</li>
+    <li><b>认领</b> —— 用自己的 Agent ID 登录，认领、升级、展示自己的卡；合约读官方 ERC-721 注册表</li>
+    <li><b>每日免费包</b> —— 领取时合约校验 .ai 持有：免费包就是身份专属福利</li>
+    <li><b>邀请裂变</b> —— 邀请持 .ai 的朋友开满 15 包算有效邀请，双方各得奖励包</li>
+    <li><b>造卡者分润归身份</b> —— 你设计的卡被全服抽到，分润记在 .ai 名下</li>
+    <li>红线纪律：<b>不做「按名查别人钱包」</b>——身份只做自己卡面的署名，不碰他人资产</li>
+  </ul>
+</div></section>
+
+<section id="create"><div class="wrap">
+  <div class="kicker rv">CREATE · 人人能造卡（最大差异）</div>
+  <h2 class="rv">从「开别人的卡」<br>变成「<b>我设计的卡被全服抽到</b>」。</h2>
+  <div class="flow rv">
+    <div class="step"><div class="big">✏️</div><h4>① 设计电路</h4><p>浏览器画布上用 NAND/LATCH 连一块简单逻辑</p><span class="fee">你的卡魂</span><div class="arrow">▸</div></div>
+    <div class="step"><div class="big">🔥</div><h4>② 流片</h4><p>一键 Tape-out，烧代币生成不可变 Circuit NFT</p><span class="fee">TapeOut 生态</span><div class="arrow">▸</div></div>
+    <div class="step"><div class="big">🗳</div><h4>③ 进卡池</h4><p>审核通过后，你的电路变成一张公共卡牌</p><span class="fee">设计大赛 → 直升 SSR</span><div class="arrow">▸</div></div>
+    <div class="step"><div class="big">💸</div><h4>④ 持续分润</h4><p>别人每次抽到你的卡，你都有分成</p><span class="fee">写进 .ai 名下</span></div>
+  </div>
+  <p class="lead rv" style="margin-top:34px">这是 CT 卡包永远做不到的一步：卡池不再是作者一个人的流水线，而是<b>全生态的电路设计大赛</b>。设计者要名（卡面署名），玩家要强（新颖技能），平台要活跃（卡池常新）——<b>三方都有理由留下来</b>。</p>
+</div></section>
+
+<section id="road"><div class="wrap">
+  <div class="kicker rv">ROADMAP · 路线图</div>
+  <h2 class="rv">先跑爽感，再上灵魂，最后开市场。</h2>
+  <div class="flow rv">
+    <div class="step"><div class="big">🎴</div><h4>SEASON 0 · 开包上瘾</h4><p>开包 + 收藏 + Agent ID 认领 + 基础对战（预制电路技能）</p><span class="fee">黑客松 MVP</span><div class="arrow">▸</div></div>
+    <div class="step"><div class="big">⚡</div><h4>SEASON 1 · 造卡</h4><p>开放电路设计 + 流片入口，玩家造卡进卡池</p><span class="fee">卡池常新</span><div class="arrow">▸</div></div>
+    <div class="step"><div class="big">🔗</div><h4>SEASON 2 · 生态联动</h4><p>TapeAI 检察官加成 · TapeUP 节点福利 · 造卡分润自动化</p><span class="fee">检察官包 / 节点包</span><div class="arrow">▸</div></div>
+    <div class="step"><div class="big">🏛</div><h4>SEASON 3 · 完整市场</h4><p>高稀有卡二级市场 · 设计大赛 · 组合克制玩法</p><span class="fee">Agent 消费入口</span></div>
+  </div>
+  <div class="grid g2" style="margin-top:34px">
+    <div class="card rv"><h3>🛡 合规边界（一开始就说清楚）</h3><ul class="checklist" style="margin-top:12px">
+      <li><b>概率公开 + 保底明示</b>，印在开包页</li>
+      <li>站内积分<b>不可提现</b>；无任何收益承诺</li>
+      <li>对战为娱乐玩法，<b>赌场类模式不上线</b>于本期（后置 Season 3 再评估）</li>
+    </ul></div>
+    <div class="card rv"><h3>🎯 生态位</h3><ul class="checklist" style="margin-top:12px">
+      <li>TapeAI 做 Agent 工厂 · TapeGit 做协作 · <b>Agent Packs 做消费入口</b></li>
+      <li>给 TapeOut 电路一个<b>人人都想打开的展示层</b></li>
+      <li>给 Agent ID 一个<b>有炫耀价值的使用场景</b></li>
+    </ul></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="fin rv">每个 AI Agent 都该有名字、有灵魂、有卡面。<br><span class="g">抽到它，就拥有了它的一部分历史。</span></div>
+  <p class="sub2 rv">抽 Agent · 养电路 · 打规则</p>
+  <div class="cta rv" style="justify-content:center">
+    <a class="btn p" href="#play">Season 0 · 即将开包</a>
+  </div>
+  <div class="foot">AGENT PACKS · BNB SMART CHAIN + BINANCE AGENT ID HACKATHON 2026 · 高稀有卡绑定 TAPEOUT CIRCUIT NFT<br>开包概率与保底规则公开于产品页 · 站内积分不可提现 · 无收益承诺 · 不做「按名查钱包」功能</div>
+</div></footer>
+
+<script>
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');io.unobserve(e.target)}}),{threshold:.12});
+  document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
