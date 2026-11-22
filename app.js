@@ -153,6 +153,56 @@ function oddsLadderHTML(){
 $('#oddsLadder').innerHTML=oddsLadderHTML();
 $('#oddsLadder2').innerHTML=oddsLadderHTML();
 
+/* ────────── 一键晒卡：canvas 生成分享图 → 系统 share / X intent ────────── */
+function loadImg(src){return new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=src})}
+async function renderShareCard(c){
+  const cv=document.createElement('canvas');cv.width=600;cv.height=840;
+  const x=cv.getContext('2d');
+  x.fillStyle='#0F0C24';x.fillRect(0,0,600,840);
+  const n=cname(c),f=FACES[n]||{c:'#B79BFF',photo:''};
+  try{ // 照片铺满上半（cover 裁剪）
+    const img=await loadImg(f.photo);
+    const sc=Math.max(600/img.width,760/img.height);
+    const w=img.width*sc,h=img.height*sc;
+    x.drawImage(img,(600-w)/2,Math.min(0,(760-h)*.15),w,h);
+  }catch(e){}
+  x.fillStyle='rgba(10,8,25,.86)';x.fillRect(0,660,600,180);
+  x.fillStyle='rgba(10,8,25,.35)';x.fillRect(0,600,600,60);
+  // 名字 + 标签
+  x.fillStyle='#F2EFFF';x.font='900 56px Archivo,Arial';x.fillText(n,36,726);
+  x.fillStyle=f.c||'#F2C14E';x.font='700 26px Arial';x.fillText(f.tag||'.ai 身份卡',38,762);
+  // 稀有度 + 编号
+  x.fillStyle='#F2C14E';x.font='900 30px Arial';
+  x.fillText(RAR[c.r]+(c.star?' ★'+c.star:''),38,812);
+  x.fillStyle='#9C96C4';x.fillText('#'+c.id,120,812);
+  // 水印
+  x.fillStyle='#6b639a';x.font='600 20px Arial';x.textAlign='right';
+  x.fillText('agentid.cards · 每包必出名人卡',572,812);x.textAlign='left';
+  // 金框
+  x.strokeStyle='rgba(242,193,78,.55)';x.lineWidth=3;x.strokeRect(6,6,588,828);
+  return new Promise(ok=>cv.toBlob(ok,'image/png'));
+}
+async function shareCard(c){
+  const text='我在 Agent Packs 抽到了 '+cname(c)+' · '+RAR[c.r]+(c.star?' ★'+c.star:'')+' → https://agentid.cards';
+  try{
+    const blob=await renderShareCard(c);
+    const file=new File([blob],'agentpacks-'+cname(c)+'.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],text});shareBonus();return
+    }
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='agentpacks-'+cname(c)+'.png';a.click();  // 桌面：先存图
+  }catch(e){}
+  window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(text),'_blank');
+  shareBonus();
+}
+function shareBonus(){ // 分享得包：每天 1 次（主网叙事=邀请链接，演示档即时到账）
+  const t=today();
+  if(S.shareDay===t){toast('今天的分享奖励已领过啦');return}
+  S.shareDay=t;S.packs.push(1);save();beep(660,.1);toast('分享得包 +1（每天一次）');renderAll();
+}
+$('#bShareX')&&($('#bShareX').onclick=null);
+
 /* ────────── 卡面：程序化 SVG ────────── */
 function statsOf(c){return{atk:Math.round(5+c.r*3.2+c.star*2),def:Math.round(4+c.r*2.4+c.star*2),rat:Math.min(99,Math.round(57+c.r*5.6+c.star*3.4))}}
 
@@ -477,7 +527,7 @@ function startOpen(){
   $('#ovlTag').textContent='开包中';
   $('#ovlHint').textContent='点卡包撕开';
   $('#stage').innerHTML=`<div class="pack3d" id="bp" data-tilt><div class="rays"></div>${packArt('op')}<span class="foil"></span><span class="glare"></span></div>`;
-  $('#bAll').style.display='none';$('#bDone').style.display='none';$('#bOpenIt').style.display='';
+  $('#bAll').style.display='none';$('#bDone').style.display='none';$('#bShareX').style.display='none';$('#bOpenIt').style.display='';
   $('#ovl').classList.add('on');
   beep(220,.12,'triangle',.05);
   $('#bp').onclick=dealCards;
@@ -547,6 +597,9 @@ function flip(d,c){
     $('#ovlHint').textContent='';
     const top=Math.max(...opening.map(x=>x.r));
     toast('开出 '+opening.map(x=>RAR[x.r]).join(' · ')+(top>=4?' 🔥':''));
+    const star=opening.filter(x=>x.kind===1).sort((a,b)=>b.r-a.r)[0];
+    if(star){$('#bShareX').style.display='';$('#bShareX').onclick=()=>shareCard(star);
+      $('#ovlHint').textContent='抽到 '+cname(star)+' · 当场晒到 X，再领 1 个包';}
   }
 }
 $('#bOpenIt').onclick=()=>{if(phase==='pack')dealCards()};
@@ -668,6 +721,7 @@ function detail(id){
       <div class="row" style="margin-top:14px">
         <button class="btn sm ${S.equipped===c.id?'':'primary'}" id="mEq">${S.equipped===c.id?'脱下这张卡':'穿到我的 Agent ID 上'}</button>
         <button class="btn sm ghost" id="mSell">卖出 +${SELL[c.r]} 分</button>
+        ${c.kind===1?'<button class="btn sm cut" id="mShare">晒到 X</button>':''}
       </div>
       <div style="margin-top:18px">
         <span class="sub">升星 starUp() · 1 张燃料 = 1 星（上限 5）</span>
@@ -677,6 +731,8 @@ function detail(id){
     </div>
   </div>`;
   $('#mmodal').classList.add('on');
+  const mS=$('#mShare');
+  if(mS)mS.onclick=()=>shareCard(c);
   const mT=$('#mTape');
   if(mT)mT.onclick=()=>{
     S.tapeSeq=(S.tapeSeq||0)+1;
