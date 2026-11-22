@@ -1,3 +1,13 @@
+.face-art{background:#120f2c}
+.face-photo{position:absolute;inset:0;background-size:cover;background-position:center 18%;filter:saturate(1.05)}
+.face-mono{position:absolute;inset:0;display:grid;place-items:center;
+  font-family:var(--f-disp);font-stretch:125%;font-weight:900;font-size:70px;color:var(--fc);
+  text-shadow:0 0 34px var(--fc);transition:.2s}
+.face-photo+.face-mono{opacity:0}         /* 有照片时徽章让位 */
+.face-tag{position:absolute;top:8px;left:8px;font-size:9px;padding:3px 8px;border-radius:99px;
+  background:rgba(10,8,25,.75);color:var(--paper2);letter-spacing:.08em;backdrop-filter:blur(4px)}
+.face-art::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,transparent 55%,rgba(10,8,25,.88))}
 .famdot{display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:6px;vertical-align:1px}
 .f0{background:#6CF2D6}.f1{background:#FF5C7A}.f2{background:#F2C14E}.f3{background:#B79BFF}
 .cg .famdot{box-shadow:0 0 6px currentColor}

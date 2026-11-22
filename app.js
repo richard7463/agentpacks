@@ -28,7 +28,19 @@ const CHAPTERS=[
   {id:'c24',t:'Meme 狂欢季',y:'2024',d:'猫狗起飞，理性清仓',lvl:4},
   {id:'c25',t:'大清算',y:'2025',d:'潮水退尽，真电路活到最后',lvl:5},
 ];
-const DEMO_NAMES=['kestrel.ai','tiger.ai','nova.ai','orbit.ai','lumen.ai','harbor.ai','pixel.ai'];
+const DEMO_NAMES=['musk.ai','heyi.ai','cz.ai','justin.ai','vitalik.ai','satoshi.ai','zuck.ai','jensen.ai','kestrel.ai'];
+/// 名人卡面（faces/ 槽位：丢入 <name>.jpg 即自动上卡；无照片时显示首字母徽章兜底）
+const FACES={
+  'musk.ai':    {mono:'M',tag:'火星船长',   c:'#D4FF8A',photo:'faces/musk.jpg'},
+  'heyi.ai':    {mono:'Y',tag:'BNB 大管家', c:'#F2C14E',photo:'faces/heyi.jpg'},
+  'cz.ai':      {mono:'C',tag:'币安掌门',   c:'#F2C14E',photo:'faces/cz.jpg'},
+  'vitalik.ai': {mono:'V',tag:'以太架构师', c:'#8AF0FF',photo:'faces/vitalik.jpg'},
+  'satoshi.ai': {mono:'S',tag:'创世传奇',   c:'#B79BFF',photo:'faces/satoshi.jpg'},
+  'zuck.ai':    {mono:'Z',tag:'元宇宙房东', c:'#8AF0FF',photo:'faces/zuck.jpg'},
+  'jensen.ai':  {mono:'J',tag:'算力教父',   c:'#D4FF8A',photo:'faces/jensen.jpg'},
+  'justin.ai':  {mono:'S',tag:'波场教主',   c:'#FF8AD8',photo:'faces/justin.jpg'},
+  'kestrel.ai': {mono:'K',tag:'虚构示例',   c:'#FF8AD8',photo:''},
+};
 const MS_DEF=[
   {k:'open5', n:'开 5 个包', g:5, rw:2, t:'包'},
   {k:'open15',n:'开 15 个包', g:15, rw:3, t:'包'},
@@ -262,17 +274,34 @@ function makeCard(r){
   return{id:S.nextId++,r,star:0,kind,ref};
 }
 function cname(c){return c.kind===1?S.pool[c.ref].name:HOUSE[c.ref%12].n}
+/// 名人卡面：faces/<name>.jpg 存在即直上卡面；不存在显示首字母徽章（照片槽位，随时补图）
+function faceHTML(c){
+  const n=cname(c);
+  const f=FACES[n]||{mono:(n[0]||'?').toUpperCase(),tag:'.ai 身份',c:'#B79BFF',photo:''};
+  return `<div class="art face-art">
+    <div class="face-photo" style="background-image:url('${f.photo}')"></div>
+    <div class="face-mono" style="--fc:${f.c}">${f.mono}</div>
+    <span class="face-tag">${f.tag}</span>
+  </div>`;
+}
 function cskill(c){return HOUSE[c.ref%12].s}
 function cdesc(c){return HOUSE[c.ref%12].d}
 function open5(){
   const out=[];
+  const idSlot=Math.floor(Math.random()*5);   // 每包必出 1 张名人身份卡
+  ensurePool();
   for(let i=0;i<5;i++){
     let r=rollR();
     if((!S.firstPack||S.ssrNext)&&i===4){if(r<4)r=4;S.ssrNext=false}
     else if(S.firstPack&&S.sinceSR+1>=10&&r<3)r=3;
     if(r>=3)S.sinceSR=0;else S.sinceSR++;
     if(r>=3)S.mis.sr++; if(r>=4)S.mis.ssr++;
-    out.push(makeCard(r));
+    if(i===idSlot){
+      const act=S.pool.filter(p=>p.active);
+      const p=act[Math.floor(Math.random()*act.length)];
+      p.pulls=(p.pulls||0)+1;
+      out.push({id:S.nextId++,r,star:0,kind:1,ref:S.pool.indexOf(p)});
+    }else out.push(makeCard(r));
   }
   S.firstPack=true;S.pts+=5;
   S.mis.open5++;S.mis.open15++;S.mis.open50++;
@@ -285,7 +314,7 @@ function cardHTML(c){
   const st=statsOf(c);
   const eq=S.equipped===c.id;
   return `<div class="cg r${c.r}${c.r>=5?' holo':''}${eq?' equipped':''}">
-    <div class="art">${artSVG(c)}</div>
+    ${c.kind===1?faceHTML(c):`<div class="art">${artSVG(c)}</div>`}
     <div class="scrim"></div>
     <div class="frame"></div>
     <div class="top"><span class="rar">${RAR[c.r]}</span>${c.star?`<span class="stars">${'★'.repeat(c.star)}</span>`:''}</div>
