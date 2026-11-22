@@ -31,12 +31,13 @@ const CHAPTERS=[
 const DEMO_NAMES=[
   // ── Crypto 圈（10）──
   'cz.ai','heyi.ai','justin.ai','vitalik.ai','satoshi.ai',
-  'arthur.ai','brian.ai','michael.ai','cathie.ai','chris.ai',
   // ── 科技圈（9）──
   'musk.ai','zuck.ai','jensen.ai','tim.ai','sam.ai',
   'bezos.ai','gates.ai','brin.ai','jack.ai',
   // ── 明星圈（7）──
   'taylor.ai','rihanna.ai','jay.ai','jackie.ai','snoop.ai','andy.ai','drake.ai',
+  // ── 网红圈（2）──
+  'mrbeast.ai','speed.ai',
   // ── 金融圈（4）──
   'warren.ai','jamie.ai','jerome.ai','larry.ai',
   // ── 虚构示例（保留 1 个占位）──
@@ -73,6 +74,13 @@ const FACES={
   'snoop.ai':   {mono:'S',tag:'狗爷',       c:'#D4FF8A',photo:'faces/snoop.jpg'},
   'andy.ai':    {mono:'A',tag:'华仔',       c:'#F2EFFF',photo:'faces/andy.jpg'},
   'drake.ai':   {mono:'D',tag:'公鸭',       c:'#B79BFF',photo:'faces/drake.jpg'},
+  // 网红
+  'mrbeast.ai':{mono:'M',tag:'YouTube 顶流', c:'#D4FF8A',photo:'faces/mrbeast.jpg'},
+  'speed.ai':  {mono:'A',tag:'甲亢哥',      c:'#FF8AD8',photo:'faces/speed.jpg'},
+  'khaby.ai':  {mono:'K',tag:'无声吐槽王', c:'#F2EFFF',photo:'faces/khaby.jpg'},
+  'ninja.ai':  {mono:'N',tag:'蓝发主播',   c:'#8AF0FF',photo:'faces/ninja.jpg'},
+  'ksi.ai':    {mono:'K',tag:'英伦炸子鸡', c:'#FF8AD8',photo:'faces/ksi.jpg'},
+  'liziqi.ai': {mono:'李',tag:'田园仙女',   c:'#D4FF8A',photo:'faces/liziqi.jpg'},
   // finance
   'warren.ai':  {mono:'W',tag:'奥马哈股神', c:'#F2C14E',photo:'faces/warren.jpg'},
   'jamie.ai':   {mono:'J',tag:'摩根船长',   c:'#8AF0FF',photo:'faces/jamie.jpg'},
