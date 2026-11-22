@@ -3,7 +3,7 @@
 > 开包开出的不是图片，是一个有名字的 AI。
 > 每张卡 = 一条链上可读、可复算的 Agent 支出规则。
 
-**线上试玩**：https://agentid.cards （DNS 生效前先看 https://richard7463.github.io/agentpacks/）
+**线上试玩**：https://agentid.cards （HTTPS · 雅加达直连）
 
 Binance Agent ID Hackathon · Season 0 MVP：
 
