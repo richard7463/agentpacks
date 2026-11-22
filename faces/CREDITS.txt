@@ -1,9 +1,24 @@
-照片来源与授权（Wikimedia Commons）
+照片来源与授权（Wikimedia Commons，按各文件 CC 条款署名使用）
 ==================================================
-cz.ai（Changpeng Zhao）— Aevozer · CC BY-SA 4.0 · commons.wikimedia.org/wiki/File:Changpeng%20Zhao%20in%202022.jpg
-justin.ai（Justin Sun）— World Trade Organization · CC BY-SA 2.0 · commons.wikimedia.org/wiki/File:Head%20of%20the%20Grenadian%20Delegation%20to%20the%2012th%20World%20Trade%20Organization%20Ministerial%20Conference%20Justin%20Sun.jpg
-andy.ai（Andy Lau）— mR.Hom · CC BY 2.5 · commons.wikimedia.org/wiki/File:Andy%20Lau%20%E5%88%98%E5%BE%B7%E5%8D%8E%2C%20Beijing%20International%20Film%20Festival%20%E5%8C%97%E4%BA%AC%E7%94%B5%E5%BD%B1%E8%8A%82%2C%202013%20%28cropped%29.jpg
-drake.ai（Drake）— The Come Up Show · CC BY 2.0 · commons.wikimedia.org/wiki/File:Drake%20July%202016.jpg
-warren.ai（Warren Buffett）— Mark Hirschey · CC BY-SA 2.0 · commons.wikimedia.org/wiki/File:Warren%20Buffett%20KU%20Visit.jpg
+vitalik.ai（Vitalik Buterin）— Romanpoet · CC BY-SA 4.0 · commons.wikimedia.org/wiki/File:VitalikButerinProfile.jpg
+musk.ai（Elon Musk）— Gage Skidmore · CC BY-SA 4.0 · commons.wikimedia.org/wiki/File:Elon%20Musk%20%2854816836217%29%20%28cropped%202%29%20%28b%29.jpg
+zuck.ai（Mark Zuckerberg）— Jeff Sainlar; Social Producer and Editor, Meta · CC BY-SA 4.0 · commons.wikimedia.org/wiki/File:Mark%20Zuckerberg%20%282025%29%20%28cropped%29.jpg
+jensen.ai（Jensen Huang）— Anderseidesvik · CC BY-SA 4.0 · commons.wikimedia.org/wiki/File:Jensen%20Huang%20Stanford%202026-04-30%20010%20%28cropped%29.jpg
+tim.ai（Tim Cook）— Dati Bendo / European Union · CC BY 4.0 · commons.wikimedia.org/wiki/File:Tim%20Cook%20in%20New%20York%20City%20-%202026%20%28cropped%29.jpg
+sam.ai（Sam Altman）— Steve Jurvetson · CC BY 2.0 · commons.wikimedia.org/wiki/File:Sam%20Altman%20speaking%20at%20TED%20%28cropped%29.jpg
+bezos.ai（Jeff Bezos）— Seattle City Council from Seattle · CC BY 2.0 · commons.wikimedia.org/wiki/File:Jeff%20Bezos%20at%20Amazon%20Spheres%20Grand%20Opening%20in%20Seattle%20-%202018%20%2839074799225%29%20%28cropped%29.jpg
+gates.ai（Bill Gates）— Bogdan Hoyaux / European Union · CC BY 4.0 · commons.wikimedia.org/wiki/File:Bill%20Gates%20at%20the%20European%20Commission%20-%202025%20-%20P067383-987995%20%28cropped%29.jpg
+brin.ai（Sergey Brin）— Steve Jurvetson · CC BY 2.0 · commons.wikimedia.org/wiki/File:Sergey%20Brin%20Ted%202010%20%28cropped%29.jpg
+jack.ai（Jack Dorsey）— cellanr · CC BY-SA 2.0 · commons.wikimedia.org/wiki/File:Jack%20Dorsey%202014.jpg
+taylor.ai（Taylor Swift）— iHeartRadioCA · CC BY 3.0 · commons.wikimedia.org/wiki/File:Taylor%20Swift%20at%20the%202023%20MTV%20Video%20Music%20Awards%20%283%29.png
+rihanna.ai（Rihanna）— U.S. Embassy Bridgetown · Public domain · commons.wikimedia.org/wiki/File:Rihanna%20visits%20U.S.%20Embassy%20in%20Barbados%202024%20%28cropped%29.jpg
+jay.ai（Jay Chou）— GEM_Ady (GEM_brilliant) · CC BY 2.5 · commons.wikimedia.org/wiki/File:%E5%92%AA%E5%92%95%E9%9F%B3%E4%B9%90%E7%9B%9B%E5%85%B8%20%2825%29.jpg
+jackie.ai（Jackie Chan）— Segolene Liger · CC BY-SA 4.0 · commons.wikimedia.org/wiki/File:Jackie%20Chan%20-%202025%20Locarno%20Film%20Festival.jpg
+snoop.ai（Snoop Dogg）— Toglenn · CC BY-SA 4.0 · commons.wikimedia.org/wiki/File:Snoop%20Dogg%202019%20by%20Glenn%20Francis.jpg
+jamie.ai（Jamie Dimon）— Steve Jurvetson · CC BY 2.0 · commons.wikimedia.org/wiki/File:Jamie%20Dimon%2C%20CEO%20of%20JPMorgan%20Chase.jpg
+jerome.ai（Jerome Powell）— Federalreserve · Public domain · commons.wikimedia.org/wiki/File:Jerome%20H.%20Powell%2C%20Federal%20Reserve%20Chair.jpg
+larry.ai（Larry Fink）— Kena Betancur/European Commission · CC BY 4.0 · commons.wikimedia.org/wiki/File:Larry%20Fink%20with%20Valdis%20Dombrovskis%20%28cropped%29.jpg
+mrbeast.ai（MrBeast）— Tyren Redd · CC BY 4.0 · commons.wikimedia.org/wiki/File:MrBeast%20in%202026%20%28cropped%204%29.png
+speed.ai（IShowSpeed）— Chin Yu Chu · CC BY-SA 2.0 · commons.wikimedia.org/wiki/File:IShowSpeed%20at%20Chinatown%20%28Portrait%29%2004.jpg
 
-按各文件 CC 授权条款使用；未列出的名字无 CC 源，保留品牌占位图。
+heyi / satoshi 无 CC 源：heyi 自配，satoshi 走首字母徽章。
