@@ -56,7 +56,7 @@ contract AgentPackCore is ERC721 {
     function claimDailyPack() external;               // .ai 校验 + 24h 冷却
 
     // ── 付费包（BNB，全额去向公示：销毁 / 奖池分账，Terms 页写死）──
-    function buyPack(uint8 tier) external payable;    // 0.002 / 0.02 / 0.2 BNB 三档
+    function buyPack(uint8 tier) external payable;    // 三档 = 单包(1)/十连(10)/百连(100)，单包价统一 0.002 BNB
 
     // ── 开包：commit-reveal 两段式 ──
     function openCommit(uint256 packId, bytes32 commit) external;   // 存哈希承诺
@@ -134,7 +134,7 @@ Player { address addr; uint64 lastDailyClaim; uint256 openedPacks; mapping(uint2
 | 概率 | 46.4% | 30% | 15% | 6% | 2% | 0.5% | 0.1% |
 
 - 新号首包第 5 张**必出 SSR**；每 10 个免费包**保底 SR**
-- 付费档位：首充 0.002 BNB（10 普通+1 黑包）· 每日限量 0.02 BNB · 创世 0.2 BNB（数字沿用 CT Packs 已验证的定价心智）
+- 付费档位：单包 0.002 BNB · 十连 0.02（10 包）· 百连 0.2（100 包）——单包价统一 0.002 BNB，量涨价不涨；合约 `TIER_QTY=[1,10,100]` 与 UI 逐字一致（数字沿用 CT Packs 已验证的定价心智）
 - **积分不可提现**、无任何收益话术
 
 ## 5. Agent ID 强制使用的流程清单（提交材料用）
@@ -203,7 +203,7 @@ D16–D18 日常运营 + 免费包回访维持
 
 | 齿轮 | 机制 | 本项目落地 |
 |---|---|---|
-| ① 三层包漏斗 | 首充 $1.3 / 日常 $13×3 / 鲸鱼 $130 | ✅ 合约 `TIER_PRICE` 三档已就位 |
+| ① 三层包漏斗 | 单包 $1.3 / 十连 / 百连 · 创世绝版 | ✅ 合约 `TIER_PRICE`+`TIER_QTY` 对齐，单包价统一 |
 | ② 卖保底不卖彩票 | 黑包保底 UR、彩虹保底 SSR | ✅ 双保底已实现（首包 SSR + 每 10 张 SR） |
 | ③ 赛季限定 | 付费包出"限定版"强化卡，**赛季结束停售** | 📅 **排 S1**（见 10.3） |
 | ④ 免费玩家引擎 | 免费包+13 任务+连登养日活 → 裂变观众 | ✅ 已实现 |

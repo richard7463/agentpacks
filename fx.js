@@ -192,6 +192,8 @@ qa('.tab').forEach(t=>t.onclick=()=>switchTab(t.dataset.v));
 if(FINE&&!CALM){
   const cur=document.createElement('div');cur.className='cursor';cur.innerHTML='<span></span>';document.body.appendChild(cur);
   let x=innerWidth/2,y=innerHeight/2,cx=x,cy=y;
+  cur.style.opacity=0; // 首次移动前不可见：避免静止在屏幕中央的幽灵圈
+  addEventListener('pointermove',()=>{if(cur.style.opacity==='0')cur.style.opacity=1},{passive:true,once:true});
   const sense=t=>{
     const lab=t&&t.closest('.tear-zone')?'划开':t&&t.closest('#heroPackWrap,#bp')?'撕开':t&&t.closest('.slot:not(.done)')?'翻开':t&&t.closest('#cGrid .cg')?'查看':'';
     cur.classList.toggle('label',!!lab);cur.querySelector('span').textContent=lab;

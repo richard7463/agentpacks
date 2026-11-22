@@ -70,7 +70,7 @@
   <section class="odds-block" aria-labelledby="oddsH">
     <div class="sec-head">
       <h2 id="oddsH">每 1000 张卡里，各稀有度有几张</h2>
-      <p>概率写死在合约常量里，没有任何函数能改它。</p>
+      <p>概率写死在合约常量里，没有任何函数能改它。色带按真实 ‰ 等比绘制——最细那 1‰ 就是 1 个像素宽。</p>
     </div>
     <div id="oddsLadder"></div>
   </section>
@@ -219,7 +219,7 @@
         <h3>怎么玩</h3>
         <ol class="gate-how">
           <li>从收藏里挑最多 3 张电路卡，叠成你 Agent 的规则栈。所有规则都通过，才算规则放行。</li>
-          <li>每笔请求有 6 秒。不动手，就按规则的判定自动处理；按 <kbd>←</kbd> 拦截、<kbd>→</kbd> 放行，就是人工推翻。</li>
+          <li>每笔请求有 6 秒。不动手，就按规则的判定自动处理；按 <kbd>A</kbd> 拦截、<kbd>D</kbd> 放行（方向键 ← → 也行），就是人工推翻。</li>
           <li>请求里混着骗局：仿冒的 .ai、重复扣款、天价「紧急退款」。拦下骗局，放行真账单。</li>
         </ol>
       </div>
@@ -324,25 +324,26 @@
 
   <div class="shop">
     <article class="tier">
-      <h3>首充包</h3>
+      <h3>单包</h3>
       <div class="price">0.002<em>BNB</em></div>
-      <ul><li>10 个普通包</li><li>1 个黑包，保底 UR</li><li>每人限购 1 次</li></ul>
-      <button class="btn ghost wide" data-buy="0">领 11 包</button>
+      <ul><li>1 个包 = 5 张卡</li><li>单包价，随买随开</li><li>第 5 张保底 SR+</li></ul>
+      <button class="btn ghost wide" data-buy="0">开 1 包</button>
     </article>
     <article class="tier">
-      <h3>每日限量</h3>
+      <h3>十连</h3>
       <div class="price">0.02<em>BNB</em></div>
-      <ul><li>10 个金包</li><li>3 个彩虹包，保底 SSR</li><li>每天限 3 次</li></ul>
-      <button class="btn ghost wide" data-buy="1">领 13 包</button>
+      <ul><li>10 个包 = 50 张卡</li><li>单包价 ×10，不涨价</li><li>积分 +50，兑 SR 提速</li></ul>
+      <button class="btn ghost wide" data-buy="1">开 10 包</button>
     </article>
     <article class="tier featured">
       <span class="tier-tag">第 1 季起停售</span>
-      <h3>创世包</h3>
+      <h3>百连 · 创世</h3>
       <div class="price">0.2<em>BNB</em></div>
-      <ul><li>100 个普通包</li><li>20 个彩虹包 + 2 个黑包</li><li>停售后永久绝版</li></ul>
-      <button class="btn primary wide" data-buy="2">领 122 包</button>
+      <ul><li>100 个包 = 500 张卡</li><li>单包价 ×100，不涨价</li><li>停售后永久绝版纪念</li></ul>
+      <button class="btn primary wide" data-buy="2">开 100 包</button>
     </article>
   </div>
+  <p class="sub shop-note">三档单包价统一 <span class="mono">0.002 BNB</span>，十连/百连只是数量（合约 <span class="mono">TIER_QTY = [1,10,100]</span>）。演示档免费发放，不扣钱。</p>
   <p class="sub shop-note">演示档里三档都免费发放，不会扣任何钱。</p>
   <div class="row"><button class="btn ghost sm" id="bFollow">关注 @agentpacks，领 10 包（演示）</button></div>
 </section>

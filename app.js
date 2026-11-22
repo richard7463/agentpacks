@@ -82,7 +82,7 @@ function oddsLadderHTML(){
   const strip=RAR.map((r,i)=>`<i class="r${i}" style="--g:${ODDS[i]}" title="${r} ${ODDS[i]}‰"></i>`).join('');
   const legend=RAR.map((r,i)=>{
     const every=Math.round(1000/ODDS[i]);
-    return `<div class="r${i}"><b>${r}</b><span>${ODDS[i]}‰</span><em>${every<=1?'几乎每张':'约每 '+every+' 张 1 张'}</em></div>`;
+    return `<div class="r${i}"><b>${r}</b><span>${ODDS[i]}‰</span><em>${every<=1?'几乎每张':'约每 '+every+' 张出 1 张'}</em></div>`;
   }).join('');
   return `<div class="odds-strip" role="img" aria-label="稀有度概率：${RAR.map((r,i)=>r+' '+ODDS[i]+'‰').join('，')}">${strip}</div><div class="odds-legend">${legend}</div>`;
 }
@@ -773,7 +773,7 @@ $('#bReset').onclick=()=>{
 
 /* ══════════ 补给 ══════════ */
 $$('[data-buy]').forEach(b=>b.onclick=()=>{
-  const t=+b.dataset.buy;const n=[10,13,122][t];
+  const t=+b.dataset.buy;const n=[1,10,100][t];
   for(let i=0;i<n;i++)S.packs.push(1);
   beep(523,.12);toast('已到账 '+n+' 包（演示档）');save();renderAll();
 });
@@ -863,7 +863,7 @@ function renderChain(){
     </div>
     <div class="chain-sep"></div>
     <div class="chain-actions">
-      <button class="btn" id="bCBuy">买首充包 0.002 BNB</button>
+      <button class="btn" id="bCBuy">买单包 0.002 BNB</button>
       <button class="btn" id="bCJoin">入池 claimIntoPool</button>
       <button class="btn ghost" id="bCLeave">退池 leavePool</button>
     </div>
@@ -1028,7 +1028,7 @@ function renderGate(){
   $('#gateHint').textContent=gateSel.length?'规则越多越严，也越容易误杀真账单。':'不放规则也能玩，但每一笔都得你自己判断。';
   const best=S.gateBest;
   $('#gateBest').innerHTML=best?`<span class="gb-k">你的最好成绩</span><b class="grade g${best.g}">${best.g}</b><span>拦下 $${usd(best.saved)} · 被骗 $${usd(best.lost)}</span>`
-    :`<span class="gb-k">还没打过</span><b class="grade">—</b><span>评级 S 奖励 3 包，A 2 包，B 1 包</span>`;
+    :`<span class="gb-k">还没打过</span><b class="grade none">N/A</b><span>评级 S 奖励 3 包，A 2 包，B 1 包</span>`;
 }
 function gateStart(){
   G={qs:gateMake(),i:0,stack:gateSel.map(id=>S.cards.find(c=>c.id===id)).filter(Boolean),
@@ -1094,7 +1094,14 @@ function gateDecide(pass){
 }
 function gateEnd(){
   const acc=G.right/GATE_N;
-  const g=G.lost===0&&G.miss===0?'S':acc>=.8&&G.lost<5000?'A':acc>=.6?'B':'C';
+  // 两种失败分开算：漏放骗局（lost>0）与误杀真账单（miss>0）
+  let g;
+  if(G.lost===0&&G.miss===0)g='S';
+  else if(G.lost>0)g=G.lost>=10000?'C':(G.lost<=2000&&acc>=.7?'A':'B'); // 被骗优先扣评级
+  else g=G.miss<=2?'A':(G.miss<=4?'B':'C'); // 没被骗但拦太严
+  const title=G.lost>0
+    ?{A:'守得很稳，只是漏了一笔小额',B:'还有漏洞，被骗了 '+usd(G.lost),C:'Agent 被掏空了'}[g]
+    :{A:'没被骗，误杀在 2 笔以内',B:'守得太严：真账单被拦了 '+G.miss+' 笔',C:'全是误杀，正常账单全停'}[g];
   const packs={S:3,A:2,B:1,C:0}[g];
   S.mis.gate=(S.mis.gate||0)+1;
   for(let i=0;i<packs;i++)S.packs.push(1);
@@ -1108,7 +1115,7 @@ function gateEnd(){
   end.innerHTML=`<div class="gate-result">
     <b class="grade big g${g}">${g}</b>
     <div>
-      <h3>${{S:'一笔没漏，一笔没错',A:'守得很稳',B:'还有漏洞',C:'Agent 被掏空了'}[g]}</h3>
+      <h3>${g==='S'?'一笔没漏，一笔没错':title}</h3>
       <p class="sub">判对 ${G.right} / ${GATE_N} 笔 · 拦下骗局 $${usd(G.saved)} · 被骗走 $${usd(G.lost)} · 误杀 ${G.miss} 笔</p>
       <p class="sub">规则栈：${stack}</p>
       <p class="sub">奖励：${packs?packs+' 包 + ':''}${G.right*2} 分。主网上，每一笔的规则判定都能用 <span class="mono">checkPayment()</span> 原样重放。</p>

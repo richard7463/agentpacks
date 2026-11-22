@@ -12,7 +12,7 @@ pragma solidity ^0.8.24;
   链上证据）：
 
     1. claimDailyPack   每日免费包（24h 冷却）
-    2. buyPack          付费包（BNB，50% 当笔销毁 + 50% 进公示奖池）
+    2. buyPack          付费包（BNB，50% 当笔销毁 + 50% 进公示奖池；三档 = 单包/十连/百连）
     3. packCommit       开包承诺（commit-reveal 第一段）
     4. packReveal       开包（commit-reveal 第二段，5 张卡，保底生效）
     5. claimIntoPool    正主自愿把 .ai 身份入卡池（opt-in；被抽到得积分）
@@ -97,6 +97,8 @@ contract AgentPackCore {
 
     /// @notice 付费包三档价格（BNB）：首充 / 每日限量 / 创世——无 setter
     uint256[3] public TIER_PRICE = [0.002 ether, 0.02 ether, 0.2 ether];
+    /// @notice 三档购买数量：1 / 10 / 100 包（单包价统一 0.002 BNB）
+    uint16[3] public TIER_QTY = [1, 10, 100];
 
     uint64 public constant DAILY_COOLDOWN   = 24 hours;
     uint32 public constant PITY_SR_EVERY    = 10;  // 连续 10 张无 SR+，第 10 张强制 ≥SR
@@ -198,15 +200,22 @@ contract AgentPackCore {
     }
 
     /*──────────────────── 2 · 付费包 ────────────────────*/
+    /// @dev 三档 = 单包(1)/十连(10)/百连(100)，单包价统一 0.002 BNB：
+    ///      0.002 / 0.02 / 0.2 正好是 数量 × 单包价。第一个包当场铸造，
+    ///      其余记入 pendingBonusPacks（claimDailyPack 逐包领取、无冷却），
+    ///      避免百连铸造 100 个包 ID 的 gas 尖峰。
     function buyPack(uint8 tier) external payable onlyAgent returns (uint256 packId) {
         if (tier >= 3) revert BadTier();
         uint256 price = TIER_PRICE[tier];
         if (msg.value != price) revert BadValue();
 
-        packId = _newPack(msg.sender, tier); // 先记账（effects），后转账（interactions）
+        uint16 qty = TIER_QTY[tier];
+        if (qty > 1) pendingBonusPacks[msg.sender] += qty - 1; // 先记账（effects）
+
+        packId = _newPack(msg.sender, tier);
         emit PackBought(packId, msg.sender, tier);
 
-        uint256 half = price / 2;
+        uint256 half = price / 2; // 后转账（interactions）
         (bool ok1, ) = BURN.call{value: half}("");
         (bool ok2, ) = prizePool.call{value: price - half}("");
         require(ok1 && ok2, "split failed");

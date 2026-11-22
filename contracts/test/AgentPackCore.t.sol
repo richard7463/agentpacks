@@ -122,6 +122,39 @@ contract AgentPackCoreTest is Test {
         assertEq(core.packCount(), 1);
     }
 
+    function test_BuyPack_Bundles_MatchQtyAndPending() public {
+        // tier1 十连：付 0.02，当场 1 个包 + 9 个 pending；逐包 claim 无冷却
+        vm.startPrank(alice);
+        uint256 pid = core.buyPack{value: 0.02 ether}(1);
+        vm.stopPrank();
+        assertEq(core.packCount(), 1, "first pack minted immediately");
+        assertEq(core.pendingBonusPacks(alice), 9, "9 packs pending");
+
+        uint256 lastId = pid;
+        for (uint256 i = 0; i < 9; i++) {
+            vm.prank(alice);
+            uint256 id = core.claimDailyPack(); // 消耗 pending，不走冷却
+            assertGt(id, lastId);
+            lastId = id;
+        }
+        assertEq(core.pendingBonusPacks(alice), 0);
+        // pending 清空后，当天再领免费包应当被冷却挡住（bob 对照）
+        vm.prank(bob);
+        core.claimDailyPack();
+        vm.prank(bob);
+        vm.expectRevert(AgentPackCore.DailyCooldown.selector);
+        core.claimDailyPack();
+
+        // tier2 百连：付 0.2 = 100 × 单包价，99 个 pending
+        vm.prank(alice);
+        core.buyPack{value: 0.2 ether}(2);
+        assertEq(core.pendingBonusPacks(alice), 99, "99 packs pending");
+        // 单包价检查：三档 TIER_PRICE == TIER_QTY × 0.002
+        for (uint8 t = 0; t < 3; t++) {
+            assertEq(core.TIER_PRICE(t), uint256(core.TIER_QTY(t)) * 0.002 ether, "uniform per-pack price");
+        }
+    }
+
     function test_BuyPack_BadValueAndTier() public {
         vm.startPrank(alice);
         vm.expectRevert(AgentPackCore.BadValue.selector);

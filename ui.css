@@ -174,8 +174,8 @@ h1,h2,.u-copy h2,.sec-head h2{text-wrap:balance}
 .sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:34px;flex-wrap:wrap}
 .sec-head h2{font-size:clamp(28px,3.4vw,46px);line-height:1.08;letter-spacing:-.03em;max-width:16em}
 .sec-head p{color:var(--mist);font-size:15px;max-width:22em}
-.odds-strip{display:flex;height:64px;border-radius:12px;overflow:hidden;gap:2px}
-.odds-strip i{flex:var(--g) 0 0;min-width:5px;background:var(--rc);position:relative}
+.odds-strip{display:flex;height:64px;border-radius:12px;overflow:hidden;gap:0}
+.odds-strip i{flex:var(--g) 1 0;min-width:1px;background:var(--rc);position:relative}
 .odds-strip i:first-child{border-radius:12px 0 0 12px}
 .odds-strip i:last-child{border-radius:0 12px 12px 0}
 .odds-strip i.r6,.odds-strip i.r5{background:var(--foil-l);background-size:300% 100%;animation:markShift 6s linear infinite}
@@ -550,7 +550,7 @@ h1,h2,.u-copy h2,.sec-head h2{text-wrap:balance}
 }
 @media(max-width:980px){
   .hero{grid-template-columns:1fr;min-height:0;gap:10px;padding:30px 0 60px}
-  .hero-art{order:-1}
+  .hero-art{order:2;transform:scale(.92)}
   .pack-wrap{width:min(220px,52%)}
   .pack-hint{display:none}
   .utility{grid-template-columns:1fr;gap:48px}
@@ -609,7 +609,7 @@ h1,h2,.u-copy h2,.sec-head h2{text-wrap:balance}
 
 /* ══════════ 守门人 ══════════ */
 .tab-new{display:inline-block;margin-left:5px;padding:0 6px;border-radius:99px;font-size:10px;font-weight:700;line-height:16px;color:var(--ink);background:var(--foil-l);background-size:200% 100%;vertical-align:2px}
-kbd{display:inline-block;min-width:22px;padding:0 6px;border-radius:6px;border:1px solid var(--line2);border-bottom-width:2px;font-family:var(--f-mono);font-size:12px;line-height:20px;text-align:center;color:var(--paper)}
+kbd{display:inline-block;min-width:22px;padding:0 6px;border-radius:6px;border:1px solid var(--line2);border-bottom-width:2px;font-family:var(--f-mono),"Noto Sans SC",system-ui,sans-serif;font-size:12px;line-height:20px;text-align:center;color:var(--paper)}
 .gate-intro{display:grid;grid-template-columns:1.4fr .6fr;gap:40px;align-items:start;padding:30px 34px;margin-bottom:12px;border-radius:20px;background:linear-gradient(140deg,var(--ink3),var(--ink2));box-shadow:inset 0 0 0 1px var(--line)}
 .gate-intro h3{font-size:22px;margin-bottom:14px}
 .gate-how{padding-left:22px;display:grid;gap:10px;color:var(--paper2);font-size:15px;line-height:1.75}
@@ -618,6 +618,7 @@ kbd{display:inline-block;min-width:22px;padding:0 6px;border-radius:6px;border:1
 .gate-best .gb-k{font-size:13px;color:var(--mist)}
 .gate-best span:last-child{font-size:13px;color:var(--mist)}
 .grade{font-family:var(--f-disp);font-stretch:125%;font-weight:900;font-size:72px;line-height:.95;letter-spacing:-.05em;color:var(--mist2)}
+.grade.none{font-size:26px;color:var(--mist2);letter-spacing:0}
 .grade.gS{background:var(--foil-l);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:markShift 4s linear infinite}
 .grade.gA{color:var(--pass)}.grade.gB{color:var(--r5)}.grade.gC{color:var(--fail)}
 .gate-stack{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
@@ -820,6 +821,7 @@ kbd{display:inline-block;min-width:22px;padding:0 6px;border-radius:6px;border:1
 @keyframes vtOut{to{opacity:.4;transform:translateX(-30px)}}
 
 /* 指针：跟手的圆环 + 情境标签 */
+@media(hover:none){.cursor{display:none!important}}
 .cursor{position:fixed;left:0;top:0;z-index:400;pointer-events:none;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;
   border:1.5px solid rgba(242,239,255,.65);transition:width .3s var(--ease),height .3s var(--ease),margin .3s var(--ease),background .3s,border-color .3s;
   display:grid;place-items:center;mix-blend-mode:difference}
