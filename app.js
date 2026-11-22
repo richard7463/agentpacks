@@ -515,6 +515,26 @@ function detail(id){
           <span class="chip ${S.equipped===c.id?'teal':''}">${S.equipped===c.id?'生效中':'未装备'}</span></div>
         <div class="rb-name">${ruleName(c)}</div>
         <p class="rb-desc">${ruleLong(c)}</p>
+        <div class="stack4">
+          <div class="s4 ${c.taped?'on':''}">
+            <span class="s4-n">1 芯</span><b>电路</b>
+            <span class="s4-v">${c.taped?'circuit #'+c.taped.id+' · '+c.taped.gates+' 门 NAND · 可转售'
+              :(c.kind===1?'身份卡走注册表，无需流片':'未流片 · tapeOut() 后成真身')}</span>
+            ${(!c.taped&&c.kind===0)?'<button class="s4-btn" id="mTape">流片</button>':''}
+          </div>
+          <div class="s4 ${c.ovr!=null?'on':''}">
+            <span class="s4-n">2 魂</span><b>参数</b>
+            <span class="s4-v">${c.ovr!=null?'已自定义 · '+ruleShort(c):'卡档位 · '+ruleShort(c)}</span>
+          </div>
+          <div class="s4 on">
+            <span class="s4-n">3 证</span><b>证书</b>
+            <span class="s4-v">ruleOf(#${c.id}) 链上可读 · 卡面规则句 ✓</span>
+          </div>
+          <div class="s4 ${((S.mis.gate||0)>0&&S.equipped===c.id)?'on':''}">
+            <span class="s4-n">4 履</span><b>履历</b>
+            <span class="s4-v">checkPayment() 可复算 ✓${(S.mis.gate||0)>0?' · 守门 '+S.mis.gate+' 局':''}</span>
+          </div>
+        </div>
         
         <div class="rb-test">
           <input class="inp" id="chkAmt" type="number" min="0" step="0.01" placeholder="金额 USD" ${c.kind===1?'disabled':''}>
@@ -550,6 +570,14 @@ function detail(id){
     </div>
   </div>`;
   $('#mmodal').classList.add('on');
+  const mT=$('#mTape');
+  if(mT)mT.onclick=()=>{
+    S.tapeSeq=(S.tapeSeq||0)+1;
+    c.taped={id:S.tapeSeq,gates:11};save();
+    beep(880,.12);beep(1320,.2,'triangle',.06);
+    toast('流片完成 · circuit #'+S.tapeSeq+'（演示标记，主网 = tapeOut(cardId) 真实买 NAND）');
+    detail(id);
+  };
   const mt=$('#mTheater');
   if(mt)mt.onclick=()=>{$('#mmodal').classList.remove('on');switchTab('theater')};
   const ck=$('#chkBtn');
