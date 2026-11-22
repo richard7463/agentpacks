@@ -76,7 +76,12 @@ contract AgentPackCore is ERC721 {
     function claimIntoPool() external;   // .ai 校验；身份入池，被抽到即分润
     function leavePool() external;       // 退出：已流通卡停发进入"绝版"状态
 
-    function equip(uint256 cardId) external;      // .ai 校验；设置当前生效电路
+    // ── 流片：参数卡 → 真身 circuit NFT（docs/economy.md 三重收入的第二重）──
+    function tapeOut(uint256 cardId) external payable; // 买 NAND 逐门烧 → circuit NFT 归卡主，可转售
+    function tapeCost(uint256 cardId) external view returns (uint256 cost, uint256 gates);
+    mapping(uint256 => uint256) public cardCircuit;    // 卡 → circuit NFT（0 = 未流片）
+
+    function equip(uint256 cardId) external;      // .ai 校验；电路卡须已流片（NotTaped）
     function unequip() external;
     mapping(address => uint256) public activeCircuit; // 我的 Agent 当前穿哪张卡
 
