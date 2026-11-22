@@ -567,7 +567,7 @@ function dealCards(){
       d.innerHTML=`<div class="fcard">
         <div class="face back"><span class="bk-r">${RAR[c.r]}</span><span class="bt">Agent Packs</span></div>
         <div class="face front">
-          <div class="art">${artSVG(c,220,314)}</div>
+          ${c.kind===1?faceHTML(c):`<div class="art">${artSVG(c,220,314)}</div>`}
           <div class="scrim"></div>
           <div class="fbody">
             <div class="fr">${RAR[c.r]}</div>
