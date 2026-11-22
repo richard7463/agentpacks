@@ -16,6 +16,10 @@ const HOUSE=[
   {n:'抄底电路',s:'低血斩杀',d:'对 HP 低于 25% 的敌人伤害 ×2'},
   {n:'杠杆电路',s:'高伤自损',d:'攻击 +80%，每次出手自损 6% 生命'},
   {n:'钻石手电路',s:'坚壁反弹',d:'受伤 -30%，并反弹 25% 伤害'},
+  {n:'封控电路',s:'绝境壁垒',d:'首次受到致命伤害时免疫该次伤害，并封控自身 1 回合'},
+  {n:'双签电路',s:'联署强击',d:'场上每多一名存活队友，攻击 +35%'},
+  {n:'会签电路',s:'议会裁决',d:'队友存活过半时，攻击 +50% 且受伤 -25%'},
+  {n:'委托电路',s:'限时附体',d:'开局前 3 回合攻击 +70%，之后回归常态'},
 ];
 const CHAPTERS=[
   {id:'c17',t:'ICO 狂潮',y:'2017',d:'人人都在发币，泡沫最高处',lvl:1},
@@ -93,21 +97,32 @@ $('#oddsLadder2').innerHTML=oddsLadderHTML();
 function statsOf(c){return{atk:Math.round(5+c.r*3.2+c.star*2),def:Math.round(4+c.r*2.4+c.star*2),rat:Math.min(99,Math.round(57+c.r*5.6+c.star*3.4))}}
 
 /* ────────── 规则电路：与合约 ruleOf / checkPayment 同参数 ────────── */
+/* ── 四类电路卡（docs/four-circuit-families.md）：① 交易 ② 风控 ③ 安全 ④ 协作 ── */
+const FAM=[
+  {n:'交易',tag:'TRADE',d:'管额度：一天一笔能花多少'},
+  {n:'风控',tag:'LOCK', d:'管刹车：什么时候必须停'},
+  {n:'安全',tag:'SEC',  d:'管对手：钱能付给谁'},
+  {n:'协作',tag:'TRUST',d:'管签字的人：谁点头才算数'},
+];
 const RULE_DEF=[
-  {n:'止损电路', s:p=>`每日 ≤ $${usd(p)}`, l:p=>`每天最多支出 $${usd(p)}；超出需人工放行。`},
-  {n:'梭哈电路', s:p=>`单笔 ≤ $${usd(p)}`, l:p=>`单笔支付不超过 $${usd(p)}，超过直接拒绝。`},
-  {n:'风控电路', s:()=>'只付 Agent ID', l:()=>'只允许付给持有 Binance Agent ID 的地址，其余一律拒绝。'},
-  {n:'加仓电路', s:p=>`$${usd(p)} 起 +2%/笔`, l:p=>`当日额度从 $${usd(p)} 起，每成功一笔上浮 2%，当日有效。`},
-  {n:'清仓电路', s:p=>`每日 ≤ ${p} 笔`, l:p=>`每天最多 ${p} 笔支付，超出需等次日。`},
-  {n:'抄底电路', s:p=>`≤ $${usd(p)} 免确认`, l:p=>`单笔不超过 $${usd(p)} 直接放行；更大金额需人工确认。`},
-  {n:'杠杆电路', s:p=>`上限 $${usd(p)} · 半额需人工`, l:p=>`单笔上限 $${usd(p)}；超过一半额度时必须人工确认。`},
-  {n:'钻石手电路', s:p=>`间隔 ≥ ${Math.round(p/60)} 分钟`, l:p=>`两笔支付之间至少间隔 ${Math.round(p/60)} 分钟，防止手滑连发。`},
-  {n:'身份卡 · 指定收款方', s:()=>'只付给正主', l:p=>`只允许付给这张身份卡的正主（${p}），链上按地址校验。`},
+  {f:0,n:'止损电路', s:p=>`每日 ≤ $${usd(p)}`, l:p=>`每天最多支出 $${usd(p)}；超出需人工放行。`},
+  {f:0,n:'梭哈电路', s:p=>`单笔 ≤ $${usd(p)}`, l:p=>`单笔支付不超过 $${usd(p)}，超过直接拒绝。`},
+  {f:2,n:'白名单电路', s:()=>'只付 Agent ID', l:()=>'只允许付给持有 Binance Agent ID 的地址，其余一律拒绝。'},
+  {f:0,n:'加仓电路', s:p=>`$${usd(p)} 起 +2%/笔`, l:p=>`当日额度从 $${usd(p)} 起，每成功一笔上浮 2%，当日有效。`},
+  {f:0,n:'清仓电路', s:p=>`每日 ≤ ${p} 笔`, l:p=>`每天最多 ${p} 笔支付，超出需等次日。`},
+  {f:0,n:'抄底电路', s:p=>`≤ $${usd(p)} 免确认`, l:p=>`单笔不超过 $${usd(p)} 直接放行；更大金额需人工确认。`},
+  {f:2,n:'杠杆电路', s:p=>`上限 $${usd(p)} · 半额需人工`, l:p=>`单笔上限 $${usd(p)}；超过一半额度时必须人工确认。`},
+  {f:1,n:'钻石手电路', s:p=>`间隔 ≥ ${Math.round(p/60)} 分钟`, l:p=>`两笔支付之间至少间隔 ${Math.round(p/60)} 分钟，防止手滑连发。`},
+  {f:1,n:'封控电路', s:p=>`被骗即全锁 ${Math.round(p/3600)} 小时`, l:p=>`当日一旦被骗，立即封锁 ${Math.round(p/3600)} 小时：期间任何支付一律拒绝，先止血再复盘。`},
+  {f:3,n:'双签电路', s:p=>`超 $${usd(p/2)} 需双人`, l:p=>`单笔不超过 $${usd(p/2)} 直接放行；到 $${usd(p)} 为止需两个人批准；再多直接拒绝。`},
+  {f:3,n:'会签电路', s:p=>`超额需 ${p.p2||2} 人会签`, l:p=>`额度内直放；单笔超过 $${usd(p.p1)} 需要 ${p.p2||2} 人同时批准——像董事会，不是一个人说了算。`},
+  {f:3,n:'委托电路', s:p=>`限时 ${Math.round(p/3600)} 小时 · 指定收款方`, l:p=>`只在 ${Math.round(p/3600)} 小时窗口内、只付给你指定的那个收款方；窗口一过自动失效，无需撤销操作。`},
+  {f:2,n:'身份卡 · 指定收款方', s:()=>'只付给正主', l:p=>`只允许付给这张身份卡的正主（${p}），链上按地址校验。`},
 ];
 function usd(cents){const v=cents/100;return Number.isInteger(v)?v.toFixed(0):v.toFixed(2)}
 function ruleDerived(c){
-  if(c.kind===1){const p=S.pool[c.ref];return{t:8,p1:p?p.name:'—',p2:0}}
-  const mult=100+c.r*40+c.star*20,t=c.ref%8;let p1=0,p2=0;
+  if(c.kind===1){const p=S.pool[c.ref];return{t:12,p1:p?p.name:'—',p2:0}}
+  const mult=100+c.r*40+c.star*20,t=c.ref%12;let p1=0,p2=0;
   if(t===0)p1=2000*mult/100;
   else if(t===1)p1=5000*mult/100;
   else if(t===3){p1=3000*mult/100;p2=2}
@@ -115,8 +130,13 @@ function ruleDerived(c){
   else if(t===5)p1=500*mult/100;
   else if(t===6)p1=10000*mult/100;
   else if(t===7){const cut=c.r*300+c.star*120;p1=cut<3600?3600-cut:300}
+  else if(t===8)p1=7200*mult/100;                                   // 封控：锁 2 小时 × mult
+  else if(t===9)p1=5000*mult/100;                                    // 双签：基准 $50
+  else if(t===10){p1=5000*mult/100;p2=2+Math.floor(c.star/2)}        // 会签：M = 2 + star/2
+  else if(t===11)p1=12*3600*mult/100;                                // 委托：窗口 12h × mult
   return{t,p1,p2};
 }
+function famOf(c){return RULE_DEF[ruleDerived(c).t].f}
 // 卡主可编辑的数值（TapeID：不可变电路 + 用户签名参数）。ovr 存在卡对象上，
 // 主网对应 setRuleConfig(cardId, cfg)——只有卡主能改，电路字节永不变。
 function ruleParams(c){
@@ -157,6 +177,10 @@ function checkRule(c,amountCents,payeeHasId,spent,count,lastAt,approved){
   if(t===5)return amountCents<=p1?[1,'小额免确认']:approved?[1,'人工放行']:[0,'需人工确认'];
   if(t===6)return amountCents>p1?[0,'超出上限']:(amountCents*2>p1&&!approved)?[0,'超过一半 · 需人工']:[1,'额度内'];
   if(t===7)return(lastAt===0||Date.now()/1000>=lastAt+p1)?[1,'冷却已满足']:[0,'冷却未到'];
+  if(t===8)return[1,'（未触发）当日一旦被骗将全锁 '+Math.round(p1/3600)+' 小时'];
+  if(t===9)return amountCents*2<=p1?[1,'半额内直放']:(amountCents<=p1?(approved?[1,'双签通过']:[0,'需双人批准']):[0,'超出双签额度']);
+  if(t===10)return amountCents<=p1?[1,'额度内直放']:(approved?[1,'会签通过（'+p2+' 人）']:[0,'需 '+p2+' 人会签']);
+  if(t===11)return payeeHasId?[1,'窗口内 · 指定收款方']:[0,'不在委托名单 / 已出窗口'];
   return[0,'身份卡需在链上按地址校验'];
 }
 function artSVG(c,w=200,h=286){
@@ -231,15 +255,15 @@ function artSVG(c,w=200,h=286){
   </svg>`;
 }
 function makeCard(r){
-  let kind=0,ref=Math.floor(Math.random()*8);
+  let kind=0,ref=Math.floor(Math.random()*12);
   const act=S.pool.filter(p=>p.active);
   if(r>=3&&act.length&&Math.random()<0.6){const p=act[Math.floor(Math.random()*act.length)];
     kind=1;ref=S.pool.indexOf(p);p.pulls=(p.pulls||0)+1;}
   return{id:S.nextId++,r,star:0,kind,ref};
 }
-function cname(c){return c.kind===1?S.pool[c.ref].name:HOUSE[c.ref].n}
-function cskill(c){return HOUSE[c.kind===1?(c.ref%8):c.ref].s}
-function cdesc(c){return HOUSE[c.kind===1?(c.ref%8):c.ref].d}
+function cname(c){return c.kind===1?S.pool[c.ref].name:HOUSE[c.ref%12].n}
+function cskill(c){return HOUSE[c.ref%12].s}
+function cdesc(c){return HOUSE[c.ref%12].d}
 function open5(){
   const out=[];
   for(let i=0;i<5;i++){
@@ -269,7 +293,7 @@ function cardHTML(c){
     ${eq?'<span class="eqd">已穿上</span>':''}
     <div class="foot">
       <div class="name">${cname(c)}</div>
-      <div class="skill ruleline">${ruleShort(c)}</div>
+      <div class="skill ruleline"><i class="famdot f${c.kind===1?2:RULE_DEF[ruleDerived(c).t].f}"></i>${ruleShort(c)}</div>
       <div class="nums"><span>ATK <b>${st.atk}</b></span><span>DEF <b>${st.def}</b></span><span>RAT <b>${st.rat}</b></span></div>
     </div>
   </div>`;
@@ -466,6 +490,10 @@ $$('[data-sort]').forEach(b=>b.onclick=()=>{
 });
 function renderCards(){
   const g=$('#cGrid');g.innerHTML='';
+  const fb=$$('#cFam .seg-b');
+  fb.forEach(b=>b.onclick=()=>{S.famF=+b.dataset.fam;save();renderCards()});
+  if(S.famF===undefined)S.famF=-1;
+  fb.forEach(b=>b.classList.toggle('on',+b.dataset.fam===S.famF));
   if(!S.cards.length){
     g.innerHTML=`<div class="empty" style="grid-column:1/-1">
       <div class="e-fan"><div class="e-card c0">C</div><div class="e-card c1">LR</div><div class="e-card c2">SR</div></div>
@@ -479,7 +507,8 @@ function renderCards(){
     $('#cstat').textContent='0 张';
     return;
   }
-  const arr=[...S.cards].sort((a,b)=>sortMode==='id'?a.id-b.id:sortMode==='atk'?statsOf(b).atk-statsOf(a).atk:(b.r-a.r||b.id-a.id));
+  const arr=[...S.cards].filter(c=>S.famF<0||(c.kind===1?2:RULE_DEF[ruleDerived(c).t].f)===S.famF)
+    .sort((a,b)=>sortMode==='id'?a.id-b.id:sortMode==='atk'?statsOf(b).atk-statsOf(a).atk:(b.r-a.r||b.id-a.id));
   const eqc=S.cards.find(x=>x.id===S.equipped);
   $('#cstat').textContent='共 '+S.cards.length+' 张 · '+(eqc?'生效中 #'+eqc.id+' · '+ruleName(eqc)+' · '+ruleShort(eqc):'未装备规则');
   arr.forEach((c,i)=>{
@@ -512,7 +541,8 @@ function detail(id){
       </div>
       <div class="rulebox">
         <div class="rb-head"><span class="eyebrow" style="margin:0">这张卡的规则</span>
-          <span class="chip ${S.equipped===c.id?'teal':''}">${S.equipped===c.id?'生效中':'未装备'}</span></div>
+          <span class="chip fam${c.kind===1?2:RULE_DEF[edT].f}">${c.kind===1?'安全 · 身份':FAM[RULE_DEF[edT].f].n+' · '+FAM[RULE_DEF[edT].f].tag}</span>
+          <span class="chip ${S.equipped===c.id?'teal':''}" style="margin-left:auto">${S.equipped===c.id?'生效中':'未装备'}</span></div>
         <div class="rb-name">${ruleName(c)}</div>
         <p class="rb-desc">${ruleLong(c)}</p>
         <div class="stack4">
@@ -630,7 +660,7 @@ $('#mmodal').onclick=e=>{if(e.target.id==='mmodal')$('#mmodal').classList.remove
 $('#bRedeem').onclick=()=>{
   if(S.pts<500)return toast('积分不够（需 500）');
   S.pts-=500;S.mis.redeem++;
-  S.cards.push({id:S.nextId++,r:3,star:0,kind:0,ref:Math.floor(Math.random()*8)});
+  S.cards.push({id:S.nextId++,r:3,star:0,kind:0,ref:Math.floor(Math.random()*12)});
   beep(784,.2,'triangle',.08);toast('兑换成功：1 张保底 SR');save();renderAll();
 };
 
@@ -684,12 +714,12 @@ function startChapter(ch){
   S.team=myCards;
   const mk=(c,side)=>{
     const st=statsOf(c);
-    return{n:side==='me'?cname(c):'野生·'+HOUSE[Math.floor(Math.random()*8)].n,
+    return{n:side==='me'?cname(c):'野生·'+HOUSE[Math.floor(Math.random()*12)].n,
       mhp:Math.round(side==='me'?100:66+ch.lvl*8),hp:0,atk:Math.max(3,Math.round(st.atk*(side==='me'?1:0.5+ch.lvl*0.1))),
-      sk:(c.kind===1?c.ref%8:c.ref),side,alive:true,buff:0,r:c.r};};
+      sk:(c.kind===1?c.ref%8:c.ref%12),side,alive:true,buff:0,r:c.r};};
   const team=myCards.map(id=>mk(S.cards.find(c=>c.id===id),'me'));
   B={ch,team,wave:1,boss:false,log:[],over:false};
-  B.foes=()=>[0,1,2].map(()=>mk({r:Math.min(5,Math.floor(Math.random()*4)+1),ref:Math.floor(Math.random()*8),kind:0,star:0},'en'));
+  B.foes=()=>[0,1,2].map(()=>mk({r:Math.min(5,Math.floor(Math.random()*4)+1),ref:Math.floor(Math.random()*12),kind:0,star:0},'en'));
   B.me=team.map(u=>({...u,hp:u.mhp}));
   $('#arena').classList.add('on');
   $('#arenaCh').textContent=ch.y+' · '+ch.t;
@@ -1187,9 +1217,11 @@ const rint=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 let G=null, gateSel=[];
 
 function gateEval(c,q,st){
-  const {t,p1}=ruleParams(c);
+  const {t,p1,p2}=ruleParams(c);
   if(t===7){const ok=st.lastAt===null||q.at-st.lastAt>=p1;return ok?[1,'冷却已满足']:[0,'距上一笔不到 '+Math.round(p1/60)+' 分钟']}
-  if(t===8)return q.payee===S.pool[c.ref]?.name?[1,'是正主']:[0,'不是这张卡的正主'];
+  if(t===8){const ok=!st.lockUntil||q.at>=st.lockUntil;return ok?[1,'未封控']:[0,'封控中 · 已锁 '+Math.round((st.lockUntil-q.at)/60)+' 分钟']}
+  if(t===12)return q.payee===S.pool[c.ref]?.name?[1,'是正主']:[0,'不是这张卡的正主'];
+  if(t===11)return q.payee===st.delegated&&q.at<=st.delegUntil?[1,'窗口内 · 是指定收款方']:[0,'不在委托窗口/名单'];
   return checkRule(c,q.amt,q.hasId,st.spent,st.count,0,false);
 }
 function gateMake(){
@@ -1243,7 +1275,7 @@ function renderGate(){
 }
 function gateStart(){
   G={qs:gateMake(),i:0,stack:gateSel.map(id=>S.cards.find(c=>c.id===id)).filter(Boolean),
-     st:{spent:0,count:0,lastAt:null},paid:0,saved:0,lost:0,miss:0,right:0,log:[],t0:0,raf:0,busy:false};
+     st:{spent:0,count:0,lastAt:null,lockUntil:0,delegated:S.pool.filter(p=>p.active)[0]?.name||'',delegUntil:1e18},paid:0,saved:0,lost:0,miss:0,right:0,log:[],t0:0,raf:0,busy:false};
   $('#gateSetup').hidden=true;$('#gateEnd').hidden=true;$('#gatePlay').hidden=false;
   $('#gLog').innerHTML='';
   gateShow();
@@ -1289,7 +1321,10 @@ function gateDecide(pass){
   let out,cls;
   if(go){
     G.st.spent+=q.amt;G.st.count++;G.st.lastAt=q.at;G.paid+=q.amt;
-    if(q.scam){G.lost+=q.amt;out='被骗';cls='bad';beep(150,.3,'sawtooth',.07)}
+    if(q.scam){G.lost+=q.amt;out='被骗';cls='bad';beep(150,.3,'sawtooth',.07);
+      const lock=G.stack.find(x=>ruleDerived(x).t===8); // 封控电路：被骗即锁
+      if(lock)G.st.lockUntil=q.at+ruleParams(lock).p1;
+    }
     else{G.right++;out='已付款';cls='ok';beep(660,.08)}
   }else{
     if(q.scam){G.saved+=q.amt;G.right++;out='拦下骗局';cls='ok';beep(880,.12,'triangle',.08)}
