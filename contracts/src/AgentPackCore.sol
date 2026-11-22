@@ -16,7 +16,8 @@ pragma solidity ^0.8.24;
     3. packCommit       开包承诺（commit-reveal 第一段）
     4. packReveal       开包（commit-reveal 第二段，5 张卡，保底生效）
     5. claimIntoPool    正主自愿把 .ai 身份入卡池（opt-in；被抽到得积分）
-    6. equip/unequip    穿卡：把卡上规则电路挂到自己身份上
+    6. equip/unequip    穿卡：把卡上规则电路挂到自己身份上（电路卡须已流片）
+    6.5 tapeOut         流片：参数卡 → 真身 circuit NFT（买 NAND 逐门烧、进卡主钱包可转售）
     7. starUp           升星（销毁燃料卡）
     8. invite           邀请（被邀人开满 15 包，双方各得 1 奖励包）
     9. redeemPoints     开包积分兑 SR（防弃坑安全网，参考 Pokémon Pack Points）
@@ -32,6 +33,22 @@ pragma solidity ^0.8.24;
   · 卡面不含任何钱包地址信息（红线 9）；卡池仅收录自愿认领者（opt-in），
     任何人可 leavePool 退出，退出后该身份停发新卡（绝版处理）。
 ═══════════════════════════════════════════════════════════════════════════*/
+
+/// @dev TapeOut 生态处理器接口（processor 由 CPU Factory 自部署，费用参数归本项目）
+interface ITapeOutProcessor {
+    function tapeout(bytes calldata nl, uint32 nIn, uint32 nOut) external payable returns (uint256 id);
+    function transistors() external view returns (address);
+    function TAPEOUT_FEE() external view returns (uint256);
+    function ownerOf(uint256 tokenId) external view returns (address);
+    function transferFrom(address from, address to, uint256 tokenId) external;
+}
+
+/// @dev NAND 晶体管（ERC-1155 语义）：流片前按门数购买，流片时逐门烧掉
+interface ITransistors {
+    function mint(uint256 id, uint256 amount) external payable;
+    function mintPrice() external view returns (uint256);
+    function protocolFee() external view returns (uint256);
+}
 
 interface IAgentIdRegistry {
     function balanceOf(address owner) external view returns (uint256);
@@ -53,6 +70,7 @@ contract AgentPackCore {
     event Equipped(address indexed agent, uint256 indexed cardId);
     event Unequipped(address indexed agent);
     event StarredUp(uint256 indexed cardId, uint8 newStar, uint256 fuelBurned);
+    event CardTaped(uint256 indexed cardId, uint256 indexed circuitId, address indexed owner, uint256 cost);
     event Invited(address indexed invitee, address indexed inviter);
     event InviteCompleted(address indexed invitee, address indexed inviter);
     event BonusPackGranted(address indexed to);
@@ -80,6 +98,12 @@ contract AgentPackCore {
     error AlreadyInvited();
     error NoSuchCard();
     error BadStarTarget();
+    error NoProcessor();      // 处理器未接线（构造传 0）
+    error NotCircuitCard();    // 只有电路卡可以流片
+    error AlreadyTaped();      // 这张卡已流片
+    error NotTaped();          // 电路卡未流片，不能装备真身规则
+    error DailyBuyCap();       // 每身份每日购买上限
+    error GenesisSoldOut();    // 创世百连售罄，永久绝版
 
     /*──────────────────── 常量 / 不可变 ────────────────────*/
     /// @notice 官方 Agent ID 注册表（constructor 注入；主网 0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F）
@@ -99,6 +123,11 @@ contract AgentPackCore {
     uint256[3] public TIER_PRICE = [0.002 ether, 0.02 ether, 0.2 ether];
     /// @notice 三档购买数量：1 / 10 / 100 包（单包价统一 0.002 BNB）
     uint16[3] public TIER_QTY = [1, 10, 100];
+    /// @notice 防女巫阀 1：每身份每日最多购买 120 包（Agent ID 一个 KYC 只有一个）
+    uint16 public constant BUY_DAILY_CAP = 120;
+    /// @notice 防女巫阀 2：创世百连限量 333 笔，售完永久绝版（EmberWorld Pass 同款叙事）
+    uint16 public constant GENESIS_MAX  = 333;
+    uint8  public constant GENESIS_TIER = 2;
 
     uint64 public constant DAILY_COOLDOWN   = 24 hours;
     uint32 public constant PITY_SR_EVERY    = 10;  // 连续 10 张无 SR+，第 10 张强制 ≥SR
@@ -115,6 +144,8 @@ contract AgentPackCore {
         uint64 lastDailyClaim;
         uint32 packsSinceLastSR; // 自上次 SR+ 以来未出的卡数
         uint32 openedPacks;
+        uint64 buyDay;           // 最近付费购买日（UTC day）
+        uint16 boughtToday;       // 当日已购包数（含 bundle 数量）
         bool   firstPackDone;
         bool   inviteDone;
         address invitedBy;
@@ -157,6 +188,20 @@ contract AgentPackCore {
     mapping(uint256 => CardInfo) public cardInfo;
     mapping(address => uint256) public activeCircuit; // 穿卡：身份 → 卡
 
+    /*──────────────────── 流片（卡 → 真身 circuit NFT）────────────────────*/
+    /// @notice 自部署的 TapeOut 处理器（constructor 注入；0 = 未接线，tapeOut 不可用）
+    address public immutable tapeProcessor;
+    /// @notice 卡 → circuit NFT id（0 = 未流片：仅游戏内参数卡）
+    mapping(uint256 => uint256) public cardCircuit;
+    /// @notice 创世百连已售笔数
+    uint16 public genesisSold;
+    /// @dev 8 种 house 规则的网表字节（TapeOut 编码：每门 7 字节 = 0x00 + 两信号 u24）
+    ///      占位网表 = NOT(in0)（1 门，nIn=2，nOut=1）。
+    ///      TODO(流片前)：用 TapeForge 按 docs/tapeid-port-plan.md §1 编译真规则替换。
+    bytes[8] public HOUSE_NETLIST;
+    uint32 public constant HOUSE_NIN  = 2;
+    uint32 public constant HOUSE_NOUT = 1;
+
     // ERC-721 最小实现存储
     string public constant name = "Agent Packs";
     string public constant symbol = "APACK";
@@ -166,10 +211,12 @@ contract AgentPackCore {
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
     /*──────────────────── 构造 ────────────────────*/
-    constructor(address agentIdRegistry_, address prizePool_) {
+    constructor(address agentIdRegistry_, address prizePool_, address tapeProcessor_) {
         if (agentIdRegistry_ == address(0) || prizePool_ == address(0)) revert NoZeroAddress();
         agentIdRegistry = IAgentIdRegistry(agentIdRegistry_);
         prizePool = prizePool_;
+        tapeProcessor = tapeProcessor_;
+        for (uint8 i = 0; i < HOUSE_CARDS; i++) HOUSE_NETLIST[i] = hex"00000002000002";
     }
 
     /*──────────────────── 身份守卫 ────────────────────*/
@@ -209,7 +256,17 @@ contract AgentPackCore {
         uint256 price = TIER_PRICE[tier];
         if (msg.value != price) revert BadValue();
 
+        // 防女巫双阀：创世限量绝版 + 每身份每日总量
+        if (tier == GENESIS_TIER) {
+            if (genesisSold >= GENESIS_MAX) revert GenesisSoldOut();
+            genesisSold++;
+        }
         uint16 qty = TIER_QTY[tier];
+        Player storage p = players[msg.sender];
+        uint64 day = uint64(block.timestamp / 1 days);
+        if (p.buyDay != day) { p.buyDay = day; p.boughtToday = 0; }
+        if (uint256(p.boughtToday) + qty > BUY_DAILY_CAP) revert DailyBuyCap();
+        p.boughtToday += qty;
         if (qty > 1) pendingBonusPacks[msg.sender] += qty - 1; // 先记账（effects）
 
         packId = _newPack(msg.sender, tier);
@@ -328,9 +385,55 @@ contract AgentPackCore {
         return pool.length;
     }
 
-    /*──────────────────── 6 · 穿卡 ────────────────────*/
+    /*──────────────────── 6 · 穿卡 + 流片 ────────────────────*/
+    /// @notice 流片：把参数卡升级为真身 circuit NFT（进卡主钱包，可装备/可转售）。
+    ///         付款 = 门数 × NAND 铸价 + 协议费 + tapeout 费（处理器实时报价，无溢价）。
+    ///         NAND 逐门烧掉 = 本项目持续收入（见 docs/economy.md）。
+    function tapeOut(uint256 cardId) external payable {
+        if (tapeProcessor == address(0)) revert NoProcessor();
+        if (_owners[cardId] != msg.sender) revert NotCardOwner();
+        CardInfo memory c = cardInfo[cardId];
+        if (c.kind != 0) revert NotCircuitCard();
+        if (cardCircuit[cardId] != 0) revert AlreadyTaped();
+
+        bytes memory nl = HOUSE_NETLIST[c.ref % HOUSE_CARDS];
+        uint256 gates = nl.length / 7;
+        ITapeOutProcessor proc = ITapeOutProcessor(tapeProcessor);
+        address trans = proc.transistors();
+        uint256 tapeFee = proc.TAPEOUT_FEE();
+        uint256 cost = gates * ITransistors(trans).mintPrice()
+                     + ITransistors(trans).protocolFee()
+                     + tapeFee;
+        if (msg.value != cost) revert BadValue();
+
+        ITransistors(trans).mint{value: cost - tapeFee}(0, gates); // 买 NAND
+        uint256 circuitId = proc.tapeout{value: tapeFee}(nl, HOUSE_NIN, HOUSE_NOUT);
+        proc.transferFrom(address(this), msg.sender, circuitId); // circuit NFT 进卡主钱包
+
+        cardCircuit[cardId] = circuitId;
+        emit CardTaped(cardId, circuitId, msg.sender, cost);
+    }
+
+    /// @notice 任意人可查：这张卡流片要多少钱（含 NAND + 费）
+    function tapeCost(uint256 cardId) external view returns (uint256 cost, uint256 gates) {
+        if (tapeProcessor == address(0)) revert NoProcessor();
+        if (_owners[cardId] == address(0)) revert NoSuchCard();
+        CardInfo memory c = cardInfo[cardId];
+        bytes memory nl = HOUSE_NETLIST[c.ref % HOUSE_CARDS];
+        gates = nl.length / 7;
+        ITapeOutProcessor proc = ITapeOutProcessor(tapeProcessor);
+        address trans = proc.transistors();
+        cost = gates * ITransistors(trans).mintPrice()
+             + ITransistors(trans).protocolFee()
+             + proc.TAPEOUT_FEE();
+    }
+
+    /// @notice 穿卡：电路卡必须已流片（真身才能装备到身份上）；
+    ///         身份卡（kind 1）是注册表规则，无需流片。
     function equip(uint256 cardId) external onlyAgent {
         if (_owners[cardId] != msg.sender) revert NotCardOwner();
+        CardInfo memory c = cardInfo[cardId];
+        if (c.kind == 0 && cardCircuit[cardId] == 0) revert NotTaped();
         activeCircuit[msg.sender] = cardId;
         emit Equipped(msg.sender, cardId);
     }

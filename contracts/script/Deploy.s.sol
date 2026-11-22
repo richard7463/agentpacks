@@ -10,7 +10,8 @@ contract DeployLocal is Script {
     function run() external returns (AgentPackCore core, MockAgentIdRegistry reg) {
         vm.startBroadcast();
         reg = new MockAgentIdRegistry();
-        core = new AgentPackCore(address(reg), msg.sender); // 本地：奖池=部署者
+        MockTapeProcessor proc = new MockTapeProcessor();
+        core = new AgentPackCore(address(reg), msg.sender, address(proc)); // 本地：奖池=部署者
         reg.give(msg.sender); // 给部署者发一个 .ai 便于全流程测试
         vm.stopBroadcast();
     }
@@ -24,8 +25,11 @@ contract DeployMainnet is Script {
         address registry = vm.envOr("AGENT_ID_REGISTRY", OFFICIAL_REGISTRY);
         // ⚠ PRIZE_POOL 必须是公示地址（建议多签）；env 未设时回退 msg.sender 仅便于冒烟
         address prize = vm.envOr("PRIZE_POOL", msg.sender);
+        // ⚠ TAPE_PROCESSOR = CPU Factory createCPU 自部署的处理器（docs/tapeid-port-plan.md）。
+        //   未设 = tapeOut 不可用，且电路卡无法 equip（NotTaped）——上线前必须接好。
+        address proc = vm.envOr("TAPE_PROCESSOR", address(0));
         vm.startBroadcast();
-        core = new AgentPackCore(registry, prize);
+        core = new AgentPackCore(registry, prize, proc);
         vm.stopBroadcast();
     }
 }

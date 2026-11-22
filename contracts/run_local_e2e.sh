@@ -33,9 +33,12 @@ echo "── 2/8 部署 Mock 注册表 + 主合约"
 REG=$(forge create test/AgentPackCore.t.sol:MockAgentIdRegistry \
   --rpc-url $RPC --private-key $DEPLOYER_PK --broadcast | grep "Deployed to:" | awk '{print $3}')
 echo "  registry: $REG"
+PROC=$(forge create test/mocks/MockTapeProcessor.sol:MockTapeProcessor \
+  --rpc-url $RPC --private-key $DEPLOYER_PK --broadcast | grep "Deployed to:" | awk '{print $3}')
+echo "  processor: $PROC"
 CORE=$(forge create src/AgentPackCore.sol:AgentPackCore \
   --rpc-url $RPC --private-key $DEPLOYER_PK --broadcast \
-  --constructor-args $REG $(cast wallet address --private-key $DEPLOYER_PK) | grep "Deployed to:" | awk '{print $3}')
+  --constructor-args $REG $(cast wallet address --private-key $DEPLOYER_PK) $PROC | grep "Deployed to:" | awk '{print $3}')
 echo "  core:      $CORE"
 
 echo "── 3/8 给 alice 发 .ai 身份"
@@ -58,7 +61,16 @@ done
 OWNER=$(cast call $CORE "ownerOf(uint256)(address)" 1 --rpc-url $RPC)
 echo "  card#1 owner: $OWNER"
 
-echo "── 5/8 alice 穿卡 + 入池"
+echo "── 5/8 alice 流片 card#1 → 穿卡 → 入池"
+strip() { sed 's/ *\[.*//'; }
+MP=$(cast call $PROC "mintPrice()(uint256)" --rpc-url $RPC | strip)
+PF=$(cast call $PROC "protocolFee()(uint256)" --rpc-url $RPC | strip)
+TF=$(cast call $PROC "TAPEOUT_FEE()(uint256)" --rpc-url $RPC | strip)
+COST=$((MP + PF + TF)) # 占位网表 = 1 门
+echo "  tapeCost(card#1) = $COST wei (= $MP NAND + $PF 协议费 + $TF tapeout)"
+cast send $CORE "tapeOut(uint256)" 1 --value $COST --rpc-url $RPC --private-key $ALICE_PK > /dev/null
+CIRCUIT=$(cast call $CORE "cardCircuit(uint256)(uint256)" 1 --rpc-url $RPC)
+echo "  circuit NFT id = $CIRCUIT (processor 上的真身，owner=alice)"
 cast send $CORE "equip(uint256)" 1 --rpc-url $RPC --private-key $ALICE_PK > /dev/null
 cast send $CORE "claimIntoPool()" --rpc-url $RPC --private-key $ALICE_PK > /dev/null
 POOL=$(cast call $CORE "poolSize()(uint256)" --rpc-url $RPC)
@@ -94,4 +106,4 @@ echo "  无 .ai 地址调用被拒: $(echo "$REVERT" | grep -q 'NoAgentId' && ec
 set -e
 
 echo ""
-echo "════ E2E 全绿：合约在真实链上完成了 领包→开包→穿卡→入池→买包→邀请 全旅程 ════"
+echo "════ E2E 全绿：合约在真实链上完成了 领包→开包→流片→穿卡→入池→买包→邀请 全旅程 ════"

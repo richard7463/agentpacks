@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 import {Test} from "forge-std/Test.sol";
 import {AgentPackCore} from "../src/AgentPackCore.sol";
+import {MockTapeProcessor} from "./mocks/MockTapeProcessor.sol";
 
 /// @dev 官方 Agent ID 注册表的测试桩（ERC-721 语义：balanceOf > 0 = 持有 .ai）
 contract MockAgentIdRegistry {
@@ -23,7 +24,7 @@ contract MockAgentIdRegistry {
 
 /// @dev 测试专用：暴露 internal _mint，用来精确构造指定稀有度/编号的卡
 contract CoreHarness is AgentPackCore {
-    constructor(address r, address p) AgentPackCore(r, p) {}
+    constructor(address r, address p, address t) AgentPackCore(r, p, t) {}
 
     function mintTest(address to, uint8 rarity, uint8 star, uint8 kind, uint32 ref)
         external returns (uint256 id)
@@ -35,6 +36,7 @@ contract CoreHarness is AgentPackCore {
 contract AgentPackCoreTest is Test {
     CoreHarness internal core;
     MockAgentIdRegistry internal reg;
+    MockTapeProcessor internal proc;
 
     address internal alice = makeAddr("alice"); // 有 .ai 的普通玩家
     address internal bob = makeAddr("bob");     // 有 .ai 的玩家 + 卡池正主
@@ -43,7 +45,8 @@ contract AgentPackCoreTest is Test {
 
     function setUp() public {
         reg = new MockAgentIdRegistry();
-        core = new CoreHarness(address(reg), prizePool);
+        proc = new MockTapeProcessor();
+        core = new CoreHarness(address(reg), prizePool, address(proc));
         reg.give(alice);
         reg.give(bob);
         vm.deal(alice, 10 ether);
@@ -190,7 +193,7 @@ contract AgentPackCoreTest is Test {
         for (uint256 i = 0; i < 5; i++) {
             assertEq(core.ownerOf(ids[i]), alice);
         }
-        (, , uint32 openedPacks, , , ) = core.players(alice);
+        (, , uint32 openedPacks, , , , , ) = core.players(alice);
         assertEq(openedPacks, 1);
         assertEq(core.packPoints(alice), 5); // 每包 5 分
     }
@@ -275,7 +278,7 @@ contract AgentPackCoreTest is Test {
             }
         }
         assertGe(pulls, 1, "40 packs must yield at least one identity card");
-        (, , uint32 openedPacks, , , ) = core.players(bob);
+        (, , uint32 openedPacks, , , , , ) = core.players(bob);
         assertGe(
             core.packPoints(bob),
             uint256(openedPacks) * 5 + 10,
@@ -288,10 +291,16 @@ contract AgentPackCoreTest is Test {
         uint256[5] memory ids = _openBought(alice, 9);
         uint256 cardId = ids[0];
 
+        // 未流片：真身不可装备
+        vm.prank(alice);
+        vm.expectRevert(AgentPackCore.NotTaped.selector);
+        core.equip(cardId);
+
         vm.prank(bob);
         vm.expectRevert(AgentPackCore.NotCardOwner.selector);
         core.equip(cardId);
 
+        _tape(alice, cardId);
         vm.prank(alice);
         core.equip(cardId);
         assertEq(core.activeCircuit(alice), cardId);
@@ -384,6 +393,7 @@ contract AgentPackCoreTest is Test {
         assertEq(core.ownerOf(cardId), bob);
 
         // 穿着卖掉自动脱下
+        _tape(alice, ids[1]);
         vm.prank(alice);
         core.equip(ids[1]);
         vm.prank(alice);
@@ -421,10 +431,22 @@ contract AgentPackCoreTest is Test {
     }
 
     /*──── 10 · 规则电路：卡的实际作用 ────*/
+    /// 流片一张 1 门占位网表的价钱（mock 价）
+    function _tapeCost() internal view returns (uint256) {
+        return proc.mintPrice() + proc.protocolFee() + proc.TAPEOUT_FEE();
+    }
+
+    function _tape(address who, uint256 cardId) internal {
+        uint256 cost = _tapeCost(); // 先报价：vm.prank 只管下一笔外部调用
+        vm.prank(who);
+        core.tapeOut{value: cost}(cardId);
+    }
+
     function _equipNew(address who, uint8 rarity, uint8 star, uint8 kind, uint32 ref)
         internal returns (uint256 id)
     {
         id = core.mintTest(who, rarity, star, kind, ref);
+        if (kind == 0) _tape(who, id); // 电路卡：先流片成真身
         vm.prank(who);
         core.equip(id);
     }
@@ -557,5 +579,87 @@ contract AgentPackCoreTest is Test {
         assertEq(cid, id);
         assertEq(t, core.RULE_SINGLE_MAX());
         assertEq(p1, 5000 * (100 + 3 * 40) / 100); // SR → $110
+    }
+
+    /*──── 11 · 流片 + 防女巫双阀 ────*/
+    function test_TapeOut_MintsCircuitNftToCardOwner() public {
+        uint256[5] memory ids = _openBought(alice, 21);
+        uint256 cardId = ids[2];
+        uint256 aliceBefore = alice.balance;
+
+        (uint256 cost, uint256 gates) = core.tapeCost(cardId);
+        assertEq(gates, 1, "placeholder netlist = 1 gate");
+
+        _tape(alice, cardId);
+
+        uint256 circuitId = core.cardCircuit(cardId);
+        assertGt(circuitId, 0);
+        assertEq(proc.ownerOf(circuitId), alice, "circuit NFT in owner wallet");
+        assertEq(alice.balance, aliceBefore - cost, "exact cost charged");
+        assertEq(address(proc).balance, cost, "NAND + fees went to processor");
+        assertEq(proc.netlistOf(circuitId), core.HOUSE_NETLIST(0), "bytes match");
+
+        // 重复流片拒绝
+        vm.prank(alice);
+        vm.expectRevert(AgentPackCore.AlreadyTaped.selector);
+        core.tapeOut{value: cost}(cardId);
+    }
+
+    function test_TapeOut_Guards() public {
+        uint256[5] memory ids = _openBought(alice, 22);
+        uint256 cardId = ids[0];
+
+        uint256 cost = _tapeCost();
+        vm.prank(bob);
+        vm.expectRevert(AgentPackCore.NotCardOwner.selector);
+        core.tapeOut{value: cost}(cardId);
+        vm.prank(alice);
+        vm.expectRevert(AgentPackCore.BadValue.selector);
+        core.tapeOut{value: 1 wei}(cardId);
+
+        // 身份卡不能流片，但无需流片即可装备
+        vm.prank(bob);
+        core.claimIntoPool();
+        uint256 idCard = core.mintTest(alice, 3, 0, 1, 0);
+        vm.prank(alice);
+        vm.expectRevert(AgentPackCore.NotCircuitCard.selector);
+        core.tapeOut{value: cost}(idCard);
+        vm.prank(alice);
+        core.equip(idCard);
+        assertEq(core.activeCircuit(alice), idCard);
+    }
+
+    function test_BuyPack_DailyCap() public {
+        vm.startPrank(bob);
+        core.buyPack{value: 0.2 ether}(2);   // 100 包
+        core.buyPack{value: 0.02 ether}(1);  // +10 = 110
+        core.buyPack{value: 0.02 ether}(1);  // +10 = 120 恰好到顶
+        vm.expectRevert(AgentPackCore.DailyBuyCap.selector);
+        core.buyPack{value: 0.002 ether}(0); // 121 > 120
+        vm.stopPrank();
+
+        vm.warp(block.timestamp + 1 days); // 次日重置
+        vm.prank(bob);
+        core.buyPack{value: 0.002 ether}(0);
+        assertEq(core.genesisSold(), 1, "genesis counted once");
+    }
+
+    function test_BuyPack_GenesisSoldOutForever() public {
+        address[4] memory buyers = [alice, bob, makeAddr("p3"), makeAddr("p4")];
+        for (uint256 i = 0; i < buyers.length; i++) {
+            reg.give(buyers[i]);
+            vm.deal(buyers[i], 100 ether);
+        }
+        // 每身份每日只能买 1 笔百连（第二笔撞 120 上限）→ 4 人轮买 + 跨天
+        for (uint256 sold = 0; sold < 333; sold++) {
+            address who = buyers[sold % 4];
+            if (sold % 4 == 0 && sold > 0) vm.warp(block.timestamp + 1 days);
+            vm.prank(who);
+            core.buyPack{value: 0.2 ether}(2);
+        }
+        assertEq(core.genesisSold(), 333);
+        vm.prank(alice);
+        vm.expectRevert(AgentPackCore.GenesisSoldOut.selector);
+        core.buyPack{value: 0.2 ether}(2);
     }
 }
