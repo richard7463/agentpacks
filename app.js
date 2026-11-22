@@ -525,6 +525,7 @@ function detail(id){
         </div>
         <div class="rb-out" id="chkOut">按卡上参数复算一笔支付，不产生交易。</div>
         <div class="rb-note">equip() 后生效 · 任何人可调用 checkPayment() 复算</div>
+        <div style="margin-top:10px"><button class="btn sm ghost" id="mTheater">去剧场看这条规则怎么跑 →</button></div>
         ${edAvail?`
         <div class="rb-ed">
           <div class="rb-ed-head"><span class="eyebrow" style="margin:0">调数值 · TapeID 同款</span>
@@ -549,6 +550,8 @@ function detail(id){
     </div>
   </div>`;
   $('#mmodal').classList.add('on');
+  const mt=$('#mTheater');
+  if(mt)mt.onclick=()=>{$('#mmodal').classList.remove('on');switchTab('theater')};
   const ck=$('#chkBtn');
   if(ck)ck.onclick=()=>{
     const amt=Math.round((parseFloat($('#chkAmt').value)||0)*100);
@@ -1014,6 +1017,126 @@ $('#bTogChain').onclick=()=>{
   localStorage.setItem('ap_chain',netId()==='38'?'61':'38');
   renderChain();toast('切换到 '+netName());
 };
+
+/* ══════════ 电路剧场：NAND 网表引擎 + 渲染（TapeOut 字节格式）══════════
+   网表语义（11 门）：
+     allow = (金额 ≤ 剩余) ∨ 人工
+     ask   = ¬allow ∧ (白名单 ∨ 人工)     —— deny = 既不 allow 也不 ask
+   信号编号同 TapeOut：0/1=常量，2..5=输入(a,l,pk,h)，6..=逐门。
+   字节格式：每门 7B = 0x00 + 两信号 u24，与处理器 tapeout(bytes,nIn,nOut) 一致。 */
+const TH={nIn:4,gates:[[3,3],[2,6],[7,7],[5,5],[4,4],[10,9],[8,9],[12,12],[13,11],[14,14],[13,13]],nOut:2};
+const TH_IN=[{k:'a',n:'金额超档',d:'a=1 → 这笔 $150；a=0 → 这笔 $8'},
+             {k:'l',n:'额度还有',d:'l=1 → 今日额度还有余量'},
+             {k:'pk',n:'白名单内',d:'pk=1 → 收款方在白名单 / 有 Agent ID'},
+             {k:'h',n:'人工批准',d:'h=1 → 有人点头放行'}];
+const thBytes=()=>TH.gates.reduce((s,[x,y])=>s+'00'+x.toString(16).padStart(6,'0')+y.toString(16).padStart(6,'0'),'');
+function thTrace(word){
+  const sig=new Uint8Array(2+TH.nIn+TH.gates.length);sig[1]=1;
+  for(let i=0;i<TH.nIn;i++)sig[2+i]=(word>>i)&1;
+  for(let i=0;i<TH.gates.length;i++){const[a,b]=TH.gates[i];sig[2+TH.nIn+i]=sig[a]&sig[b]?0:1}
+  return sig;
+}
+const thDepth=()=>{const d=[0,0,0,0,0,0];TH.gates.forEach(([a,b],i)=>{d[2+TH.nIn+i]=1+Math.max(d[a],d[b])});return d};
+let thTimers=[];
+const thClear=()=>{thTimers.forEach(clearTimeout);thTimers=[]};
+
+function renderTheater(){
+  if(!$('#thStage'))return;
+  $('#thIn').innerHTML=TH_IN.map((f,i)=>`
+    <button class="th-sw" data-i="${i}" aria-pressed="false">
+      <span class="sw"><i></i></span>
+      <span class="sw-txt"><b>${f.n}</b><em>${f.k}=0</em><small>${f.d}</small></span>
+    </button>`).join('');
+  $$('#thIn .th-sw').forEach(b=>b.onclick=()=>{
+    b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')==='true'?'false':'true');
+    const i=+b.dataset.i;thWord^= (1<<i);b.querySelector('em').textContent=TH_IN[i].k+'='+(thWord>>i&1);
+    beep(520,.04,'square',.02);
+  });
+  // 布局：输入列 + 每深度一列
+  const dep=thDepth();const maxD=Math.max(...dep);
+  const colOf=s=>s<2+TH.nIn?0:dep[s];
+  const XS=[0];for(let c=1;c<=maxD+1;c++)XS.push(0);           // 占位
+  const colW=118,x0=30,yIn=[70,130,190,250],yGate=[],H=330;
+  const byCol={};TH.gates.forEach((g,i)=>{const c=colOf(6+i);(byCol[c]=byCol[c]||[]).push(i)});
+  Object.values(byCol).flat().forEach(i=>yGate[i]=0);
+  let svg=`<svg viewBox="0 0 ${30+colW*(maxD+2)+40} ${H}" width="100%">`;
+  // 输入节点
+  TH_IN.forEach((f,i)=>{svg+=`<circle class="nd in" id="thi${i}" cx="34" cy="${yIn[i]}" r="7"/>`+
+    `<text class="lbl" x="12" y="${yIn[i]-14}">${f.n}</text>`});
+  // 门
+  TH.gates.forEach((g,i)=>{
+    const x=34+colW*colOf(6+i);
+    const ys=byCol[colOf(6+i)];yGate[i]=ys.indexOf(i)===0?110:Math.min(H-40,110+ys.indexOf(i)*62);
+    const y=yGate[i],a=g[0],b=g[1];
+    const pos=s=>s<2+TH.nIn?[34,yIn[s-2]]:[34+colW*colOf(s),yGate[s-6]];
+    const[ax,ay]=pos(a),[bx,by]=pos(b);
+    svg+=`<path class="wire" id="tw${i}a" d="M${ax+7} ${ay} C ${ax+40} ${ay}, ${x-40} ${y-8}, ${x-11} ${y-8}"/>`;
+    svg+=`<path class="wire" id="tw${i}b" d="M${bx+7} ${by} C ${bx+40} ${by}, ${x-40} ${y+8}, ${x-11} ${y+8}"/>`;
+    svg+=`<g class="gate" id="tg${i}"><rect x="${x-11}" y="${y-16}" width="24" height="32" rx="5"/>`+
+      `<text x="${x+1}" y="${y+4}">∧¬</text><text class="gn" x="${x+1}" y="${y-24}">G${i}</text></g>`;
+  });
+  // 输出灯（最后 nOut 个信号）
+  for(let k=0;k<TH.nOut;k++){
+    const gi=TH.gates.length-TH.nOut+k, x=34+colW*(colOf(6+gi)+1)+26, y=110+k*70;
+    svg+=`<path class="wire" id="ow${k}" d="M${34+colW*colOf(6+gi)+13} ${yGate[gi]} C ${34+colW*colOf(6+gi)+60} ${yGate[gi]}, ${x-60} ${y}, ${x-9} ${y}"/>`;
+    svg+=`<circle class="lamp" id="tho${k}" cx="${x}" cy="${y}" r="10"/>`+
+      `<text class="lbl" x="${x+16}" y="${y+4}">${k===0?'ask':'allow'}</text>`;
+  }
+  svg+='</svg>';
+  $('#thStage').innerHTML=svg;
+  thMsg('网表 <span class="mono">'+thBytes().length/7+' 门 · 0x'+thBytes().slice(0,28)+'…</span> · 拨动输入后运行。');
+}
+function thMsg(t){const m=$('#thMsg');m.className='banner';m.innerHTML=t}
+let thWord=0;
+function thRun(failClosed){
+  thClear();
+  const v=$('#thVerdict');v.className='th-verdict';
+  v.querySelector('.tv-v').textContent='…';v.querySelector('.tv-sub').textContent='eval 中';
+  if(failClosed){ // TapeID guard 的 fail-closed：网络异常 → 不评估、不签名、不放行
+    v.classList.add('deny');
+    v.querySelector('.tv-v').textContent='deny';
+    v.querySelector('.tv-sub').textContent='网络异常 · fail-closed：不产生签名，不放行';
+    thMsg('<b style="color:var(--red)">guard 什么都没签。</b> tapeid 规则：评估失败时宁可不签名，绝不猜一个 allow。<span class="mono">evaluatePayment() → throw</span>');
+    beep(140,.3,'sawtooth',.07);return;
+  }
+  const sig=thTrace(thWord);
+  const allow=sig[2+TH.nIn+TH.gates.length-1],ask=sig[2+TH.nIn+TH.gates.length-2];
+  // 逐深度点亮：输入 → 门 → 输出
+  const dep=thDepth(),maxD=Math.max(...dep.slice(0,2+TH.nIn).concat(dep));
+  const light=(id,on)=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',!!on)};
+  thTimers.push(setTimeout(()=>{for(let i=0;i<TH.nIn;i++){light('thi'+i,(thWord>>i)&1);TH_IN[i]}} ,0));
+  const step=340;
+  for(let d=1;d<=maxD;d++)thTimers.push(setTimeout(()=>{
+    TH.gates.forEach((g,i)=>{if(dep[6+i]!==d)return;const on=sig[6+i];
+      light('tg'+i,on);light('tw'+i+'a',sig[g[0]]);light('tw'+i+'b',sig[g[1]]);
+      if(on)beep(700+d*40,.03,'triangle',.015)});
+  },d*step));
+  thTimers.push(setTimeout(()=>{
+    light('ow0',ask);light('ow1',allow);light('tho0',ask);light('tho1',allow);
+    const g=allow?'allow':ask?'ask':'deny';
+    v.classList.add(g);
+    v.querySelector('.tv-v').textContent=g.toUpperCase();
+    const A=(thWord&1)?'$150':'$8',L=(thWord>>1&1),P=(thWord>>2&1),H=(thWord>>3&1);
+    v.querySelector('.tv-sub').textContent=(g==='allow'?'guard 放行：签名继续':g==='ask'?'guard 转人工：停下来问人':'guard 拒签：这笔发不出去');
+    thMsg((g==='allow'
+      ?`<b style="color:var(--pass)">allow</b> · ${A}${L?'（额度内）':''}${H?' · 人工批准':''} → 签名放行`
+      :g==='ask'
+      ?`<b style="color:var(--gold)">ask</b> · ${A} 超了额度，但${P?'白名单收款方':'人工在场'} → 停下来问人`
+      :`<b style="color:var(--red)">deny</b> · ${A} 超额度、无白名单、无人工 → 拒签，fail-closed`)
+      +' · <span class="mono">word=0b'+thWord.toString(2).padStart(4,'0')+' → ('+ask+','+allow+')</span>');
+    beep(g==='allow'?880:g==='ask'?440:160,.15,g==='allow'?'triangle':'square',.05);
+  },(maxD+1)*step));
+}
+function renderTheaterInit(){
+  renderTheater();
+  $('#thRun').onclick=()=>thRun(false);
+  $('#thRand').onclick=()=>{thWord=Math.floor(Math.random()*16)&~8;  // 人工=0 更常见
+    $$('#thIn .th-sw').forEach(b=>{const i=+b.dataset.i;const on=(thWord>>i)&1;
+      b.setAttribute('aria-pressed',on?'true':'false');b.querySelector('em').textContent=TH_IN[i].k+'='+on});
+    thRun(false)};
+  $('#thFail').onclick=()=>thRun(true);
+}
+renderTheaterInit();
 
 /* ══════════ 守门人：规则电路实战 ══════════
    每笔请求都过一遍规则栈（与合约 checkPayment 同参数）；
