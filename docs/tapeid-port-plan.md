@@ -17,15 +17,29 @@
 | 原子流片 + 注册（quote 签名绑定电路字节哈希）；原子打包转售 | `TapeIDPackageCheckout.sol` / `TapeIDPackageMarket.sol` |
 | spec → forge 编译管线：输入规则用中文一句话就能写成 spec，编译出网表 | `spec.ts` / `forge.ts` / `templates.ts` |
 
-## 2. 搬进 Agent Packs 的架构（Phase 1）
+## 2. 搬进 Agent Packs 的架构（定稿版 2026-11-22）
+
+> 与 owner 对齐的关键变更：**处理器自部署**（CPU Factory `0x6822…7e2`，BNB），
+> 不借用共享 processor——NAND 铸价/tapeout 费归我们；
+> **流片 = 装备门槛**：参数卡免费玩，流片后 circuit NFT 进用户钱包，
+> 装备才能让 Agent/钱包结算前真的调 eval()；
+> **guard 直接抄 `apps/signer/src/guard.ts`**（allow/ask/deny、fail-closed）。
 
 ```
-AgentPackCore（现有，加 4 处）
- ├─ constructor 加 tapeOutProcessor 地址 + 8 个 house 电路的 circuitId（部署时固化，无 setter）
- ├─ circuitOf(cardId) view → (processor, circuitId, nIn, nOut)
- ├─ setRuleConfig(cardId, cfg) onlyCardOwner ← 用户可编辑的数值配置（见下）
- └─ checkPayment(...) 升级：把支付上下文打包成输入字 → staticcall processor.eval(circuitId, word)
+自部署处理器（createCPU 一次 ~0.007 BNB，费用参数归我们）
+        │
+AgentPackCore（加 5 处）
+ ├─ tapeOut(cardId) payable：买 NAND（单门自定价）→ 流片该卡规则网表
+ │   → circuit NFT 铸给卡主 → card.circuitId 绑定 → 装备/转售解锁
+ ├─ circuitOf(cardId) view → (ourProcessor, circuitId, nIn, nOut)
+ ├─ setRuleConfig(cardId, cfg) onlyCardOwner ← 用户可编辑的数值配置（见 2.1）
+ ├─ equip：kind0 卡未流片 = 仅游戏内生效；流片后 = 规则真身模式
+ └─ checkPayment(...) 升级：staticcall ourProcessor.eval(circuitId, word)
      → 答案由真 NAND 门产生；eval 异常 = fail-closed（unproven → 拒绝/转人工）
+
+guard 层（抄 TapeID apps/signer/src/guard.ts 原样逻辑）
+ └─ evaluatePayment(input, apiUrl) → POST /v1/packages/:name/evaluate
+     → allow 签名继续 / ask 停下问人 / deny 拒签 / 网络异常 fail-closed 不签
 ```
 
 ### 2.1 数值可编辑（TapeID 同款「不可变电路 + 用户配置」分离）
@@ -71,7 +85,8 @@ TapeID 的分工：电路字节全生态一套（45 门 agent-spend，谁都是�
 
 ## 4. 不搬 / 诚实边界
 
-- **不说「合约自动拦截所有转账」**——TapeID 自己也不这么说；拦截在 signer 层，普通钱包可绕过
+- **不说「合约自动拦截所有转账」**——TapeID 自己也不这么说；拦截在 signer 层（guard 已原样抄入），普通钱包可绕过
+- **电路字节无限供应，接受**：同字节谁都能再流片；价值锚在卡（稀有度/星级/绝版），不在字节独占——与 CT Packs 同理，已与 owner 确认「无所谓」
 - `TapeIDRecordRegistry`（事后裁决记录）→ S1：给守门人战绩上链存证
 - `PackageCheckout/Market`（原子打包转售）→ S1：连卡带包转售 + EIP-2981 版税（身份卡转售给正主抽成）
 - agent-spend 的 4-bit 步长设计原样保留（预算 16 档够了，省门数）
