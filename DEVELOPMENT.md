@@ -116,7 +116,14 @@ contract AgentPackCore is ERC721 {
 | 5 | 抄底电路 | 小额免人工确认 | `$5 × mult` 以内直接放行 |
 | 6 | 杠杆电路 | 高额度 + 人工闸门 | `$100 × mult`，超过一半需人工 |
 | 7 | 钻石手电路 | 两笔支付冷却 | `3600 - rarity×300 - star×120` 秒，最低 300 |
-| 8 | 身份卡 | 只付给这张卡的正主 | `payee == pool[ref].agent` |
+| 8 | 封控电路 | 当日一旦被骗全锁 | 锁 `2 小时 × mult`，调用方传 `trippedToday` |
+| 9 | 双签电路 | 超半额需两人批准 | 基准 `$50 × mult`；`approvals ≥ 2` |
+| 10 | 会签电路 | 超额需 M 人批准 | `$50 × mult`，`M = 2 + star/2` |
+| 11 | 委托电路 | 限时窗口内放行 | 窗口 `12h × mult`（自上一笔起）|
+| 12 | 身份卡 | 只付给这张卡的正主 | `payee == pool[ref].agent`（kind1 独立命名空间）|
+
+四类家族：①交易(0/1/3/4/5) ②风控(7/8) ③安全(2/6/12) ④协作(9/10/11)——见 `docs/four-circuit-families.md`。
+`checkPayment` 已扩参：`(..., humanApproved, approvals, trippedToday)`。`HOUSE_NETLIST` 为动态 `bytes[]`（部署期扩容，无 setter）。
 
 **诚实边界**（与 tapeid.xyz 一致）：
 - 这是 **view 复算**，不是钱包级拦截；调用方提供当日流水（已花/笔数/上一笔时间），任何人可重放。

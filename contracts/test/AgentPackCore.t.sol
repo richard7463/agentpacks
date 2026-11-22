@@ -470,89 +470,89 @@ contract AgentPackCoreTest is Test {
     }
 
     function test_CheckPayment_NoEquippedRule() public view {
-        (bool ok, string memory why) = core.checkPayment(alice, 100, bob, 0, 0, 0, false);
+        (bool ok, string memory why) = core.checkPayment(alice, 100, bob, 0, 0, 0, false, 0, false);
         assertFalse(ok);
         assertEq(why, "no rule equipped");
     }
 
     function test_CheckPayment_DailyCap() public {
         _equipNew(alice, 0, 0, 0, 0); // $20/day
-        (bool ok,) = core.checkPayment(alice, 1500, bob, 0, 0, 0, false);
+        (bool ok,) = core.checkPayment(alice, 1500, bob, 0, 0, 0, false, 0, false);
         assertTrue(ok);
-        (ok,) = core.checkPayment(alice, 2001, bob, 0, 0, 0, false);
+        (ok,) = core.checkPayment(alice, 2001, bob, 0, 0, 0, false, 0, false);
         assertFalse(ok);
-        (ok,) = core.checkPayment(alice, 500, bob, 1900, 0, 0, false); // 1900+500 > 2000
+        (ok,) = core.checkPayment(alice, 500, bob, 1900, 0, 0, false, 0, false); // 1900+500 > 2000
         assertFalse(ok);
-        (ok,) = core.checkPayment(alice, 500, bob, 1900, 0, 0, true);  // 人工放行
+        (ok,) = core.checkPayment(alice, 500, bob, 1900, 0, 0, true, 0, false);  // 人工放行
         assertTrue(ok);
     }
 
     function test_CheckPayment_SingleMax() public {
         _equipNew(alice, 0, 0, 0, 1); // $50 single
-        (bool ok,) = core.checkPayment(alice, 5000, bob, 0, 0, 0, false);
+        (bool ok,) = core.checkPayment(alice, 5000, bob, 0, 0, 0, false, 0, false);
         assertTrue(ok);
-        (ok,) = core.checkPayment(alice, 5001, bob, 0, 0, 0, false);
+        (ok,) = core.checkPayment(alice, 5001, bob, 0, 0, 0, false, 0, false);
         assertFalse(ok);
     }
 
     function test_CheckPayment_AgentIdOnly() public {
         _equipNew(alice, 0, 0, 0, 2);
-        (bool ok,) = core.checkPayment(alice, 100000, bob, 0, 0, 0, false); // bob 有 .ai
+        (bool ok,) = core.checkPayment(alice, 100000, bob, 0, 0, 0, false, 0, false); // bob 有 .ai
         assertTrue(ok);
-        (ok,) = core.checkPayment(alice, 100000, carol, 0, 0, 0, false);   // carol 没有
+        (ok,) = core.checkPayment(alice, 100000, carol, 0, 0, 0, false, 0, false);   // carol 没有
         assertFalse(ok);
     }
 
     function test_CheckPayment_Growth() public {
         _equipNew(alice, 0, 0, 0, 3); // $30 base, +2%/tx
-        (bool ok,) = core.checkPayment(alice, 3000, bob, 0, 0, 0, false);
+        (bool ok,) = core.checkPayment(alice, 3000, bob, 0, 0, 0, false, 0, false);
         assertTrue(ok);
-        (ok,) = core.checkPayment(alice, 3001, bob, 0, 0, 0, false);
+        (ok,) = core.checkPayment(alice, 3001, bob, 0, 0, 0, false, 0, false);
         assertFalse(ok);
-        (ok,) = core.checkPayment(alice, 3600, bob, 0, 10, 0, false); // 3000*120%
+        (ok,) = core.checkPayment(alice, 3600, bob, 0, 10, 0, false, 0, false); // 3000*120%
         assertTrue(ok);
-        (ok,) = core.checkPayment(alice, 3601, bob, 0, 10, 0, false);
+        (ok,) = core.checkPayment(alice, 3601, bob, 0, 10, 0, false, 0, false);
         assertFalse(ok);
     }
 
     function test_CheckPayment_DailyCount() public {
         _equipNew(alice, 0, 0, 0, 4); // 3 笔/日
-        (bool ok,) = core.checkPayment(alice, 1, bob, 0, 2, 0, false);
+        (bool ok,) = core.checkPayment(alice, 1, bob, 0, 2, 0, false, 0, false);
         assertTrue(ok);
-        (ok,) = core.checkPayment(alice, 1, bob, 0, 3, 0, false);
+        (ok,) = core.checkPayment(alice, 1, bob, 0, 3, 0, false, 0, false);
         assertFalse(ok);
     }
 
     function test_CheckPayment_MicroPass() public {
         _equipNew(alice, 0, 0, 0, 5); // < $5 免确认
-        (bool ok,) = core.checkPayment(alice, 500, bob, 0, 0, 0, false);
+        (bool ok,) = core.checkPayment(alice, 500, bob, 0, 0, 0, false, 0, false);
         assertTrue(ok);
-        (ok,) = core.checkPayment(alice, 501, bob, 0, 0, 0, false);
+        (ok,) = core.checkPayment(alice, 501, bob, 0, 0, 0, false, 0, false);
         assertFalse(ok);
-        (ok,) = core.checkPayment(alice, 900, bob, 0, 0, 0, true);
+        (ok,) = core.checkPayment(alice, 900, bob, 0, 0, 0, true, 0, false);
         assertTrue(ok);
     }
 
     function test_CheckPayment_HighLimitNeedsHuman() public {
         _equipNew(alice, 0, 0, 0, 6); // $100, 超一半要人工
-        (bool ok,) = core.checkPayment(alice, 5000, bob, 0, 0, 0, false);
+        (bool ok,) = core.checkPayment(alice, 5000, bob, 0, 0, 0, false, 0, false);
         assertTrue(ok);
-        (ok,) = core.checkPayment(alice, 5001, bob, 0, 0, 0, false);
+        (ok,) = core.checkPayment(alice, 5001, bob, 0, 0, 0, false, 0, false);
         assertFalse(ok);
-        (ok,) = core.checkPayment(alice, 5001, bob, 0, 0, 0, true);
+        (ok,) = core.checkPayment(alice, 5001, bob, 0, 0, 0, true, 0, false);
         assertTrue(ok);
-        (ok,) = core.checkPayment(alice, 10001, bob, 0, 0, 0, true);
+        (ok,) = core.checkPayment(alice, 10001, bob, 0, 0, 0, true, 0, false);
         assertFalse(ok);
     }
 
     function test_CheckPayment_Cooldown() public {
         vm.warp(100000);
         _equipNew(alice, 0, 0, 0, 7); // 60 分钟
-        (bool ok,) = core.checkPayment(alice, 1, bob, 0, 0, uint64(block.timestamp - 3601), false);
+        (bool ok,) = core.checkPayment(alice, 1, bob, 0, 0, uint64(block.timestamp - 3601), false, 0, false);
         assertTrue(ok);
-        (ok,) = core.checkPayment(alice, 1, bob, 0, 0, uint64(block.timestamp), false);
+        (ok,) = core.checkPayment(alice, 1, bob, 0, 0, uint64(block.timestamp), false, 0, false);
         assertFalse(ok);
-        (ok,) = core.checkPayment(alice, 1, bob, 0, 0, 0, false); // 从未付过
+        (ok,) = core.checkPayment(alice, 1, bob, 0, 0, 0, false, 0, false); // 从未付过
         assertTrue(ok);
     }
 
@@ -563,9 +563,9 @@ contract AgentPackCoreTest is Test {
         vm.prank(alice);
         core.equip(id);
 
-        (bool ok,) = core.checkPayment(alice, 999999, bob, 0, 0, 0, false);
+        (bool ok,) = core.checkPayment(alice, 999999, bob, 0, 0, 0, false, 0, false);
         assertTrue(ok);
-        (ok,) = core.checkPayment(alice, 1, carol, 0, 0, 0, false);
+        (ok,) = core.checkPayment(alice, 1, carol, 0, 0, 0, false, 0, false);
         assertFalse(ok);
     }
 
@@ -661,5 +661,71 @@ contract AgentPackCoreTest is Test {
         vm.prank(alice);
         vm.expectRevert(AgentPackCore.GenesisSoldOut.selector);
         core.buyPack{value: 0.2 ether}(2);
+    }
+
+    /*──── 12 · 四类电路卡（交易/风控/安全/协作）────*/
+    function test_RuleOf_FourFamilies_Params() public {
+        // 封控 t8：C 卡 → 锁 2 小时
+        uint256 lk = core.mintTest(alice, 0, 0, 0, 8);
+        (uint8 t8, uint256 p8,) = core.ruleOf(lk);
+        assertEq(t8, 8); assertEq(p8, 7200);
+        // 双签 t9：C 卡 → 基准 $50
+        uint256 ds = core.mintTest(alice, 0, 0, 0, 9);
+        (uint8 t9, uint256 p9,) = core.ruleOf(ds);
+        assertEq(t9, 9); assertEq(p9, 5000);
+        // 会签 t10：SSR + 2星 → 顶 $150、M = 3
+        uint256 ms = core.mintTest(alice, 4, 2, 0, 10);
+        (uint8 t10, uint256 p10, uint256 m10) = core.ruleOf(ms);
+        assertEq(t10, 10); assertEq(p10, 5000 * 3); assertEq(m10, 3);
+        // 委托 t11：C 卡 → 窗口 12 小时；ref 环绕：12 % 12 = 0 → 止损
+        uint256 dg = core.mintTest(alice, 0, 0, 0, 11);
+        (uint8 t11, uint256 p11,) = core.ruleOf(dg);
+        assertEq(t11, 11); assertEq(p11, 12 hours);
+        uint256 dg2 = core.mintTest(alice, 0, 0, 0, 12);
+        (uint8 t0,,) = core.ruleOf(dg2);
+        assertEq(t0, 0, "ref wraps: 12 % 12 = 0 is DAILY_CAP");
+    }
+
+    function test_CheckPayment_Lockdown() public {
+        uint256 id = _equipNew(alice, 0, 0, 0, 8); // 封控
+        (bool ok, string memory why) = core.checkPayment(alice, 1, bob, 0, 0, 0, false, 0, true);
+        assertFalse(ok); assertEq(why, "lockdown active");
+        (ok, why) = core.checkPayment(alice, 1, bob, 0, 0, 0, false, 0, false);
+        assertTrue(ok); assertEq(why, "not locked");
+    }
+
+    function test_CheckPayment_DualSign() public {
+        _equipNew(alice, 0, 0, 0, 9); // 双签 $50
+        (bool ok,) = core.checkPayment(alice, 2500, bob, 0, 0, 0, false, 0, false); // ≤ $25 半额
+        assertTrue(ok);
+        (ok,) = core.checkPayment(alice, 4000, bob, 0, 0, 0, false, 1, false);  // 1 人不够
+        assertFalse(ok);
+        (ok,) = core.checkPayment(alice, 4000, bob, 0, 0, 0, false, 2, false);  // 2 人过
+        assertTrue(ok);
+        (ok,) = core.checkPayment(alice, 5001, bob, 0, 0, 0, false, 2, false);  // 超顶
+        assertFalse(ok);
+    }
+
+    function test_CheckPayment_Multisig() public {
+        _equipNew(alice, 4, 2, 0, 10); // 会签：$150 顶，M=3
+        (bool ok,) = core.checkPayment(alice, 15000, bob, 0, 0, 0, false, 0, false); // 顶内直放
+        assertTrue(ok);
+        (ok,) = core.checkPayment(alice, 20000, bob, 0, 0, 0, false, 2, false);   // 2 < 3
+        assertFalse(ok);
+        (ok,) = core.checkPayment(alice, 20000, bob, 0, 0, 0, false, 3, false);   // 达到 M
+        assertTrue(ok);
+    }
+
+    function test_CheckPayment_DelegationWindow() public {
+        vm.warp(100000);
+        uint256 id = core.mintTest(alice, 0, 0, 0, 11); // 委托 窗口 12h
+        _tape(alice, id);
+        vm.prank(alice); core.equip(id);
+        (bool ok, string memory why) = core.checkPayment(alice, 1, bob, 0, 0, 0, false, 0, false);
+        assertFalse(ok); assertEq(why, "no delegation anchor");
+        (ok, why) = core.checkPayment(alice, 1, bob, 0, 0, uint64(block.timestamp - 3600), false, 0, false);
+        assertTrue(ok); assertEq(why, "within delegation window");
+        (ok, why) = core.checkPayment(alice, 1, bob, 0, 0, uint64(block.timestamp - 13 hours), false, 0, false);
+        assertFalse(ok); assertEq(why, "delegation window expired");
     }
 }

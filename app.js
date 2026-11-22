@@ -937,7 +937,7 @@ const CHAIN_ABI=[
  "function cardInfo(uint256) view returns ((uint8,uint8,uint8,uint32))",
  "function ruleOf(uint256) view returns (uint8,uint256,uint256)",
  "function equippedRule(address) view returns (uint256,uint8,uint256,uint256)",
- "function checkPayment(address,uint256,address,uint256,uint16,uint64,bool) view returns (bool,string)"
+ "function checkPayment(address,uint256,address,uint256,uint16,uint64,bool,uint8,bool) view returns (bool,string)"
 ];
 let chainAcc=null,chainPending=null;
 try{chainPending=JSON.parse(localStorage.getItem('ap_pending')||'null')}catch(e){}
@@ -1066,7 +1066,7 @@ $('#bRuleCheck').onclick=async()=>{
     const payee=$('#rcPayee').value.trim()||chainAcc;
     if(!/^0x[0-9a-fA-F]{40}$/.test(payee))return say('收款方地址格式不对。');
     const spent=Math.round((parseFloat($('#rcSpent').value)||0)*100);
-    const [ok,reason]=await chainRead('checkPayment',[chainAcc,amt,payee,spent,0,0,false]);
+    const [ok,reason]=await chainRead('checkPayment',[chainAcc,amt,payee,spent,0,0,false,0,false]);
     say((ok?'<b style="color:var(--teal)">PASS</b> · ':'<b style="color:var(--red)">FAIL</b> · ')+reason+
       ' <span class="mono">· card #'+Number(cid)+' · rule '+Number(t)+'</span>');
   }catch(e){say('● '+(e.reason||e.message||e))}

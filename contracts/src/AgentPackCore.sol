@@ -136,7 +136,10 @@ contract AgentPackCore {
     uint32 public constant POINTS_PER_PACK  = 5;    // 每开 1 包得 5 分
     uint32 public constant SR_REDEEM_POINTS = 500;  // 500 分兑 1 张 SR
     uint32 public constant POOL_POINTS_PER_PULL = 10; // 正主身份被抽到 → 得 10 分
-    uint8  public constant HOUSE_CARDS      = 8;    // 系统电路卡：止损/梭哈/风控/加仓/清仓/抄底/杠杆/钻石手
+    /// @notice house 电路卡共 12 种，四类家族（docs/four-circuit-families.md）：
+    ///         ①交易（止损/梭哈/加仓/清仓/抄底）②风控（钻石手/封控）
+    ///         ③安全（白名单/杠杆/身份·正主）④协作（双签/会签/委托）
+    uint8  public constant HOUSE_CARDS      = 12;
     uint8  public constant MAX_STAR         = 5;
 
     /*──────────────────── 类型 ────────────────────*/
@@ -195,10 +198,11 @@ contract AgentPackCore {
     mapping(uint256 => uint256) public cardCircuit;
     /// @notice 创世百连已售笔数
     uint16 public genesisSold;
-    /// @dev 8 种 house 规则的网表字节（TapeOut 编码：每门 7 字节 = 0x00 + 两信号 u24）
-    ///      占位网表 = NOT(in0)（1 门，nIn=2，nOut=1）。
+    /// @dev house 规则的网表字节（TapeOut 编码：每门 7 字节 = 0x00 + 两信号 u24）。
+    ///      动态数组：部署期写入 12 条，之后赛季靠新合约（B）或玩家自定义流片（C）扩展，
+    ///      本合约无 setter。占位网表 = NOT(in0)（1 门，nIn=2，nOut=1）。
     ///      TODO(流片前)：用 TapeForge 按 docs/tapeid-port-plan.md §1 编译真规则替换。
-    bytes[8] public HOUSE_NETLIST;
+    bytes[] public HOUSE_NETLIST;
     uint32 public constant HOUSE_NIN  = 2;
     uint32 public constant HOUSE_NOUT = 1;
 
@@ -216,7 +220,7 @@ contract AgentPackCore {
         agentIdRegistry = IAgentIdRegistry(agentIdRegistry_);
         prizePool = prizePool_;
         tapeProcessor = tapeProcessor_;
-        for (uint8 i = 0; i < HOUSE_CARDS; i++) HOUSE_NETLIST[i] = hex"00000002000002";
+        for (uint8 i = 0; i < HOUSE_CARDS; i++) HOUSE_NETLIST.push(hex"00000002000002");
     }
 
     /*──────────────────── 身份守卫 ────────────────────*/
@@ -459,7 +463,12 @@ contract AgentPackCore {
     uint8 public constant RULE_MICRO_PASS  = 5; // 抄底：小额免确认
     uint8 public constant RULE_HIGH_LIMIT  = 6; // 杠杆：高额度，超一半需人工
     uint8 public constant RULE_COOLDOWN    = 7; // 钻石手：两笔之间的冷却
-    uint8 public constant RULE_NAMED_PAYEE = 8; // 身份卡：只付给这张卡的正主
+    // house 规则 t = ref % 12，与前端四类卡 0..11 逐位对齐：
+    uint8 public constant RULE_LOCKDOWN     = 8;  // 封控：当日一旦被骗，剩余时间全锁
+    uint8 public constant RULE_DUAL_SIGN    = 9;  // 双签：超半额需两人批准
+    uint8 public constant RULE_MULTISIG     = 10; // 会签：超额需 M 人批准
+    uint8 public constant RULE_DELEGATION   = 11; // 委托：限时窗口内放行
+    uint8 public constant RULE_NAMED_PAYEE  = 12; // 身份卡（kind1 独立命名空间）：只付给正主
 
     /// @notice 读出卡上的规则（纯函数，任何人可查）
     /// @return ruleType 0..8，见上方常量
@@ -483,14 +492,19 @@ contract AgentPackCore {
         else if (ruleType == RULE_DAILY_COUNT) p1 = 3 + uint256(c.rarity) / 2 + c.star;
         else if (ruleType == RULE_MICRO_PASS)  p1 = 500 * mult / 100;    // $5 起
         else if (ruleType == RULE_HIGH_LIMIT)  p1 = 10000 * mult / 100;  // $100 起
-        else {
+        else if (ruleType == RULE_COOLDOWN) {
             uint256 cut = uint256(c.rarity) * 300 + uint256(c.star) * 120;
             p1 = cut < 3600 ? 3600 - cut : 300; // 60 分钟起，最低 5 分钟
         }
+        else if (ruleType == RULE_LOCKDOWN)    p1 = 7200 * mult / 100;   // 封控：锁 2 小时 × mult
+        else if (ruleType == RULE_DUAL_SIGN)    p1 = 5000 * mult / 100;   // 双签：基准 $50
+        else if (ruleType == RULE_MULTISIG)   { p1 = 5000 * mult / 100; p2 = 2 + uint256(c.star) / 2; } // M = 2 + star/2
+        else                                    p1 = 12 hours * mult / 100; // 委托：窗口 12h × mult（RULE_DELEGATION）
     }
 
     /// @notice 复算一笔支付是否守约（view，不改变任何状态）
-    /// @dev 调用方提供当日已花、当日笔数、上一笔时间——任何人可用钱包流水复算
+    /// @dev 调用方提供当日已花、笔数、上一笔时间、已批准人数、当日是否已被骗——
+    ///      任何人可用钱包流水复算。approvals 服务双签/会签；trippedToday 服务封控。
     function checkPayment(
         address agent,
         uint256 amountCents,
@@ -498,7 +512,9 @@ contract AgentPackCore {
         uint256 spentTodayCents,
         uint16 txCountToday,
         uint64 lastPaymentAt,
-        bool humanApproved
+        bool humanApproved,
+        uint8 approvals,
+        bool trippedToday
     ) external view returns (bool ok, string memory reason) {
         uint256 cardId = activeCircuit[agent];
         if (cardId == 0) return (false, "no rule equipped");
@@ -544,9 +560,29 @@ contract AgentPackCore {
             }
             return (false, "cooldown not elapsed");
         }
-        // RULE_NAMED_PAYEE
-        if (uint256(uint160(payee)) == p1) return (true, "designated payee");
-        return (false, "not the designated payee");
+        if (t == RULE_NAMED_PAYEE) {
+            if (uint256(uint160(payee)) == p1) return (true, "designated payee");
+            return (false, "not the designated payee");
+        }
+        if (t == RULE_LOCKDOWN) {
+            if (trippedToday) return (false, "lockdown active");
+            return (true, "not locked");
+        }
+        if (t == RULE_DUAL_SIGN) {
+            if (amountCents * 2 <= p1) return (true, "within half, no second sig");
+            if (amountCents > p1) return (false, "over dual-sig ceiling");
+            if (approvals >= 2) return (true, "two approvals");
+            return (false, "needs two approvals");
+        }
+        if (t == RULE_MULTISIG) {
+            if (amountCents <= p1) return (true, "within multisig ceiling");
+            if (approvals >= p2) return (true, "quorum reached");
+            return (false, "quorum not reached");
+        }
+        // RULE_DELEGATION：限时窗口（自上一笔起 p1 秒内可付；名单校验 S1）
+        if (lastPaymentAt == 0) return (false, "no delegation anchor");
+        if (block.timestamp <= uint256(lastPaymentAt) + p1) return (true, "within delegation window");
+        return (false, "delegation window expired");
     }
 
     /// @notice 查某个 Agent 当前穿着的规则（无卡时 ruleType = 255）
