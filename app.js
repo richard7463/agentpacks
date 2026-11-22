@@ -28,17 +28,57 @@ const CHAPTERS=[
   {id:'c24',t:'Meme 狂欢季',y:'2024',d:'猫狗起飞，理性清仓',lvl:4},
   {id:'c25',t:'大清算',y:'2025',d:'潮水退尽，真电路活到最后',lvl:5},
 ];
-const DEMO_NAMES=['musk.ai','heyi.ai','cz.ai','justin.ai','vitalik.ai','satoshi.ai','zuck.ai','jensen.ai','kestrel.ai'];
+const DEMO_NAMES=[
+  // ── Crypto 圈（10）──
+  'cz.ai','heyi.ai','justin.ai','vitalik.ai','satoshi.ai',
+  'arthur.ai','brian.ai','michael.ai','cathie.ai','chris.ai',
+  // ── 科技圈（9）──
+  'musk.ai','zuck.ai','jensen.ai','tim.ai','sam.ai',
+  'bezos.ai','gates.ai','brin.ai','jack.ai',
+  // ── 明星圈（7）──
+  'taylor.ai','rihanna.ai','jay.ai','jackie.ai','snoop.ai','andy.ai','drake.ai',
+  // ── 金融圈（4）──
+  'warren.ai','jamie.ai','jerome.ai','larry.ai',
+  // ── 虚构示例（保留 1 个占位）──
+  'kestrel.ai',
+];
 /// 名人卡面（faces/ 槽位：丢入 <name>.jpg 即自动上卡；无照片时显示首字母徽章兜底）
 const FACES={
-  'musk.ai':    {mono:'M',tag:'火星船长',   c:'#D4FF8A',photo:'faces/musk.jpg'},
-  'heyi.ai':    {mono:'Y',tag:'BNB 大管家', c:'#F2C14E',photo:'faces/heyi.jpg'},
+  // crypto
   'cz.ai':      {mono:'C',tag:'币安掌门',   c:'#F2C14E',photo:'faces/cz.jpg'},
+  'heyi.ai':    {mono:'Y',tag:'BNB 大管家', c:'#F2C14E',photo:'faces/heyi.jpg'},
+  'justin.ai':  {mono:'S',tag:'波场教主',   c:'#FF8AD8',photo:'faces/justin.jpg'},
   'vitalik.ai': {mono:'V',tag:'以太架构师', c:'#8AF0FF',photo:'faces/vitalik.jpg'},
   'satoshi.ai': {mono:'S',tag:'创世传奇',   c:'#B79BFF',photo:'faces/satoshi.jpg'},
+  'arthur.ai':  {mono:'A',tag:'衍生品之王', c:'#8AF0FF',photo:'faces/arthur.jpg'},
+  'brian.ai':   {mono:'B',tag:'Coinbase 长官',c:'#D4FF8A',photo:'faces/brian.jpg'},
+  'michael.ai': {mono:'M',tag:'囤币狂人',   c:'#F2C14E',photo:'faces/michael.jpg'},
+  'cathie.ai':  {mono:'C',tag:'方舟女舰长', c:'#B79BFF',photo:'faces/cathie.jpg'},
+  'chris.ai':   {mono:'R',tag:'瑞波船长',   c:'#8AF0FF',photo:'faces/chris.jpg'},
+  // tech
+  'musk.ai':    {mono:'M',tag:'火星船长',   c:'#D4FF8A',photo:'faces/musk.jpg'},
   'zuck.ai':    {mono:'Z',tag:'元宇宙房东', c:'#8AF0FF',photo:'faces/zuck.jpg'},
   'jensen.ai':  {mono:'J',tag:'算力教父',   c:'#D4FF8A',photo:'faces/jensen.jpg'},
-  'justin.ai':  {mono:'S',tag:'波场教主',   c:'#FF8AD8',photo:'faces/justin.jpg'},
+  'tim.ai':     {mono:'T',tag:'苹果大掌柜', c:'#F2EFFF',photo:'faces/tim.jpg'},
+  'sam.ai':     {mono:'S',tag:'OpenAI 掌门',c:'#D4FF8A',photo:'faces/sam.jpg'},
+  'bezos.ai':   {mono:'B',tag:'蓝色起源',   c:'#8AF0FF',photo:'faces/bezos.jpg'},
+  'gates.ai':   {mono:'G',tag:'慈善首富',   c:'#F2EFFF',photo:'faces/gates.jpg'},
+  'brin.ai':    {mono:'B',tag:'谷歌双子',   c:'#8AF0FF',photo:'faces/brin.jpg'},
+  'jack.ai':    {mono:'J',tag:'推特始祖',   c:'#B79BFF',photo:'faces/jack.jpg'},
+  // stars
+  'taylor.ai':  {mono:'T',tag:'霉霉女王',   c:'#FF8AD8',photo:'faces/taylor.jpg'},
+  'rihanna.ai': {mono:'R',tag:'日日天后',   c:'#F2C14E',photo:'faces/rihanna.jpg'},
+  'jay.ai':     {mono:'J',tag:'周董',       c:'#FF8AD8',photo:'faces/jay.jpg'},
+  'jackie.ai':  {mono:'J',tag:'功夫成龙',   c:'#F2C14E',photo:'faces/jackie.jpg'},
+  'snoop.ai':   {mono:'S',tag:'狗爷',       c:'#D4FF8A',photo:'faces/snoop.jpg'},
+  'andy.ai':    {mono:'A',tag:'华仔',       c:'#F2EFFF',photo:'faces/andy.jpg'},
+  'drake.ai':   {mono:'D',tag:'公鸭',       c:'#B79BFF',photo:'faces/drake.jpg'},
+  // finance
+  'warren.ai':  {mono:'W',tag:'奥马哈股神', c:'#F2C14E',photo:'faces/warren.jpg'},
+  'jamie.ai':   {mono:'J',tag:'摩根船长',   c:'#8AF0FF',photo:'faces/jamie.jpg'},
+  'jerome.ai':  {mono:'J',tag:'加息之手',   c:'#F2EFFF',photo:'faces/jerome.jpg'},
+  'larry.ai':   {mono:'L',tag:'贝莱德掌门', c:'#F2C14E',photo:'faces/larry.jpg'},
+  // 虚构示例
   'kestrel.ai': {mono:'K',tag:'虚构示例',   c:'#FF8AD8',photo:''},
 };
 const MS_DEF=[
