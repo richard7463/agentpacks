@@ -2,946 +2,443 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Agent Packs · 电路卡牌</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Oswald:wght@500;700&display=swap');
-:root{
-  --bg:#0b0907;--bg2:#0b0d12;--panel:#14100b;--glass:rgba(255,255,255,.045);
-  --ink:#f5efe2;--dim:#a89a7e;--line:#ffffff14;
-  --gold:#ffcf4a;--gold2:#ffd76a;--gold3:#fff0b8;--amber:#ff9c2a;
-  --teal:#5eead4;--pink:#ff6fd8;--violet:#a78bfa;--violet2:#c4b5fd;--cyan:#7ee8ff;--red:#ff5a6e;
-  --r0:#8b8272;--r1:#b3a68f;--r2:#7ee8ff;--r3:#a78bfa;--r4:#ff6fd8;--r5:#ffcf4a;--r6:#ffd76a;
-  --f-disp:'Cinzel','Noto Sans SC',Georgia,serif;
-  --f-num:'Oswald','Noto Sans SC',sans-serif;
-  --f-body:'Noto Sans SC',system-ui,sans-serif;
-  --mono:ui-monospace,Menlo,Consolas,monospace;
-}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);user-select:none;overflow-x:hidden}
-/* ── 星场背景 ── */
-#stars,#stars2{position:fixed;inset:0;pointer-events:none;z-index:0}
-#stars i,#stars2 i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.55;animation:tw 3.4s ease-in-out infinite}
-@keyframes tw{0%,100%{opacity:.15}50%{opacity:.7}}
-#auro{position:fixed;inset:0;pointer-events:none;z-index:0;background:
-  radial-gradient(720px 460px at 18% -6%,rgba(255,207,74,.09),transparent 60%),
-  radial-gradient(640px 420px at 92% 8%,rgba(167,139,250,.08),transparent 60%),
-  radial-gradient(900px 600px at 50% 118%,rgba(94,234,212,.05),transparent 60%);}
-.wrap{position:relative;z-index:1;max-width:1020px;margin:0 auto;padding:0 14px 110px}
-/* ── 顶部 ── */
-.nav{position:sticky;top:0;z-index:40;background:rgba(11,9,7,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-.nrow{max-width:1020px;margin:0 auto;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.logo{font-family:var(--f-disp);font-weight:800;font-size:17px;letter-spacing:.12em;color:var(--gold3)}
-.logo b{color:var(--gold)}
-.chips{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.chip{font-family:var(--f-num);font-size:12px;letter-spacing:.05em;padding:5px 12px;border-radius:999px;background:var(--glass);box-shadow:var(--line) 0 0 0 1px inset;white-space:nowrap;color:var(--dim)}
-.chip.pt{color:var(--gold);box-shadow:inset 0 0 0 1px rgba(255,207,74,.4)}
-.chip.rf{color:var(--teal);box-shadow:inset 0 0 0 1px rgba(94,234,212,.3)}
-.tabs{max-width:1020px;margin:0 auto;padding:0 14px 10px;display:flex;gap:6px;overflow-x:auto}
-.tab{flex:1;min-width:74px;text-align:center;padding:9px 4px;border-radius:12px;background:var(--glass);box-shadow:var(--line) 0 0 0 1px inset;font-family:var(--f-num);font-size:12.5px;font-weight:700;letter-spacing:.08em;color:var(--dim);cursor:pointer;white-space:nowrap;transition:.18s}
-.tab.on{color:#1a1205;background:linear-gradient(160deg,var(--gold3),var(--gold));box-shadow:0 0 14px rgba(255,207,74,.35)}
-.tab .fn{display:block;font-family:var(--mono);font-size:8px;opacity:.55;font-weight:400;letter-spacing:0}
-.view{display:none;padding-top:16px}.view.on{display:block}
-.card{background:linear-gradient(165deg,rgba(255,255,255,.05),rgba(255,255,255,.02)),var(--panel);border-radius:14px;padding:18px;box-shadow:inset 0 0 0 1px var(--line),0 8px 24px #00000066}
-h2{font-family:var(--f-disp);font-size:17px;letter-spacing:.08em;margin-bottom:4px}
-h3{font-size:14px;margin-bottom:6px}
-.sub{color:var(--dim);font-size:12px;line-height:1.7}
-.mono{font-family:var(--mono);font-size:9.5px;color:var(--gold);opacity:.6}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 20px;border-radius:12px;border:none;background:var(--glass);box-shadow:var(--line) 0 0 0 1px inset;color:var(--ink);font-family:var(--f-num);font-weight:700;font-size:13.5px;letter-spacing:.06em;cursor:pointer;transition:.18s;margin:6px 6px 0 0}
-.btn:hover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
-.btn:disabled{opacity:.3;cursor:not-allowed}
-.btn.p{background:linear-gradient(165deg,var(--gold3),var(--gold));color:#1a1205;box-shadow:0 0 16px rgba(255,207,74,.35)}
-.btn.g{background:linear-gradient(165deg,var(--gold3),var(--amber));color:#1a1205}
-.btn.sm{font-size:11.5px;padding:8px 13px}
-.btn.wide{width:100%;margin-top:10px}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
-/* ── 落地 ── */
-#land{min-height:92vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;position:relative;z-index:1}
-#land .tag{font-family:var(--f-num);font-size:11px;letter-spacing:.3em;color:var(--gold);border:1px solid rgba(255,207,74,.35);border-radius:999px;padding:7px 16px;background:rgba(255,207,74,.06)}
-#land h1{font-family:var(--f-disp);font-size:clamp(28px,5.4vw,50px);line-height:1.3;margin:22px 0 10px;text-shadow:0 2px 30px rgba(255,207,74,.25)}
-#land h1 b{color:var(--gold)}
-#land .lead{color:var(--dim);font-size:13.5px;max-width:460px;line-height:1.9}
-.lpack{font-family:var(--f-num);color:var(--gold2);font-size:17px;margin:16px 0 4px;letter-spacing:.05em}
-.lpack b{font-size:24px;color:var(--gold)}
-#land .foot{position:absolute;bottom:14px;font-family:var(--mono);font-size:10px;color:#5a5140}
-/* ── 卡面（程序化 SVG）── */
-.tile{position:relative;border-radius:12px;padding:9px;cursor:pointer;transition:.18s;background:linear-gradient(170deg,rgba(255,255,255,.07),rgba(255,255,255,.02) 55%),#100c08;box-shadow:inset 0 0 0 1px #ffffff17}
-.tile:hover{transform:translateY(-4px);box-shadow:inset 0 0 0 1px #ffffff2e,0 10px 26px #00000080}
-.tile .nm{font-family:var(--f-disp);font-size:11.5px;line-height:1.35;min-height:32px;font-weight:600}
-.tile .rt{font-family:var(--f-num);font-size:10px;padding:2px 8px;border-radius:999px;display:inline-block;margin-top:6px;background:#00000066}
-.tile .eq{position:absolute;top:7px;right:8px;font-size:12px;filter:drop-shadow(0 0 6px rgba(255,207,74,.8))}
-.tile .st{position:absolute;top:7px;left:8px;font-size:10px;color:var(--gold);font-family:var(--f-num)}
-.tile.identity .nm{color:var(--teal)}
-.tile.art{padding:0;overflow:hidden}
-.tile.art .nm,.tile.art .stats{position:absolute;left:0;right:0;padding:0 9px}
-.tile.art .nm{bottom:34px}
-.tile.art .rt{position:absolute;left:9px;bottom:9px;margin:0}
-.tile.art .st2{position:absolute;right:9px;bottom:12px;font-family:var(--f-num);font-size:10px;color:var(--dim)}
-.holo5:after,.holo6:after{content:"";position:absolute;inset:0;border-radius:12px;background:linear-gradient(118deg,transparent 32%,rgba(255,240,184,.24) 47%,transparent 62%);background-size:260% 260%;animation:hol 3s linear infinite;pointer-events:none;mix-blend-mode:screen}
-@keyframes hol{0%{background-position:0% 0%}100%{background-position:220% 220%}}
-.halo5{box-shadow:inset 0 0 0 1px rgba(255,207,74,.65),0 0 18px rgba(255,207,74,.45)!important}
-.halo6{box-shadow:inset 0 0 0 1px rgba(255,215,110,.95),0 0 26px rgba(255,215,110,.7)!important;animation:lrglow 2.2s ease-in-out infinite}
-@keyframes lrglow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.22)}}
-.stats{display:flex;gap:9px;font-family:var(--f-num);font-size:10px;color:var(--dim);margin-top:5px}
-.stats b{color:var(--ink)}
-.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(154px,1fr));margin-top:14px}
-.c0{color:var(--r0)}.c1{color:var(--r1)}.c2{color:var(--r2)}.c3{color:var(--r3)}.c4{color:var(--r4)}.c5{color:var(--r5)}.c6{color:var(--r6)}
-.b0{border-color:var(--r0)}.b1{border-color:var(--r1)}.b2{border-color:var(--r2)}.b3{border-color:var(--r3)}.b4{border-color:var(--r4)}.b5{border-color:var(--r5)}.b6{border-color:var(--r6)}
-/* ── 开包仪式 ── */
-#ovl{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;flex-direction:column;padding:18px;background:radial-gradient(760px 520px at 50% 46%,rgba(35,26,10,.96),rgba(5,4,2,.98))}
-#ovl.on{display:flex}
-#ovl.flashg{animation:lrflash .55s}
-@keyframes lrflash{0%{background:radial-gradient(760px 520px at 50% 46%,rgba(255,215,110,.65),rgba(90,70,20,.9))}100%{}}
-.bigpack{width:170px;height:236px;position:relative;cursor:pointer;animation:packfloat 3.2s ease-in-out infinite}
-.bigpack:hover{animation:packfloat 3.2s ease-in-out infinite,packshake .5s ease-in-out infinite}
-@keyframes packfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-@keyframes packshake{0%,100%{transform:rotate(0)}25%{transform:rotate(-3.5deg)}75%{transform:rotate(3.5deg)}}
-@keyframes packboom{0%{transform:scale(1);opacity:1}45%{transform:scale(1.16);opacity:1}100%{transform:scale(2.1);opacity:0}}
-.bigpack.boom{animation:packboom .5s forwards}
-@keyframes dealin{0%{transform:translateY(46px) scale(.85);opacity:0}100%{transform:none;opacity:1}}
-.slots{display:none;grid-template-columns:repeat(5,1fr);gap:10px;max-width:800px;width:100%}
-.slots.on{display:grid}
-@media(max-width:640px){.slots{grid-template-columns:repeat(2,1fr)}.slots .slot:nth-child(5){grid-column:span 2}}
-.slot{aspect-ratio:.72;perspective:700px;cursor:pointer;animation:dealin .5s backwards}
-.fcard{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.3,.9,.4,1)}
-.fcard.flip{transform:rotateY(180deg)}
-.ff,.bk{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;text-align:center}
-.bk{background:linear-gradient(165deg,#2b2013,#171008);box-shadow:inset 0 0 0 2px #ffcf4a55,0 0 18px #00000099}
-.bk .q{font-family:var(--f-disp);font-size:22px;color:var(--gold3)}
-.bk .rr{font-family:var(--f-num);font-size:11px;margin-top:8px;letter-spacing:.2em}
-.ff{background:linear-gradient(170deg,rgba(255,255,255,.07),rgba(255,255,255,.02) 60%),#0f0b07;transform:rotateY(180deg);overflow:hidden}
-.ff .rn{font-family:var(--f-num);font-weight:700;font-size:18px;letter-spacing:.14em}
-.ff .cn{font-family:var(--f-disp);font-size:10.5px;margin-top:4px;line-height:1.3}
-.ff .skl{font-size:9px;color:var(--dim);margin-top:4px}
-.ff .idt{font-size:8.5px;color:var(--teal);margin-top:3px}
-.ff .stat{font-family:var(--f-num);font-size:9px;color:var(--dim);margin-top:4px}
-.pop{animation:flipglow .5s}
-@keyframes flipglow{0%{filter:brightness(2.1)}100%{filter:brightness(1)}}
-.slot.halo6 .fcard{animation:lrjitter .38s ease-in-out infinite}
-@keyframes lrjitter{0%,100%{transform:rotateY(180deg) translate(0)}25%{transform:rotateY(180deg) translate(1.6px,-1.4px)}75%{transform:rotateY(180deg) translate(-1.6px,1.4px)}}
-/* ── 商店 ── */
-.shop{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));margin-top:14px}
-.it{border-radius:14px;padding:18px;text-align:center;background:linear-gradient(170deg,rgba(255,255,255,.06),rgba(255,255,255,.02)),#120d08;box-shadow:inset 0 0 0 1px var(--line)}
-.it .t{font-family:var(--f-disp);font-weight:800;font-size:15px;letter-spacing:.1em}
-.it .pr{font-family:var(--f-num);color:var(--gold2);font-size:16px;font-weight:700;margin:8px 0}
-.it.gen{box-shadow:inset 0 0 0 1px rgba(255,207,74,.5),0 0 22px rgba(255,207,74,.18)}
-.locked{filter:grayscale(.85) brightness(.6)}
-/* ── 战斗 ── */
-.chs{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));margin-top:14px}
-.ch{border-radius:12px;padding:14px;cursor:pointer;transition:.18s;background:linear-gradient(170deg,rgba(255,255,255,.05),rgba(255,255,255,.015)),#100c08;box-shadow:inset 0 0 0 1px var(--line)}
-.ch:hover{box-shadow:inset 0 0 0 1px rgba(255,207,74,.5)}
-.ch.done{box-shadow:inset 0 0 0 1px rgba(94,234,212,.45)}
-.ch .t{font-family:var(--f-disp);font-size:13px;letter-spacing:.05em}
-.ch .d{font-size:10.5px;color:var(--dim);margin-top:5px;line-height:1.6}
-#arena{display:none;margin-top:14px}#arena.on{display:block}
-.units{display:grid;gap:8px;grid-template-columns:1fr 1fr;margin-top:10px}
-.unit{border-radius:10px;padding:9px;font-size:11px;background:linear-gradient(170deg,rgba(255,255,255,.05),rgba(255,255,255,.01)),#0f0b07;box-shadow:inset 0 0 0 1px var(--line)}
-.unit .un{font-family:var(--f-num);font-weight:700;font-size:11.5px;letter-spacing:.03em}
-.unit.dead{opacity:.28}
-.unit.hit{animation:uhit .35s}
-@keyframes uhit{0%{transform:translateX(0)}30%{transform:translateX(-5px)}60%{transform:translateX(4px)}100%{transform:translateX(0)}}
-.hpline{height:6px;border-radius:3px;background:#00000088;overflow:hidden;margin-top:5px}
-.hpb{height:100%;border-radius:3px;background:linear-gradient(90deg,#ffd76a,#ffcf4a);transition:.35s}
-.hpb.en{background:linear-gradient(90deg,#ff8090,#ff5a6e)}
-#blog{max-height:210px;overflow-y:auto;font-family:var(--mono);font-size:11px;line-height:1.95;color:var(--dim);background:#0a0806;border-radius:10px;padding:12px;margin-top:10px;white-space:pre-wrap;box-shadow:inset 0 0 0 1px var(--line)}
-/* ── 任务 ── */
-.mrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px dashed #ffffff10}
-.mrow:last-child{border:none}
-.mrow .pn{font-family:var(--f-num);font-size:12.5px;font-weight:600}
-.prog{font-family:var(--mono);font-size:10px;color:var(--dim)}
-/* ── 杂 ── */
-#mmodal{position:fixed;inset:0;background:#000000b3;z-index:90;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)}
-#mmodal.on{display:flex}
-.mbox{background:#14100b;border-radius:16px;padding:22px;max-width:430px;width:100%;max-height:86vh;overflow-y:auto;box-shadow:inset 0 0 0 1px #ffffff1c,0 20px 60px #000c}
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(16px);background:linear-gradient(165deg,var(--gold3),var(--gold));color:#1a1205;font-family:var(--f-num);font-weight:700;font-size:12.5px;letter-spacing:.04em;padding:11px 22px;border-radius:999px;z-index:200;opacity:0;transition:.28s;pointer-events:none;white-space:nowrap;max-width:94vw;overflow:hidden}
-.toast.on{opacity:1;transform:translateX(-50%)}
-.nmin{width:100%;margin-top:10px;padding:13px 15px;border-radius:12px;border:none;background:#00000088;box-shadow:inset 0 0 0 1px var(--line);color:var(--ink);font-family:var(--mono);font-size:13.5px}
-.fuel{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.fchip{font-family:var(--f-num);font-size:10.5px;padding:5px 9px;border-radius:8px;cursor:pointer;background:var(--glass);box-shadow:var(--line) 0 0 0 1px inset}
-.fchip.sel{color:var(--gold);box-shadow:inset 0 0 0 1px rgba(255,207,74,.7)}
-.banner{margin-top:12px;font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.8;border-radius:10px;padding:10px;box-shadow:inset 0 0 0 1px #ffffff10;background:rgba(255,255,255,.02)}
-.poolrow{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px dashed #ffffff10;font-size:12.5px}
-input:focus{outline:none;box-shadow:inset 0 0 0 1px rgba(255,207,74,.55)}
-</style>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0F0C24">
+<meta name="description" content="Agent Packs：开出带真实 .ai 身份的 Agent 卡，每张卡是一条任何人都能在链上复算的支出规则。">
+<title>Agent Packs · 开包开出一个有名字的 AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="ui.css">
 </head>
 <body>
-<div id="auro"></div><div id="stars"></div><div id="stars2"></div>
+<a class="skip" href="#main">跳到内容</a>
+<div class="bg" aria-hidden="true"><div class="bg-glow"></div><div class="bg-noise"></div></div>
 
-<div class="nav">
-  <div class="nrow">
-    <div class="logo">AGENT <b>PACKS</b></div>
-    <div class="chips">
-      <span class="chip pt" id="chPts">0 分</span>
-      <span class="chip" id="chPacks">包 0/12</span>
-      <span class="chip rf" id="chRf">REFILL FULL</span>
-      <span class="chip" id="chName">游客</span>
+<header class="topbar">
+  <div class="tb">
+    <a class="brand" id="brandHome" href="#" aria-label="Agent Packs 首页">
+      <span class="brand-mark" aria-hidden="true"><i>AP</i></span>
+      <span class="brand-txt">Agent Packs<em>第 0 季</em></span>
+    </a>
+
+    <nav class="tabs" id="tabs" aria-label="主导航">
+      <button class="tab" data-v="open">开包</button>
+      <button class="tab" data-v="cards">收藏</button>
+      <button class="tab" data-v="gate">守门人<span class="tab-new">新</span></button>
+      <button class="tab" data-v="chess">自走棋</button>
+      <button class="tab" data-v="shop">补给</button>
+      <button class="tab" data-v="tasks">任务</button>
+      <button class="tab" data-v="verify">卡池</button>
+      <button class="tab" data-v="chain">链上</button>
+    </nav>
+
+    <div class="tb-stats">
+      <div class="stat"><i>卡包</i><b id="chPacks">0/12</b><em id="chRf">已满</em></div>
+      <div class="stat pts"><i>积分</i><b id="chPts">0</b></div>
+      <div class="stat agent"><i>身份</i><b id="chName">游客</b></div>
     </div>
   </div>
-  <div class="tabs">
-    <div class="tab on" data-v="open">OPEN<span class="fn">claimDailyPack()</span></div>
-    <div class="tab" data-v="cards">CARDS<span class="fn">equip() starUp()</span></div>
-    <div class="tab" data-v="chess">CHESS<span class="fn">链下可复算</span></div>
-    <div class="tab" data-v="shop">SHOP<span class="fn">buyPack(tier)</span></div>
-    <div class="tab" data-v="tasks">TASKS<span class="fn">13 daily</span></div>
-    <div class="tab" data-v="verify">VERIFY<span class="fn">claimIntoPool()</span></div>
-    <div class="tab" data-v="chain">CHAIN<span class="fn">真交易</span></div>
-  </div>
-</div>
+</header>
 
-<div class="wrap">
+<main class="wrap" id="main">
 
-<div id="land">
-  <div class="tag">BINANCE AGENT ID × TAPEOUT 电路 · SEASON 0</div>
-  <h1>开包开出的不是图片，<br>是<b>一个有名字的 AI</b>。</h1>
-  <p class="lead">卡面是真实 .ai 身份，卡魂是链上规则电路——技能由电路决定，任何人可验。本页为链下演示档，概率与保底与主网合约完全一致。</p>
-  <div class="lpack">🎁 你有 <b id="landN">12</b> 个免费包 · 无需注册</div>
-  <div class="row" style="justify-content:center">
-    <button class="btn p" id="bLandOpen" style="font-size:15px;padding:15px 30px">OPEN A FREE PACK →</button>
-    <button class="btn" id="bLandPool">AM I IN THE POOL?</button>
-  </div>
-  <div class="foot">Agent Packs · 电路即灵魂 · 概率链上公开 · 主网由 AgentPackCore.sol 执行</div>
-</div>
+<!-- ══════════ 落地页 ══════════ -->
+<section id="land">
+  <div class="hero">
+    <div class="hero-copy">
+      <p class="kicker"><span class="kicker-dot"></span>第 0 季开放中：Binance Agent ID 做身份，TapeOut 电路做规则</p>
+      <h1 class="reveal-lines"><span class="ln"><span>开包开出的</span></span><span class="ln"><span>不是图片，</span></span><span class="ln"><span>是一个有名字的&nbsp;AI</span></span></h1>
+      <p class="lead">卡面是真实的 <b>.ai</b> 身份，卡背是一条支出规则。把卡穿到你的 Agent ID 上，任何人都能在 BscScan 读出它的参数，再拿一笔支付复算它有没有守约。</p>
+      <div class="hero-cta">
+        <button class="btn primary xl" id="bLandOpen">免费开一包</button>
+        <button class="btn ghost xl" id="bLandPool">查我在不在卡池</button>
+      </div>
+      <p class="hero-meta">现在有 <b id="landN">12</b> 个免费包，不用注册，不用钱包。</p>
+    </div>
 
-<div class="view" id="v-open">
-  <div class="card">
-    <h2>OPEN · 开包</h2>
-    <p class="sub">免费包上限 12，每 20 秒恢复 1（主网 <span class="mono">claimDailyPack()</span> 为 24h 一包）。卡背金框深浅 = 稀有度，翻牌前就能看出来。</p>
-    <div class="row">
-      <button class="btn p" id="bOpen1">开 1 包</button>
-      <button class="btn" id="bOpen5">连开 5 包</button>
-      <span class="chip" id="regen">REFILL FULL</span>
+    <div class="hero-art">
+      <button class="pack-wrap" id="heroPackWrap" data-tilt aria-label="撕开一包">
+        <span class="pack-svg" id="heroPack"></span>
+        <span class="foil" aria-hidden="true"></span>
+        <span class="glare" aria-hidden="true"></span>
+      </button>
+      <p class="pack-hint" aria-hidden="true">点一下，或者沿顶部虚线划开</p>
     </div>
   </div>
-  <div class="card" style="margin-top:14px"><h3>📦 待开 <span class="mono" id="pkN"></span></h3><div id="pkRow" class="row"></div></div>
-  <div class="banner">七档概率 ‰：C464 / UC300 / R150 / SR60 / SSR20 / UR5 / LR1 · 保底：新手首包第 5 张 ≥SSR；连续 10 张无 SR 强制 ≥SR<br>演示档与主网 AgentPackCore.sol 同一套规则，BscScan 可验证。</div>
-</div>
 
-<div class="view" id="v-cards">
-  <div class="card">
-    <h2>CARDS · 收藏册</h2>
-    <div class="row">
-      <button class="btn sm" data-sort="r">按稀有度</button>
-      <button class="btn sm" data-sort="id">按获得</button>
-      <button class="btn sm" data-sort="atk">按攻击</button>
-      <span class="sub" id="cstat"></span>
+  <section class="odds-block" aria-labelledby="oddsH">
+    <div class="sec-head">
+      <h2 id="oddsH">每 1000 张卡里，各稀有度有几张</h2>
+      <p>概率写死在合约常量里，没有任何函数能改它。</p>
     </div>
-    <div class="grid" id="cGrid"></div>
-  </div>
-  <div class="card" style="margin-top:14px">
-    <h3>redeemPoints() · 500 分兑保底 SR</h3>
-    <button class="btn" id="bRedeem">兑换 SR（500 分）</button>
-  </div>
-</div>
+    <div id="oddsLadder"></div>
+  </section>
 
-<div class="view" id="v-chess">
-  <div class="card">
-    <h2>CHESS · 电路自走棋</h2>
-    <p class="sub">带 3 张卡穿越币圈史五章，每章 3 波 + Boss。技能由卡背电路决定——止损回血、梭哈狂暴、杠杆自损、钻石手反弹。首通一章 +2 包 +30 分。</p>
-    <div class="chs" id="chGrid"></div>
-    <div class="row"><span class="chip" id="rec">战绩 0/0</span></div>
-    <div id="arena"><div class="units" id="units"></div><div id="blog"></div>
-    <div class="row"><button class="btn p" id="bNext" style="display:none">下一波 →</button></div></div>
-  </div>
-</div>
-
-<div class="view" id="v-shop">
-  <div class="card">
-    <h2>SHOP · 补给</h2>
-    <p class="sub">主网为 <span class="mono">buyPack(tier)</span>：BNB 直付，50% 当笔销毁 + 50% 入公示奖池。演示档免费。</p>
-    <div class="shop">
-      <div class="it"><div class="t">首充包</div><div class="pr">0.002 BNB</div><div class="sub">10 普通 + 1 黑包（保底 UR）</div><button class="btn g wide" data-buy="0">领取 10+1</button></div>
-      <div class="it"><div class="t">每日限量</div><div class="pr">0.02 BNB</div><div class="sub">10 金包 + 3 彩虹（保底 SSR）· 限 3 次</div><button class="btn wide" data-buy="1">领取 13</button></div>
-      <div class="it gen"><div class="t" style="color:var(--gold)">创世包</div><div class="pr">0.2 BNB</div><div class="sub">100 普通 + 20 彩虹 + 2 黑包 · S1 停售</div><button class="btn p wide" data-buy="2">领取 122</button></div>
-      <div class="it locked"><div class="t">CASINO</div><div class="pr" style="color:var(--dim)">S2 评估中</div><div class="sub">赌场类模式不参与本期上线（合规披露）</div><button class="btn wide" disabled>S2 解锁</button></div>
+  <section class="utility" aria-labelledby="utilH">
+    <div class="slab-stage">
+      <div class="slab" data-tilt>
+        <div class="slab-label">
+          <div><span class="sl-k">规则证书</span><b id="slabCert">#000042</b></div>
+          <div class="sl-grade"><span>SSR</span><b>★1</b></div>
+        </div>
+        <div class="slab-well"><div class="slab-card" id="slabCard"></div></div>
+        <div class="slab-foot mono">ruleOf(42) → (0, 2800, 0)</div>
+      </div>
     </div>
-    <div class="row"><button class="btn sm" id="bFollow">🎁 关注 @agentpacks → +10 包（演示）</button></div>
-  </div>
-</div>
-
-<div class="view" id="v-tasks">
-  <div class="card"><h2>TASKS · 每日 13 项</h2><div id="misBox"></div></div>
-  <div class="card" style="margin-top:14px">
-    <h2>连续登录 <span class="mono" id="streakN"></span></h2>
-    <div class="sub" id="streakD"></div><div id="streakBox" class="row"></div>
-  </div>
-</div>
-
-<div class="view" id="v-verify">
-  <div class="card">
-    <h2>VERIFY · 我在卡池里吗？</h2>
-    <p class="sub">卡池只收<b>自愿认领</b>者——正主不上桌，卡不存在（红线 9：卡面不含任何钱包信息）。被抽到 = 正主 +10 分。</p>
-    <div class="row" style="align-items:stretch">
-      <input class="nmin" id="nmIn" style="flex:1;margin:0" placeholder="你的 .ai 名字，如 kestrel.ai" maxlength="24">
-      <button class="btn p" id="bClaim">认领入池</button>
+    <div class="u-copy">
+      <h2 id="utilH">每张卡都是一张可以复算的规则证书</h2>
+      <p class="u-lead">评级卡砖证明一张卡是真的；这里的卡证明一个 Agent 守不守规矩。规则本身不拦截付款，它让「有没有越界」变成任何人都能查的事实。</p>
+      <dl class="rule-list">
+        <div>
+          <dt>止损电路</dt>
+          <dd>每天最多花 $20，超出要人工放行。稀有度和星级越高，额度越大。</dd>
+          <dd class="mono">checkPayment(agent, 2500, payee, 1800, …) → false</dd>
+        </div>
+        <div>
+          <dt>风控电路</dt>
+          <dd>收款方必须也持有官方 Agent ID，否则拒绝。</dd>
+          <dd class="mono">isAgentIdHolder(payee)</dd>
+        </div>
+        <div>
+          <dt>身份卡</dt>
+          <dd>抽到某个 .ai 的身份卡，就能把收款方锁死在这个人身上，适合订阅。</dd>
+          <dd class="mono">payee == pool[ref].agent</dd>
+        </div>
+      </dl>
     </div>
-    <div id="poolBox" style="margin-top:12px"></div>
-    <div class="row">
-      <button class="btn sm" id="bLeavePool">退出卡池（绝版）</button>
-      <button class="btn sm" id="bReset">重置演示档</button>
+  </section>
+
+  <section class="story" id="story" aria-labelledby="storyH">
+    <div class="story-pin">
+      <div class="story-stage" aria-hidden="true">
+        <div class="story-glow"></div>
+        <div class="story-card" id="storyCard">
+          <div class="sc-face sc-back"><span class="sc-r">SSR</span><span class="sc-b">Agent Packs</span><span class="foil"></span></div>
+          <div class="sc-face sc-front" id="storyFront"></div>
+        </div>
+        <ol class="story-pay" id="storyPay">
+          <li data-at=".70"><b>$12.40</b><span>GPU 推理账单</span><em class="ok">通过</em></li>
+          <li data-at=".79"><b>$48.00</b><span>数据集订阅，今天已花 $20</span><em class="ask">超上限，要人工确认</em></li>
+          <li data-at=".88"><b>$320.00</b><span>「紧急退款」陌生地址</span><em class="bad">拦截</em></li>
+        </ol>
+      </div>
+      <div class="story-copy">
+        <h2 id="storyH" class="sr-only">一张卡怎么变成一条规则</h2>
+        <ol class="story-steps">
+          <li data-step="0"><span class="step-n">1</span><h3>开包</h3><p>免费包会自己回满。新手第一包保底 SSR，连续 10 张没出 SR 就强制给一张。</p></li>
+          <li data-step="1"><span class="step-n">2</span><h3>翻面就是规则</h3><p>卡背印着一条支出规则。稀有度和星级越高，额度越大，参数在链上任何人都读得到。</p></li>
+          <li data-step="2"><span class="step-n">3</span><h3>穿上就生效</h3><p>把卡穿到你的 Agent ID 上，每一笔付款都能拿它复算：通过、要人工确认，还是拦截。想先试试，带 3 张去「守门人」拦骗局。</p></li>
+        </ol>
+        <div class="story-progress"><i id="storyBar"></i></div>
+      </div>
     </div>
-    <div class="banner">退出后停发新卡，历史卡成「绝版」。认领 = <span class="mono">claimIntoPool()</span> 一笔链上交互；主网版由合约校验官方 Agent ID ERC-721 注册表。</div>
-  </div>
-</div>
+  </section>
 
-<div class="view" id="v-chain">
-  <div class="card">
-    <h2>CHAIN · 主网真交易</h2>
-    <p class="sub">本页动作全部由链上 <span class="mono">AgentPackCore</span> 合约执行并校验你的 Agent ID——与演示档同一套规则。合约部署后把地址粘贴到下方即可启用。</p>
-    <div class="row" style="align-items:stretch">
-      <input class="nmin" id="cAddr" style="flex:1;margin:0" placeholder="AgentPackCore 合约地址 0x…（DEPLOY.md 部署后回填）" value="">
-      <button class="btn p" id="bSaveAddr">保存地址</button>
+  <footer class="land-foot">
+    <span>Agent Packs · 第 0 季</span>
+    <span><span class="mono">AgentPackCore.sol</span> 30/30 测试通过 · BNB Chain</span>
+  </footer>
+</section>
+
+<!-- ══════════ 开包 ══════════ -->
+<section class="view" id="v-open">
+  <div class="page-head">
+    <div><h2>开包</h2><p class="ph-sub">免费包每 20 秒回 1 个，最多存 12 个。</p></div>
+    <span class="call">claimDailyPack()</span>
+  </div>
+
+  <div class="bench">
+    <div class="pm-left">
+      <span class="pm-label">可以开的包</span>
+      <div class="pm-num"><b id="pmCount">0</b><span>/ 12</span></div>
+      <div class="pm-bar"><i id="pmFill"></i></div>
+      <span class="pm-note" id="regen">已满</span>
     </div>
-    <div class="row">
-      <span class="chip" id="cChain">网络：BNB 主网(56)</span>
-      <button class="btn sm" id="bTogChain">切换 主网56/测试网97</button>
+    <div class="pm-right">
+      <div class="pm-btns">
+        <button class="btn primary xl" id="bOpen1">开 1 包</button>
+        <button class="btn ghost xl" id="bOpen5">连开 5 包</button>
+      </div>
+      <p class="sub">主网上对应每天一次的 <span class="mono">claimDailyPack()</span>，开包结果由合约的提交-揭示流程决定。</p>
     </div>
-    <div id="chainBox" style="margin-top:12px"></div>
-    <div class="banner">开包 = <span class="mono">claimDailyPack → packCommit →（等一个区块）→ packReveal</span> 两笔交易，与合约测试同流程。交易哈希点击可跳 BscScan。</div>
   </div>
+
+  <div class="block">
+    <div class="panel-head"><h3>待开的包</h3><span class="chip" id="pkN">0 包</span></div>
+    <div id="pkRow" class="packrow"></div>
+  </div>
+
+  <div class="block">
+    <div class="panel-head"><h3>概率与保底</h3><span class="chip">链上常量</span></div>
+    <div id="oddsLadder2"></div>
+    <ul class="rules">
+      <li>新手第一包的第 5 张，保底 SSR 或更高。</li>
+      <li>连续 10 张没出 SR，下一张强制 SR 或更高。</li>
+      <li>演示档和 <span class="mono">AgentPackCore.sol</span> 用同一套规则，可以在 BscScan 核对。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══════════ 收藏 ══════════ -->
+<section class="view" id="v-cards">
+  <div class="page-head">
+    <div><h2>收藏</h2><p class="ph-sub">点一张卡，可以穿上、升星或卖掉。</p></div>
+    <span class="call">equip() · starUp()</span>
+  </div>
+
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="排序">
+      <button class="seg-b on" data-sort="r">按稀有度</button>
+      <button class="seg-b" data-sort="id">按获得时间</button>
+      <button class="seg-b" data-sort="atk">按攻击力</button>
+    </div>
+    <span class="sub" id="cstat"></span>
+  </div>
+  <div class="cgrid" id="cGrid"></div>
+
+  <div class="redeem">
+    <div>
+      <h3>用积分换一张 SR</h3>
+      <p class="sub">500 分换 1 张保底 SR。积分只能在站内用，不能提现。</p>
+    </div>
+    <button class="btn primary" id="bRedeem">花 500 分兑换</button>
+  </div>
+</section>
+
+<!-- ══════════ 守门人 ══════════ -->
+<section class="view" id="v-gate">
+  <div class="page-head">
+    <div><h2>守门人</h2><p class="ph-sub">10 笔付款请求冲向你的 Agent。规则电路先判，你可以人工推翻。</p></div>
+    <span class="call">checkPayment()</span>
+  </div>
+
+  <div id="gateSetup">
+    <div class="gate-intro">
+      <div>
+        <h3>怎么玩</h3>
+        <ol class="gate-how">
+          <li>从收藏里挑最多 3 张电路卡，叠成你 Agent 的规则栈。所有规则都通过，才算规则放行。</li>
+          <li>每笔请求有 6 秒。不动手，就按规则的判定自动处理；按 <kbd>←</kbd> 拦截、<kbd>→</kbd> 放行，就是人工推翻。</li>
+          <li>请求里混着骗局：仿冒的 .ai、重复扣款、天价「紧急退款」。拦下骗局，放行真账单。</li>
+        </ol>
+      </div>
+      <div class="gate-best" id="gateBest"></div>
+    </div>
+    <div class="block">
+      <div class="panel-head"><h3>规则栈</h3><span class="chip" id="gateN">0 / 3</span></div>
+      <div class="gate-stack" id="gateStack"></div>
+      <div class="team-pool gate-pool" id="gatePool"></div>
+      <div class="row"><button class="btn primary xl" id="bGateGo">开始守门</button><span class="sub" id="gateHint"></span></div>
+    </div>
+  </div>
+
+  <div id="gatePlay" hidden>
+    <div class="gate-hud">
+      <div><i>第</i><b id="gQ">1</b><i>/ 10 笔</i></div>
+      <div><i>今天已付</i><b id="gPaid">$0</b></div>
+      <div><i>拦下骗局</i><b id="gSaved" class="ok">$0</b></div>
+      <div><i>被骗走</i><b id="gLost" class="bad">$0</b></div>
+      <div><i>误杀真账单</i><b id="gMiss">0</b></div>
+    </div>
+    <div class="gate-arena">
+      <article class="invoice" id="gInv"></article>
+      <div class="gate-side">
+        <div class="gate-rules" id="gRules"></div>
+        <div class="gate-timer"><i id="gTimer"></i></div>
+        <div class="gate-btns">
+          <button class="btn ghost xl gate-block" id="bGBlock">拦截</button>
+          <button class="btn primary xl gate-pass" id="bGPass">放行</button>
+        </div>
+        <p class="sub gate-tip" id="gTip">不动手就按规则处理。</p>
+      </div>
+    </div>
+    <ol class="gate-log" id="gLog"></ol>
+  </div>
+
+  <div id="gateEnd" hidden></div>
+</section>
+
+<!-- ══════════ 自走棋 ══════════ -->
+<section class="view" id="v-chess">
+  <div class="page-head">
+    <div><h2>自走棋</h2><p class="ph-sub">带 3 张卡穿越五轮周期，全自动战斗。</p></div>
+    <span class="chip" id="rec">战绩 0/0</span>
+  </div>
+
+  <div class="chess-hero">
+    <div class="ch-copy">
+      <h3>从 2017 打到 2025</h3>
+      <p>卡背的电路就是技能：止损回血、梭哈狂暴、杠杆自损、钻石手反弹。每章 3 波小怪加 1 个 Boss，第一次通关送 2 包和 30 分。</p>
+    </div>
+    <ol class="timeline" aria-label="五个章节">
+      <li><b>2017</b><span>ICO 狂潮</span></li>
+      <li><b>2018</b><span>漫长冬天</span></li>
+      <li><b>2022</b><span>暴雷纪元</span></li>
+      <li><b>2024</b><span>Meme 狂欢</span></li>
+      <li><b>2025</b><span>大清算</span></li>
+    </ol>
+  </div>
+
+  <div class="chess-cols">
+    <div class="block">
+      <div class="panel-head"><h3>上场阵容</h3><span class="chip" id="teamN">0 / 3</span></div>
+      <p class="sub">从收藏里选 3 张卡。点已上场的卡可以换下；不选就自动带最强的 3 张。</p>
+      <div class="team-slots" id="teamSlots"></div>
+      <div class="team-pool" id="teamPool"></div>
+    </div>
+    <div class="block">
+      <div class="panel-head"><h3>通关进度</h3><span class="chip" id="chDone">0 / 5</span></div>
+      <div class="chprog" id="chProg"></div>
+      <p class="sub" style="margin-top:12px">进度目前存在本机。主网版会把战绩写进 Agent ID 的链上档案。</p>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="panel-head"><h3>选一章开打</h3></div>
+    <div class="chapters" id="chGrid"></div>
+
+    <div id="arena">
+      <div class="arena-top">
+        <span class="arena-tag" id="arenaTag">第 1 波</span>
+        <span class="sub" id="arenaCh"></span>
+      </div>
+      <div class="arena-grid">
+        <div class="side"><div class="side-h">我方</div><div class="units" id="unitsMe"></div></div>
+        <div class="vs">VS</div>
+        <div class="side"><div class="side-h">敌方</div><div class="units" id="unitsEn"></div></div>
+      </div>
+      <div id="units" class="hidden-units"></div>
+      <div class="blog" id="blog"></div>
+      <div class="row"><button class="btn primary" id="bNext" style="display:none">打下一波</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 补给 ══════════ -->
+<section class="view" id="v-shop">
+  <div class="page-head">
+    <div><h2>补给</h2><p class="ph-sub">主网用 BNB 直接付款：每笔一半销毁，一半进公示奖池。</p></div>
+    <span class="call">buyPack(tier)</span>
+  </div>
+
+  <div class="shop">
+    <article class="tier">
+      <h3>首充包</h3>
+      <div class="price">0.002<em>BNB</em></div>
+      <ul><li>10 个普通包</li><li>1 个黑包，保底 UR</li><li>每人限购 1 次</li></ul>
+      <button class="btn ghost wide" data-buy="0">领 11 包</button>
+    </article>
+    <article class="tier">
+      <h3>每日限量</h3>
+      <div class="price">0.02<em>BNB</em></div>
+      <ul><li>10 个金包</li><li>3 个彩虹包，保底 SSR</li><li>每天限 3 次</li></ul>
+      <button class="btn ghost wide" data-buy="1">领 13 包</button>
+    </article>
+    <article class="tier featured">
+      <span class="tier-tag">第 1 季起停售</span>
+      <h3>创世包</h3>
+      <div class="price">0.2<em>BNB</em></div>
+      <ul><li>100 个普通包</li><li>20 个彩虹包 + 2 个黑包</li><li>停售后永久绝版</li></ul>
+      <button class="btn primary wide" data-buy="2">领 122 包</button>
+    </article>
+  </div>
+  <p class="sub shop-note">演示档里三档都免费发放，不会扣任何钱。</p>
+  <div class="row"><button class="btn ghost sm" id="bFollow">关注 @agentpacks，领 10 包（演示）</button></div>
+</section>
+
+<!-- ══════════ 任务 ══════════ -->
+<section class="view" id="v-tasks">
+  <div class="page-head">
+    <div><h2>每日任务</h2><p class="ph-sub">每天 0 点（UTC+8）重置，做完就能领包。</p></div>
+  </div>
+
+  <div class="block streak-panel">
+    <div class="panel-head">
+      <h3>连续登录第 <span id="streakN">1</span> 天</h3>
+      <span class="sub" id="streakD">每天回来一次，第 7 天保底 SSR 包。</span>
+    </div>
+    <div id="streakBox" class="streak"></div>
+  </div>
+
+  <div class="summary" id="misSummary"></div>
+  <div class="sect-head"><h3>今天的任务</h3></div>
+  <div id="misBox" class="tgrid"></div>
+  <div class="lockrow" id="misLock"></div>
+  <div class="finishrow" id="misFoot"></div>
+</section>
+
+<!-- ══════════ 卡池 ══════════ -->
+<section class="view" id="v-verify">
+  <div class="page-head">
+    <div><h2>卡池</h2><p class="ph-sub">只有本人自愿认领，才会被做成身份卡。</p></div>
+    <span class="call">claimIntoPool()</span>
+  </div>
+  <div class="block">
+    <p class="sub">你的 .ai 每被抽到一次，你得 10 分。卡面只印名字，不包含任何钱包信息。退出后，已经发出的卡成为绝版，不再新发。</p>
+    <div class="claim-row">
+      <label class="sr-only" for="nmIn">你的 .ai 名字</label>
+      <input class="inp" id="nmIn" placeholder="你的 .ai 名字，比如 kestrel.ai" maxlength="24" autocomplete="off">
+      <button class="btn primary" id="bClaim">认领入池</button>
+    </div>
+    <div id="poolBox" class="poolbox"></div>
+    <div class="danger-row">
+      <button class="btn ghost sm" id="bLeavePool">退出卡池</button>
+      <button class="btn ghost sm danger" id="bReset">重置演示档</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 链上 ══════════ -->
+<section class="view" id="v-chain">
+  <div class="page-head">
+    <div><h2>链上</h2><p class="ph-sub">用真钱包调用真合约，每笔都能在 BscScan 查到。</p></div>
+    <span class="call" id="cChain">BNB 主网 56</span>
+  </div>
+  <div class="block">
+    <p class="sub">这一页的操作全部由 <span class="mono">AgentPackCore</span> 执行，并在合约里核验你的 Agent ID。合约部署后，把地址粘到下面即可启用。</p>
+    <div class="claim-row">
+      <label class="sr-only" for="cAddr">合约地址</label>
+      <input class="inp mono" id="cAddr" placeholder="AgentPackCore 合约地址 0x…">
+      <button class="btn primary" id="bSaveAddr">保存地址</button>
+      <button class="btn ghost" id="bTogChain">切换网络</button>
+    </div>
+    <div id="chainBox" class="chainbox"></div>
+    <div class="banner">开一包在链上是三步：<span class="mono">claimDailyPack → packCommit → 等一个区块 → packReveal</span>。每笔交易都能点开到 BscScan。</div>
+  </div>
+
+  <div class="block">
+    <div class="panel-head"><h3>复算一笔支付</h3><span class="chip">只读调用，不花 gas</span></div>
+    <p class="sub">读出你现在穿着的规则，再拿一笔支付去复算。参数全部来自 <span class="mono">ruleOf()</span>，任何人都能重放。</p>
+    <div class="claim-row">
+      <input class="inp" id="rcAmt" type="number" min="0" step="0.01" placeholder="金额（美元）" aria-label="金额（美元）">
+      <input class="inp" id="rcSpent" type="number" min="0" step="0.01" placeholder="今天已花（美元）" aria-label="今天已花（美元）">
+      <input class="inp mono" id="rcPayee" placeholder="收款方 0x…（留空表示自己）" aria-label="收款方地址">
+      <button class="btn primary" id="bRuleCheck">复算</button>
+    </div>
+    <div class="banner" id="ruleOut">连接钱包后会依次调用 equippedRule(agent) 和 checkPayment(agent, amount, payee, spent, …)。</div>
+  </div>
+</section>
+
+</main>
+
+<!-- ══════════ 开包仪式 ══════════ -->
+<div id="ovl" role="dialog" aria-modal="true" aria-label="开包">
+  <div class="ovl-top"><span id="ovlTag">开包中</span><button class="ovl-x" id="bClose" aria-label="关闭">✕</button></div>
+  <div id="stage"></div>
+  <div class="ovl-actions">
+    <button class="btn primary" id="bOpenIt">撕开卡包</button>
+    <button class="btn ghost" id="bAll" style="display:none">全部翻开</button>
+    <button class="btn primary" id="bDone" style="display:none">收进收藏</button>
+  </div>
+  <div class="ovl-hint" id="ovlHint">点卡包撕开</div>
 </div>
 
-</div>
+<div id="mmodal" role="dialog" aria-modal="true" aria-label="卡牌详情"><div class="mbox" id="mbox"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<div id="ovl">
-  <div id="stage" style="display:flex;flex-direction:column;align-items:center"></div>
-  <div class="row" style="justify-content:center;margin-top:16px">
-    <button class="btn p" id="bAll" style="display:none">全部翻开</button>
-    <button class="btn g" id="bDone" style="display:none">收下 →</button>
-  </div>
-</div>
-
-<div id="mmodal"><div class="mbox" id="mbox"></div></div>
-<div class="toast" id="toast"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-<script>
-/*══════════ 定义 ════════*/
-const RAR=['C','UC','R','SR','SSR','UR','LR'];
-const ODDS=[464,300,150,60,20,5,1];
-const SELL=[1,2,4,10,30,120,600];
-const HOUSE=[
- {n:'止损电路',s:'止损回血',d:'HP<40% 每回合回复 8%'},
- {n:'梭哈电路',s:'满血狂暴',d:'HP>90% 时攻击 +60%'},
- {n:'风控电路',s:'伤害减免',d:'受到伤害 -20%'},
- {n:'加仓电路',s:'复利成长',d:'每回合攻击 +15%（叠加）'},
- {n:'清仓电路',s:'AOE 清算',d:'攻击全体（-40% 单体伤害）'},
- {n:'抄底电路',s:'低血斩杀',d:'对 HP<25% 敌人伤害 ×2'},
- {n:'杠杆电路',s:'高伤自损',d:'攻击 +80%，出手自伤 6%'},
- {n:'钻石手电路',s:'坚壁反弹',d:'受伤 -30% 并反弹 25%'},
-];
-const CHAPTERS=[
- {id:'c17',t:'2017 · ICO 狂潮',d:'人人都在发币，泡沫最高处',lvl:1},
- {id:'c18',t:'2018 · 漫长的冬天',d:'九成归零，活下来的是钻石手',lvl:2},
- {id:'c22',t:'2022 · 暴雷纪元',d:'连环巨雷，信任冰点',lvl:3},
- {id:'c24',t:'2024 · Meme 狂欢季',d:'猫狗起飞，理性清仓',lvl:4},
- {id:'c25',t:'2025 · 大清算',d:'潮水退尽，真电路活到最后',lvl:5},
-];
-const DEMO_NAMES=['cz.ai','he.yi.ai','satoshi.ai','vitalik.ai','grok.ai','kestrel.ai','tiger.ai'];
-const MS_DEF=[
- {k:'open5', n:'开 5 个包', g:5, rw:2, t:'包'},
- {k:'open15',n:'开 15 个包', g:15, rw:3, t:'包'},
- {k:'open50',n:'开 50 个包', g:50, rw:2, t:'包'},
- {k:'sr',    n:'抽到 SR 以上 ×3', g:3, rw:2, t:'包'},
- {k:'ssr',   n:'抽到 SSR 以上 ×1', g:1, rw:3, t:'包'},
- {k:'equip', n:'穿 1 张卡', g:1, rw:1, t:'包'},
- {k:'star',  n:'升星 1 次', g:1, rw:1, t:'包'},
- {k:'sell',  n:'卖卡 ×5', g:5, rw:10, t:'分'},
- {k:'join',  n:'认领 .ai 入池', g:1, rw:2, t:'包'},
- {k:'battle',n:'打 1 局自走棋', g:1, rw:1, t:'包'},
- {k:'clear', n:'通关任意一章', g:1, rw:3, t:'包'},
- {k:'redeem',n:'兑换 1 次 SR', g:1, rw:1, t:'包'},
- {k:'streak',n:'连续登录（自动）', g:1, rw:1, t:'包'},
-];
-
-/*══════════ 存档 v3 ════════*/
-const SKEY='apacks_v3';
-let S=null;
-function fresh(){return{v:3,name:null,pts:0,packs:[],freeCap:12,lastRegen:Date.now(),
- cards:[],nextId:1,equipped:0,firstPack:false,sinceSR:0,
- pool:[],myInPool:false,sort:'r',w:0,l:0,team:[],chCleared:{},
- day:null,mis:{},claimed:{},streak:1,lastDay:Date.now(),followed:false};}
-function save(){localStorage.setItem(SKEY,JSON.stringify(S))}
-function load(){try{S=JSON.parse(localStorage.getItem(SKEY))}catch(e){}if(!S||S.v!==3)S=fresh()}
-load();
-const today=()=>new Date().toDateString();
-if(S.day!==today()){
-  const gap=S.lastDay?Math.floor((Date.now()-S.lastDay)/864e5):99;
-  S.streak=(gap===1)?S.streak+1:1;S.lastDay=Date.now();
-  S.day=today();S.mis={open5:0,open15:0,open50:0,sr:0,ssr:0,equip:0,star:0,sell:0,join:0,battle:0,clear:0,redeem:0};
-  S.mis.streak=1;S.claimed={};save();
-}
-
-/*══════════ 工具 ════════*/
-const $=q=>document.querySelector(q), $$=q=>document.querySelectorAll(q);
-function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');setTimeout(()=>el.classList.remove('on'),1800)}
-function fmtN(n){return n&&n.length>16?n.slice(0,15)+'…':(n||'')}
-let AC=null;
-function beep(f,d,t='square',g=.06){try{
-  if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();
-  const o=AC.createOscillator(),ga=AC.createGain();
-  o.type=t;o.frequency.value=f;ga.gain.value=g;o.connect(ga);ga.connect(AC.destination);
-  const now=AC.currentTime;ga.gain.setValueAtTime(g,now);
-  ga.gain.exponentialRampToValueAtTime(.001,now+d);o.start(now);o.stop(now+d)}catch(e){}}
-function fanfare(r){
-  if(r>=5){[523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>beep(f,.3,'triangle',.1),i*110))}
-  else if(r>=4){[440,554,659].forEach((f,i)=>setTimeout(()=>beep(f,.22,'triangle',.08),i*100))}
-  else if(r>=2)beep(392,.16,'triangle',.06); else beep(300,.1,'square',.04)}
-/* 星场 */
-(function(){for(const [id,n] of [['stars',70],['stars2',40]]){
-  const box=document.getElementById(id);let h='';
-  for(let i=0;i<n;i++){h+=`<i style="left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${-Math.random()*4}s;transform:scale(${.5+Math.random()})"></i>`}
-  box.innerHTML=h}})();
-
-/*══════════ 卡 & 程序化卡面 SVG ════════*/
-function statsOf(c){return{atk:Math.round(5+c.r*3.2+c.star*2),def:Math.round(4+c.r*2.4+c.star*2),rat:Math.min(99,Math.round(57+c.r*5.6+c.star*3.4))}}
-function seeded(id){let t=id+0x6D2B79F5;return function(){t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
-const RCOL=['#8b8272','#b3a68f','#7ee8ff','#a78bfa','#ff6fd8','#ffcf4a','#ffd76a'];
-function artSVG(c,w,h){
-  const rnd=seeded(c.id*7919+c.r*13+c.ref*101+c.kind*3);
-  const col=RCOL[c.r];let paths='',dots='',glows='';
-  const seg=4+Math.floor(rnd()*4);
-  for(let i=0;i<seg;i++){
-    let x=Math.round(rnd()*w*.9),y=Math.round(h*.72-rnd()*h*.6);
-    let d=`M${x} ${y}`;let len=2+Math.floor(rnd()*3);
-    for(let j=0;j<len;j++){
-      const dir=rnd()<.5,step=8+Math.round(rnd()*14);
-      if(dir)x=Math.max(4,Math.min(w-4,x+step));else y=Math.max(6,Math.min(h-8,y-step));
-      d+=` L${x} ${y}`;
-    }
-    const op=.35+rnd()*.5;
-    paths+=`<path d="${d}" fill="none" stroke="${col}" stroke-width="1.4" opacity="${op}" stroke-linecap="round"/>`;
-    dots+=`<circle cx="${x}" cy="${y}" r="2.2" fill="${col}" opacity="${op+.15}"/>`;
-    if(rnd()<.4)glows+=`<circle cx="${x}" cy="${y}" r="5.5" fill="${col}" opacity=".12"/>`;
-  }
-  let badge='';
-  if(c.kind===1){badge=`<circle cx="${w/2}" cy="${h*.26}" r="13" fill="none" stroke="#5eead4" stroke-width="1.2" opacity=".85"/>
-    <text x="${w/2}" y="${h*.26+3.5}" text-anchor="middle" font-size="9" font-family="monospace" fill="#5eead4">.ai</text>`}
-  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="position:absolute;inset:0;top:0;left:0">
-    <rect width="${w}" height="${h}" fill="none"/>
-    <rect x="1.5" y="1.5" width="${w-3}" height="${h-3}" rx="9" fill="none" stroke="${col}" stroke-width="1.3" opacity=".65"/>
-    <rect x="1.5" y="1.5" width="${w-3}" height="${h-7}" rx="9" fill="none" stroke="#ffffff" stroke-width="1" opacity=".09"/>
-    <line x1="12" y1="${h*.66}" x2="${w-12}" y2="${h*.66}" stroke="#ffffff" stroke-width="1" opacity=".07"/>
-    ${glows}${paths}${dots}${badge}
-  </svg>`;
-}
-function makeCard(r){
-  let kind=0,ref=Math.floor(Math.random()*8);
-  const act=S.pool.filter(p=>p.active);
-  if(r>=3&&act.length&&Math.random()<0.6){const p=act[Math.floor(Math.random()*act.length)];
-    kind=1;ref=S.pool.indexOf(p);p.pulls=(p.pulls||0)+1;}
-  return{id:S.nextId++,r,star:0,kind,ref};
-}
-function cname(c){return c.kind===1?S.pool[c.ref].name:HOUSE[c.ref].n}
-function cskill(c){return HOUSE[c.kind===1?(c.ref%8):c.ref].s}
-function open5(){
-  const out=[];
-  for(let i=0;i<5;i++){
-    let r=rollR();
-    if(!S.firstPack&&i===4){if(r<4)r=4}
-    else if(S.firstPack&&S.sinceSR+1>=10&&r<3)r=3;
-    if(r>=3)S.sinceSR=0;else S.sinceSR++;
-    if(r>=3)S.mis.sr++; if(r>=4)S.mis.ssr++;
-    out.push(makeCard(r));
-  }
-  S.firstPack=true;S.pts+=5;
-  S.mis.open5++;S.mis.open15++;S.mis.open50++;
-  S.cards.push(...out);save();return out;
-}
-function rollR(){const x=Math.random()*1000;let a=0;for(let r=0;r<7;r++){a+=ODDS[r];if(x<a)return r}return 6}
-
-/*══════════ 头部刷新 ════════*/
-function regenFree(){
-  const now=Date.now(),g=Math.floor((now-S.lastRegen)/20000);
-  if(g>0){const cur=S.packs.length;const add=Math.max(0,Math.min(g,S.freeCap-cur));
-    for(let i=0;i<add;i++)S.packs.push(1);S.lastRegen=now;save();}
-  const cur=S.packs.length,full=cur>=S.freeCap;
-  $('#chPacks').textContent='包 '+cur+'/'+S.freeCap;
-  $('#chRf').textContent=full?'REFILL FULL':'下一包 '+Math.max(0,20-Math.floor((Date.now()-S.lastRegen)/1000))+'s';
-  $('#regen').textContent=full?'已满 '+cur+'/'+S.freeCap:'恢复中 · '+cur+'/'+S.freeCap;
-  $('#landN').textContent=S.freeCap;
-}
-function switchTab(v){
-  $$('.tab').forEach(t=>t.classList.toggle('on',t.dataset.v===v));
-  $$('.view').forEach(x=>x.classList.remove('on'));
-  $('#v-'+v).classList.add('on');
-  $('#land').style.display='none';
-  renderAll();
-  if(v==='chain')renderChain();
-}
-function renderAll(){regenFree();
-  $('#chPts').textContent=S.pts+' 分';
-  $('#chName').textContent=(S.name||'游客')+(S.myInPool?' · 在池':'');
-  $('#pkN').textContent=S.packs.length+' 包';
-  $('#rec').textContent='战绩 '+S.w+'/'+(S.w+S.l);
-  $('#streakN').textContent='× '+S.streak;
-  $('#streakD').textContent='连续 '+S.streak+' 天 · 主网版 = 每日免费包连签';
-  renderPk();renderCards();renderChapters();renderMis();renderPool();renderStreak();
-}
-function renderPk(){
-  const pr=$('#pkRow');pr.innerHTML='';
-  if(!S.packs.length){pr.innerHTML='<span class="sub">包空了——去 SHOP 补给或等恢复。</span>';return}
-  S.packs.slice(0,14).forEach((_,i)=>{
-    const b=document.createElement('button');b.className='btn sm p';b.textContent='包 '+(i+1);
-    b.onclick=()=>{S.packs.splice(i,1);save();startOpen()};pr.appendChild(b)});
-}
-function renderStreak(){
-  const box=$('#streakBox');box.innerHTML='';
-  for(let i=1;i<=7;i++){const c=document.createElement('span');c.className='chip';
-    c.textContent='D'+i+(S.streak>=i?' ✓':'');
-    if(S.streak>=i){c.style.color='var(--gold)';c.style.boxShadow='inset 0 0 0 1px rgba(255,207,74,.5)'}
-    box.appendChild(c)}
-}
-
-/*══════════ 开包仪式：摇晃 → 爆开 → 发牌 ════════*/
-let opening=null,flipN=0,phase='pack';
-function startOpen(){
-  if(opening)return toast('先收下这批');
-  opening=open5();flipN=0;phase='pack';
-  const st=$('#stage');
-  st.innerHTML=`<div class="bigpack" id="bp">
-    <svg width="170" height="236" viewBox="0 0 170 236">
-      <defs><linearGradient id="foil" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#54401d"/><stop offset="55%" stop-color="#2b2013"/><stop offset="100%" stop-color="#171008"/></linearGradient></defs>
-      <rect x="4" y="4" width="162" height="228" rx="14" fill="url(#foil)" stroke="#ffcf4a" stroke-width="2" opacity=".95"/>
-      <rect x="4" y="4" width="162" height="40" rx="14" fill="#ffcf4a" opacity=".92"/>
-      <text x="85" y="31" text-anchor="middle" font-family="Oswald,sans-serif" font-size="15" font-weight="700" fill="#1a1205" letter-spacing="2">AGENT PACK</text>
-      <circle cx="85" cy="128" r="30" fill="none" stroke="#ffd76a" stroke-width="1.6" opacity=".9"/>
-      <text x="85" y="133" text-anchor="middle" font-family="monospace" font-size="14" fill="#ffd76a">.ai</text>
-      <text x="85" y="196" text-anchor="middle" font-family="monospace" font-size="9" fill="#c9b98a">×5 CARDS · SOUL=CIRCUIT</text>
-      <circle cx="85" cy="160" r="9" fill="none" stroke="#ffd76a" stroke-width="1" opacity=".7"/>
-    </svg></div>
-    <div style="font-family:var(--f-num);color:var(--gold2);margin-top:14px;font-size:13px;letter-spacing:.15em">点包撕开 →</div>`;
-  $('#bAll').style.display='none';$('#bDone').style.display='none';
-  $('#ovl').classList.add('on');
-  beep(220,.12,'triangle',.05);
-  $('#bp').onclick=()=>{dealCards()};
-}
-function dealCards(){
-  beep(140,.3,'sawtooth',.09);
-  const bp=$('#bp');if(bp)bp.classList.add('boom');
-  const best=opening.reduce((m,c)=>Math.max(m,c.r),0);
-  if(best>=4){$('#ovl').classList.add('flashg');setTimeout(()=>$('#ovl').classList.remove('flashg'),560)}
-  setTimeout(()=>{
-    phase='cards';
-    const st=$('#stage');st.innerHTML='<div class="slots" id="slots"></div>';
-    opening.forEach((c,i)=>{
-      const st2=statsOf(c);
-      const d=document.createElement('div');d.className='slot'+(c.r===6?' halo6':'');
-      d.style.animationDelay=(i*90)+'ms';
-      d.innerHTML=`<div class="fcard">
-        <div class="bk"><div class="q">?</div><div class="rr c${c.r}">${RAR[c.r]}</div></div>
-        <div class="ff b${c.r}" style="position:relative">
-          ${artSVG(c,140,180)}
-          <div class="rn c${c.r}" style="position:relative">${RAR[c.r]}</div>
-          <div class="cn" style="position:relative">${cname(c)}</div>
-          <div class="skl" style="position:relative">⚡ ${cskill(c)}</div>
-          ${c.kind===1?`<div class="idt" style="position:relative">身份卡 · ${fmtN(S.pool[c.ref].name)}</div>`:''}
-          <div class="stat" style="position:relative">ATK ${st2.atk} · DEF ${st2.def} · 评 ${st2.rat}</div>
-        </div></div>`;
-      d.onclick=()=>flip(d,c);$('#slots').appendChild(d);
-    });
-    $('#bAll').style.display='';
-  },420);
-}
-function flip(d,c){
-  const fc=d.querySelector('.fcard');
-  if(!fc.classList.contains('flip')&&phase==='cards'){
-    fc.classList.add('flip');const ff=d.querySelector('.ff');ff.classList.add('pop');
-    fanfare(c.r);flipN++;
-    if(c.r>=5){$('#ovl').classList.add('flashg');setTimeout(()=>$('#ovl').classList.remove('flashg'),560)}
-    if(flipN>=5){$('#bDone').style.display='';$('#bAll').style.display='none';
-      const top=Math.max(...opening.map(x=>x.r));
-      toast('开出 '+opening.map(x=>RAR[x.r]).join(' · ')+(top>=4?' 🔥':''))}
-  }
-}
-$('#bAll').onclick=()=>{const cards=opening?opening.slice():[];$$('.slot').forEach((d,i)=>setTimeout(()=>flip(d,cards[i]),i*230))};
-$('#bDone').onclick=()=>{$('#ovl').classList.remove('on');opening=null;renderAll()};
-
-/*══════════ 收藏 ════════*/
-let sortMode='r';
-$$('[data-sort]').forEach(b=>b.onclick=()=>{sortMode=b.dataset.sort;renderCards()});
-function renderCards(){
-  const g=$('#cGrid');g.innerHTML='';
-  if(!S.cards.length){g.innerHTML='<span class="sub">还没有卡——先去开包。</span>';return}
-  const arr=[...S.cards].sort((a,b)=>sortMode==='id'?a.id-b.id:sortMode==='atk'?statsOf(b).atk-statsOf(a).atk:(b.r-a.r||b.id-a.id));
-  $('#cstat').textContent='共 '+S.cards.length+' 张 · '+(S.equipped?'已穿 #'+S.equipped:'未穿卡');
-  arr.forEach(c=>{
-    const st=statsOf(c);
-    const t=document.createElement('div');t.className='tile art'+(c.kind===1?' identity':'')+(c.r>=5?' holo'+c.r:'')+(c.r===5?' halo5':'')+(c.r===6?' halo6':'');
-    t.innerHTML=`<div style="height:132px;position:relative">${artSVG(c,154,140)}</div>
-      <div class="st">${c.star?'★'.repeat(c.star):''}</div>
-      ${S.equipped===c.id?'<div class="eq">🎽</div>':''}
-      <div class="nm">${cname(c)}</div>
-      <div class="stats" style="margin-top:24px"><span>ATK <b>${st.atk}</b></span><span>DEF <b>${st.def}</b></span><span>评 <b>${st.rat}</b></span></div>
-      <span class="rt c${c.r}" style="box-shadow:inset 0 0 0 1px ${RCOL[c.r]}55">${RAR[c.r]}</span>
-      <span class="st2">⚡${cskill(c)}</span>`;
-    t.onclick=()=>detail(c.id);g.appendChild(t);
-  });
-}
-function detail(id){
-  const c=S.cards.find(x=>x.id===id);if(!c)return;
-  const st=statsOf(c);
-  const fuel=S.cards.filter(x=>x.id!==c.id&&x.id!==S.equipped);
-  const m=$('#mbox');
-  m.innerHTML=`<div style="display:flex;gap:14px;align-items:center">
-      <div style="width:110px;height:118px;position:relative;border-radius:12px;overflow:hidden">${artSVG(c,110,118)}</div>
-      <div><h3 style="font-family:var(--f-disp)">${cname(c)}</h3>
-      <span class="rt c${c.r}" style="box-shadow:inset 0 0 0 1px ${RCOL[c.r]}55">${RAR[c.r]}</span> ${'★'.repeat(c.star)}
-      <div class="stats"><span>ATK <b>${st.atk}</b></span><span>DEF <b>${st.def}</b></span><span>总评 <b>${st.rat}</b></span></div></div></div>
-  <p class="sub" style="margin:12px 0">${c.kind===1?'身份卡 · 正主：'+fmtN(S.pool[c.ref].name):'系统电路卡'} — ${HOUSE[c.kind===1?(c.ref%8):c.ref].d}</p>
-  <div class="row">
-    <button class="btn sm ${S.equipped===c.id?'':'p'}" id="mEq">${S.equipped===c.id?'脱下 unequip()':'穿卡 equip()'}</button>
-    <button class="btn sm" id="mSell">卖 +${SELL[c.r]} 分</button>
-  </div>
-  <div style="margin-top:12px"><span class="sub">选燃料升星 starUp()（1 张=1 星，上限 5）：</span>
-  <div class="fuel" id="fuelBox">${fuel.slice(0,50).map(f=>`<span class="fchip" data-f="${f.id}">#${f.id}·${RAR[f.r]}</span>`).join('')||'<span class="sub">无多余卡</span>'}</div>
-  <button class="btn sm g" id="mStar" style="margin-top:8px">升星（已选 <b id="fc">0</b>）</button></div>`;
-  $('#mmodal').classList.add('on');
-  const picked=new Set();
-  $('#fuelBox').querySelectorAll('.fchip').forEach(ch=>ch.onclick=()=>{
-    const fid=+ch.dataset.f;picked.has(fid)?picked.delete(fid):picked.add(fid);
-    ch.classList.toggle('sel');$('#fc').textContent=picked.size});
-  $('#mEq').onclick=()=>{
-    if(S.equipped===c.id){S.equipped=0;toast('已脱下')}
-    else{S.equipped=c.id;S.mis.equip++;toast('已穿到 '+(S.name||'你的身份'))}
-    beep(660,.1);save();$('#mmodal').classList.remove('on');renderAll()};
-  $('#mSell').onclick=()=>{
-    if(S.equipped===c.id)S.equipped=0;
-    S.pts+=SELL[c.r];S.mis.sell++;
-    S.cards=S.cards.filter(x=>x.id!==c.id);
-    toast('卖了 +'+SELL[c.r]+' 分');save();$('#mmodal').classList.remove('on');renderAll()};
-  $('#mStar').onclick=()=>{
-    if(!picked.size)return toast('先选燃料卡');
-    S.cards=S.cards.filter(x=>!picked.has(x.id));
-    c.star=Math.min(5,c.star+picked.size);S.mis.star++;
-    beep(880,.16,'triangle',.08);toast('升到 ★'+c.star);save();$('#mmodal').classList.remove('on');renderAll()};
-}
-$('#mmodal').onclick=e=>{if(e.target.id==='mmodal')$('#mmodal').classList.remove('on')};
-$('#bRedeem').onclick=()=>{
-  if(S.pts<500)return toast('积分不够（需 500）');
-  S.pts-=500;S.mis.redeem++;
-  S.cards.push({id:S.nextId++,r:3,star:0,kind:0,ref:Math.floor(Math.random()*8)});
-  beep(784,.2,'triangle',.08);toast('兑换成功：1 张保底 SR');save();renderAll();
-};
-
-/*══════════ 自走棋 ════════*/
-function renderChapters(){
-  const g=$('#chGrid');g.innerHTML='';
-  CHAPTERS.forEach(ch=>{
-    const done=!!S.chCleared[ch.id];
-    const d=document.createElement('div');d.className='ch'+(done?' done':'');
-    d.innerHTML=`<div class="t">${ch.t}</div><div class="d">${ch.d}<br>难度 ${'●'.repeat(ch.lvl)}${done?' · ✓ 已通关':' · 首通 +2包+30分'}</div>`;
-    d.onclick=()=>startChapter(ch);g.appendChild(d);
-  });
-}
-let B=null;
-function startChapter(ch){
-  const myCards=S.team.length===3?S.team.slice():[...S.cards].sort((a,b)=>b.r-a.r).slice(0,3).map(c=>c.id);
-  if(myCards.length<3)return toast('需要至少 3 张卡');
-  S.team=myCards;
-  const mk=(c,side)=>{
-    const st=statsOf(c);
-    return{n:side==='me'?cname(c):'野生·'+HOUSE[Math.floor(Math.random()*8)].n,
-      mhp:Math.round(side==='me'?100:66+ch.lvl*8),hp:0,atk:Math.max(3,Math.round(st.atk*(side==='me'?1:0.5+ch.lvl*0.1))),
-      sk:(c.kind===1?c.ref%8:c.ref),side,alive:true,buff:0,r:c.r};};
-  const team=myCards.map(id=>mk(S.cards.find(c=>c.id===id),'me'));
-  B={ch,team,wave:1,boss:false,log:[],over:false};
-  B.foes=()=>[0,1,2].map(()=>mk({r:Math.min(5,Math.floor(Math.random()*4)+1),ref:Math.floor(Math.random()*8),kind:0,star:0},'en'));
-  B.me=team.map(u=>({...u,hp:u.mhp}));
-  nextWave();
-  $('#arena').classList.add('on');
-}
-function nextWave(){
-  const ch=B.ch;
-  if(B.wave>1)B.me.forEach(u=>{if(u.alive)u.hp=Math.min(u.mhp,u.hp+Math.round(u.mhp*0.35))});
-  B.boss=(B.wave===4);
-  B.en=B.foes().map(u=>{const m=1+B.wave*0.12+(B.boss?0.5:0);
-    u.atk=Math.round(u.atk*m);u.mhp=Math.round(u.mhp*m);u.hp=u.mhp;
-    if(B.boss)u.n='Boss · '+u.n;return u});
-  B.log.push('—— 第 '+B.wave+(B.boss?' 波 · BOSS':' 波')+' ——');
-  simBattle();
-}
-function simBattle(){
-  let guard=0;
-  while(B.me.some(u=>u.alive)&&B.en.some(u=>u.alive)&&guard++<200){
-    for(const u of [...B.me,...B.en].filter(x=>x.alive)){
-      if(!u.alive)continue;
-      const foes=(u.side==='me'?B.en:B.me).filter(x=>x.alive);if(!foes.length)break;
-      let dmg=u.atk*(1+u.buff);u.buff+=u.sk===3?0.15:0;
-      const target=foes[Math.floor(Math.random()*foes.length)];
-      if(u.sk===1&&u.hp>90*u.mhp/100)dmg*=1.6;
-      if(u.sk===5&&target.hp<0.25*target.mhp)dmg*=2;
-      if(u.sk===6)dmg*=1.8;
-      if(u.sk===2)dmg*=0.8;if(u.sk===7)dmg*=0.7;
-      dmg=Math.max(1,Math.round(dmg));
-      const hit=t=>{let d=dmg;if(t.sk===2)d*=0.8;if(t.sk===7)d*=0.7;
-        t.hp=Math.max(0,Math.round(t.hp-d));
-        B.log.push(u.n+' → '+t.n+' -'+Math.round(d));
-        if(t.hp===0){t.alive=false;B.log.push('  '+t.n+' 阵亡')}};
-      if(u.sk===4){dmg=Math.round(dmg*0.6);foes.forEach(hit)}else hit(target);
-      if(u.sk===7&&u.alive){const back=Math.round(dmg*0.25);u.hp=Math.max(0,u.hp-back);
-        B.log.push(target.n+' 反弹 '+u.n+' -'+back);if(u.hp===0){u.alive=false;B.log.push('  '+u.n+' 阵亡')}}
-      if(u.sk===6&&u.alive){const self=Math.round(u.mhp*0.06);u.hp=Math.max(0,u.hp-self);
-        B.log.push(u.n+' 杠杆自损 -'+self);if(u.hp===0){u.alive=false;B.log.push('  '+u.n+' 阵亡')}}
-      if(u.sk===0&&u.alive&&u.hp<0.4*u.mhp){u.hp=Math.min(u.mhp,u.hp+Math.round(0.08*u.mhp));
-        B.log.push(u.n+' 止损回血 +'+Math.round(0.08*u.mhp))}
-      if(!B.me.some(x=>x.alive)||!B.en.some(x=>x.alive))break;
-    }
-  }
-  drawBattle();
-  const meAlive=B.me.some(u=>u.alive);
-  if(!meAlive){B.over=true;S.l++;S.mis.battle++;
-    B.log.push('','× 全军覆没——升星或换技能再来');drawBattle();save();renderAll();return}
-  if(B.boss){B.over=true;S.w++;S.mis.battle++;S.mis.clear=1;
-    const first=!S.chCleared[B.ch.id];S.chCleared[B.ch.id]=true;
-    if(first){S.pts+=30;S.packs.push(1,1);toast('首通 '+B.ch.t+'：+30 分 +2 包')}
-    else{S.pts+=15;toast('通关：+15 分')}
-    B.log.push('','★ 通关 '+B.ch.t+'！'+(first?'首通奖励 +30分+2包':''));
-    [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.25,'triangle',.09),i*110));
-    drawBattle();save();renderAll();return}
-  B.wave++;B.log.push('（波次胜利，进入下一波）');
-  $('#bNext').style.display='';
-}
-function drawBattle(){
-  const ug=$('#units');ug.innerHTML='';
-  const draw=u=>{const d=document.createElement('div');d.className='unit'+(u.alive?'':' dead');
-    d.innerHTML=`<div class="un">${u.side==='en'?'敌方 · ':''}${u.n}</div>
-    <div class="hpline"><div class="hpb ${u.side==='en'?'en':''}" style="width:${Math.max(0,100*u.hp/u.mhp)}%"></div></div>`;
-    ug.appendChild(d)};
-  B.me.forEach(draw);B.en.forEach(draw);
-  $('#blog').textContent=B.log.join('\n');
-  $('#blog').scrollTop=99999;
-  if(B.over)$('#bNext').style.display='none';
-}
-$('#bNext').onclick=()=>{$('#bNext').style.display='none';nextWave()};
-
-/*══════════ 任务 ════════*/
-function mval(k){
-  if(k==='open5')return S.mis.open5;if(k==='open15')return S.mis.open15;if(k==='open50')return S.mis.open50;
-  if(k==='streak')return 1;
-  return S.mis[k]||0;
-}
-function renderMis(){
-  const b=$('#misBox');b.innerHTML='';
-  MS_DEF.forEach(m=>{
-    const v=Math.min(mval(m.k),m.g),done=v>=m.g,cl=S.claimed[m.k];
-    const row=document.createElement('div');row.className='mrow';
-    row.innerHTML=`<div><div class="pn">${m.n}</div><div class="prog">${v}/${m.g}</div></div>
-    <button class="btn sm ${done&&!cl?'p':''}" ${done&&!cl?'':'disabled'}>${cl?'已领取':done?'领取 +'+m.rw+m.t:'进行中'}</button>`;
-    if(done&&!cl)row.querySelector('button').onclick=()=>{
-      S.claimed[m.k]=true;
-      if(m.t==='包'){for(let i=0;i<m.rw;i++)S.packs.push(1)}else S.pts+=m.rw;
-      beep(660,.12);toast('任务奖励：'+m.rw+' '+m.t);save();renderAll()};
-    b.appendChild(row);
-  });
-}
-
-/*══════════ VERIFY ════════*/
-function ensurePool(){
-  DEMO_NAMES.forEach(n=>{if(!S.pool.some(p=>p.name===n))S.pool.push({name:n,active:true,mine:false,pulls:0})});
-  if(S.name&&!S.pool.some(p=>p.name===S.name))S.pool.push({name:S.name,active:S.myInPool,mine:true,pulls:0});
-}
-function renderPool(){
-  ensurePool();
-  const b=$('#poolBox');b.innerHTML='';
-  const act=S.pool.filter(p=>p.active).length;
-  b.insertAdjacentHTML('beforeend','<div class="sub" style="margin-bottom:6px">在池身份 <b style="color:var(--teal)">'+act+'</b> 个（演示档含生态示例名）</div>');
-  S.pool.forEach(p=>{
-    const row=document.createElement('div');row.className='poolrow';
-    row.innerHTML=`<div>${p.mine?'🪪':'👤'} <b>${fmtN(p.name)}</b> <span class="mono">${p.active?'在池':'绝版'}</span></div>
-    <div class="prog">被抽到 × ${p.pulls||0}${p.mine?' · 这是你':''}</div>`;
-    b.appendChild(row);
-  });
-}
-$('#bClaim').onclick=()=>{
-  let v=$('#nmIn').value.trim();if(!v)return toast('先填一个 .ai 名字');
-  if(!v.endsWith('.ai'))v=v+'.ai';
-  S.name=v;
-  const mine=S.pool.find(p=>p.name===v);
-  if(mine){mine.active=true;mine.mine=true}
-  else S.pool.push({name:v,active:true,mine:true,pulls:0});
-  S.myInPool=true;S.mis.join=1;
-  beep(784,.2,'triangle',.08);toast('已认领 '+v+' 并入池');save();renderAll();
-};
-$('#bLeavePool').onclick=()=>{
-  if(!S.name)return toast('先认领');
-  const p=S.pool.find(x=>x.name===S.name);
-  if(!p||!p.active)return toast('你不在池中');
-  p.active=false;S.myInPool=false;toast('已退出 · 历史卡成绝版');save();renderAll();
-};
-let resetArmed=false;
-$('#bReset').onclick=()=>{
-  if(!resetArmed){resetArmed=true;$('#bReset').textContent='⚠ 再点一次确认';
-    setTimeout(()=>{resetArmed=false;$('#bReset').textContent='重置演示档'},3000);return}
-  localStorage.removeItem(SKEY);location.reload();
-};
-
-/*══════════ SHOP ════════*/
-$$('[data-buy]').forEach(b=>b.onclick=()=>{
-  const t=+b.dataset.buy;const n=[10,13,122][t];
-  for(let i=0;i<n;i++)S.packs.push(1);
-  beep(523,.12);toast('已到账 '+n+' 包（演示档）');save();renderAll();
-});
-$('#bFollow').onclick=()=>{
-  if(S.followed)return toast('已领取过');
-  S.followed=true;for(let i=0;i<10;i++)S.packs.push(1);
-  toast('关注奖励 +10 包（演示）');save();renderAll();
-};
-
-/*══════════ 开包按钮 / 落地 ════════*/
-$('#bOpen1').onclick=()=>{if(!S.packs.length)return toast('包空了，等恢复或去 SHOP');S.packs.pop();save();startOpen()};
-$('#bOpen5').onclick=()=>{if(S.packs.length<5)return toast('至少要 5 个包（去 SHOP 补）');
-  S.packs.splice(0,5);save();startOpen()};
-$('#bLandOpen').onclick=()=>{if(!S.packs.length)S.packs.push(1);switchTab('open');S.packs.pop();save();startOpen()};
-$('#bLandPool').onclick=()=>switchTab('verify');
-$$('.tab').forEach(t=>t.onclick=()=>switchTab(t.dataset.v));
-
-/*══════════ CHAIN · 主网真交易（ethers v5 + window.ethereum）══════════*/
-const CHAIN_ABI=[
- "function claimDailyPack() returns (uint256)",
- "function buyPack(uint8) payable",
- "function packCommit(uint256,bytes32)",
- "function packReveal(uint256,bytes32)",
- "function claimIntoPool()","function leavePool()",
- "function equip(uint256)","function unequip()",
- "function invite(address)",
- "function isAgentIdHolder(address) view returns (bool)",
- "function packPoints(address) view returns (uint256)",
- "function packCount() view returns (uint256)",
- "function cardCount() view returns (uint256)",
- "function cardInfo(uint256) view returns ((uint8,uint8,uint8,uint32))"
-];
-let chainAcc=null,chainPending=null;
-try{chainPending=JSON.parse(localStorage.getItem('ap_pending')||'null')}catch(e){}
-function coreAddr(){return localStorage.getItem('ap_core')||''}
-function netId(){return localStorage.getItem('ap_chain')||'38'}
-function netName(){return netId()==='97'?'BNB 测试网(97)':'BNB 主网(56)'}
-function chainScan(){return netId()==='97'?'https://testnet.bscscan.com':'https://bscscan.com'}
-function savePending(){localStorage.setItem('ap_pending',chainPending?JSON.stringify(chainPending):'')}
-async function chainProvider(){const p=new ethers.providers.Web3Provider(window.ethereum);return p}
-async function getSigner(){const p=await chainProvider();await p.send('eth_requestAccounts',[]);return p.getSigner()}
-async function ensureChain(){
-  const id='0x'+netId();
-  try{await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:id}]})}
-  catch(e){if(id==='0x61'){try{await window.ethereum.request({method:'wallet_addEthereumChain',params:[{chainId:'0x61',chainName:'BNB Smart Chain Testnet',nativeCurrency:{name:'tBNB',symbol:'tBNB',decimals:18},rpcUrls:['https://data-seed-prebsc-1-s1.binance.org:8545'],blockExplorerUrls:['https://testnet.bscscan.com']}]})}catch(_){}}}
-}
-async function chainSend(fn,args,opts){
-  const s=await getSigner();await ensureChain();
-  const core=new ethers.Contract(coreAddr(),CHAIN_ABI,s);
-  const tx=await core[fn](...(args||[]),opts||{});
-  const rc=await tx.wait();
-  return rc;
-}
-function txLink(hash){return '<a href="'+chainScan()+'/tx/'+hash+'" target="_blank" style="color:var(--gold)" class="mono">'+hash.slice(0,12)+'…↗</a>'}
-async function chainRead(fn,args){
-  const p=await chainProvider();
-  const core=new ethers.Contract(coreAddr(),CHAIN_ABI,p);
-  return await core[fn](...(args||[]));
-}
-async function commitPending(){
-  const pid=Number(await chainRead('packCount'))+0;
-  const salt=ethers.utils.hexlify(ethers.utils.randomBytes(32));
-  const commit=ethers.utils.keccak256(salt);
-  const rc=await chainSend('packCommit',[pid,commit]);
-  chainPending={pid,salt};savePending();
-  return {pid,rc};
-}
-function renderChain(){
-  const box=$('#chainBox');if(!box)return;
-  $('#cAddr').value=coreAddr();
-  $('#cChain').textContent='网络：'+netName();
-  if(!coreAddr()){
-    box.innerHTML='<div class="sub" style="margin-top:10px">⏳ 未配置合约地址——按 <span class="mono">contracts/DEPLOY.md</span> 部署 AgentPackCore 后，把地址粘贴到上面保存，本页即切换为真交易模式。</div>';
-    return;
-  }
-  if(typeof ethers==='undefined'){box.innerHTML='<div class="sub" style="margin-top:10px">⚠ ethers 库加载失败（离线环境）——联网后刷新。</div>';return}
-  if(!window.ethereum){box.innerHTML='<div class="sub" style="margin-top:10px">⚠ 未检测到浏览器钱包——请用 Binance Wallet / MetaMask 内置浏览器打开本页。</div>';return}
-  box.innerHTML=`<div class="row">
-    <button class="btn p" id="bCC">连接钱包</button>
-    <button class="btn p" id="bCClaim">领包+承诺 claimDailyPack→packCommit</button>
-    <button class="btn g" id="bCReveal" ${chainPending?'':'disabled'}>揭示 packReveal ${chainPending?'(#'+chainPending.pid+')':''}</button>
-  </div>
-  <div class="row">
-    <button class="btn" id="bCBuy">买首充包 0.002 BNB +承诺</button>
-    <button class="btn" id="bCJoin">入池 claimIntoPool</button>
-    <button class="btn" id="bCLeave">退池 leavePool</button>
-  </div>
-  <div class="row" style="align-items:stretch">
-    <input class="nmin" id="cCard" style="flex:0 0 150px;margin:0" placeholder="卡号 #">
-    <button class="btn" id="bCEquip">穿卡 equip</button>
-    <button class="btn" id="bCPts">查积分 packPoints</button>
-  </div>
-  <div class="sub" id="cStatus" style="margin-top:10px"></div>`;
-  const st=t=>{$('#cStatus').innerHTML=t};
-  if(chainAcc)st('已连接：<span class="mono">'+chainAcc+'</span>');
-  $('#bCC').onclick=async()=>{
-    try{chainAcc=(await window.ethereum.request({method:'eth_requestAccounts'}))[0];
-      await ensureChain();st('已连接：<span class="mono">'+chainAcc+'</span>');
-      const held=await chainRead('isAgentIdHolder',[chainAcc]);
-      st('已连接：<span class="mono">'+chainAcc+'</span><br>Agent ID 持有：<b style="color:'+(held?'var(--teal)':'var(--red)')+'">'+(held?'✓ 持有 .ai':'✗ 未持有')+'</b>'+(held?'':' — 请在 Binance App 领取 Agent ID'));
-    }catch(e){toast('连接失败：'+(e.message||e))}};
-  $('#bCClaim').onclick=async()=>{
-    try{st('发送 claimDailyPack…');
-      const before=Number(await chainRead('packCount'));
-      const rc1=await chainSend('claimDailyPack');
-      const pid=before+1;
-      const salt=ethers.utils.hexlify(ethers.utils.randomBytes(32));
-      const rc2=await chainSend('packCommit',[pid,ethers.utils.keccak256(salt)]);
-      chainPending={pid,salt};savePending();
-      st('✓ 领包+承诺完成（pack #'+pid+'）'+txLink(rc1.transactionHash)+'<br>等 ~3 秒（一个区块）后点「揭示」');
-      renderChain();
-    }catch(e){st('✗ '+(e.reason||e.message||e))}};
-  $('#bCReveal').onclick=async()=>{
-    if(!chainPending)return toast('先完成领包+承诺');
-    try{st('揭示 packReveal #'+chainPending.pid+'…');
-      const rc=await chainSend('packReveal',[chainPending.pid,chainPending.salt]);
-      const start=Number(await chainRead('cardCount'));
-      let ids='';for(let i=start-4;i<=start;i++){try{
-        const c=await chainRead('cardInfo',[i]);ids+=' #'+i+'·'+RAR[c[0]];}catch(e){}}
-      chainPending=null;savePending();
-      st('✓ 开包成功 '+txLink(rc.transactionHash)+'<br>开出：'+ids);
-      beep(784,.25,'triangle',.09);
-    }catch(e){st('✗ '+(e.reason||e.message||e))}};
-  $('#bCBuy').onclick=async()=>{
-    try{st('发送 buyPack(0) 0.002 BNB…');
-      const before=Number(await chainRead('packCount'));
-      const rc1=await chainSend('buyPack',[0],{value:ethers.utils.parseEther('0.002')});
-      const pid=before+1;
-      const salt=ethers.utils.hexlify(ethers.utils.randomBytes(32));
-      await chainSend('packCommit',[pid,ethers.utils.keccak256(salt)]);
-      chainPending={pid,salt};savePending();
-      st('✓ 付费包+承诺完成（pack #'+pid+'）'+txLink(rc1.transactionHash)+' — 等 ~3 秒后点「揭示」');
-      renderChain();
-    }catch(e){st('✗ '+(e.reason||e.message||e))}};
-  $('#bCJoin').onclick=async()=>{try{const rc=await chainSend('claimIntoPool');st('✓ 已入池 '+txLink(rc.transactionHash));beep(784,.2)}catch(e){st('✗ '+(e.reason||e.message||e))}};
-  $('#bCLeave').onclick=async()=>{try{const rc=await chainSend('leavePool');st('✓ 已退池（绝版处理）'+txLink(rc.transactionHash))}catch(e){st('✗ '+(e.reason||e.message||e))}};
-  $('#bCEquip').onclick=async()=>{try{
-      const id=$('#cCard').value.trim().replace('#','');if(!id)return toast('填卡号');
-      const rc=await chainSend('equip',[Number(id)]);
-      st('✓ 已穿卡 #'+id+' '+txLink(rc.transactionHash));beep(660,.15);
-    }catch(e){st('✗ '+(e.reason||e.message||e))}};
-  $('#bCPts').onclick=async()=>{try{
-      if(!chainAcc)chainAcc=(await window.ethereum.request({method:'eth_requestAccounts'}))[0];
-      const pts=await chainRead('packPoints',[chainAcc]);
-      st('packPoints = <b style="color:var(--gold)">'+pts+'</b> 分');
-    }catch(e){st('✗ '+(e.reason||e.message||e))}};
-}
-$('#bSaveAddr').onclick=()=>{
-  const v=$('#cAddr').value.trim();
-  if(v&&!/^0x[0-9a-fA-F]{40}$/.test(v))return toast('地址格式不对');
-  localStorage.setItem('ap_core',v);
-  toast(v?'合约地址已保存':'已清空');renderChain();
-};
-$('#bTogChain').onclick=()=>{
-  localStorage.setItem('ap_chain',netId()==='38'?'97':'38');
-  renderChain();toast('切换到 '+netName());
-};
-
-/*══════════ 主循环 ════════*/
-if(S.day===today()&&S.cards.length&&S.name){switchTab('open')}
-renderAll();
-setInterval(()=>{regenFree();$('#pkN').textContent=S.packs.length+' 包'},1000);
-</script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js" defer></script>
+<script src="app.js" defer></script>
+<script src="fx.js" defer></script>
 </body>
 </html>

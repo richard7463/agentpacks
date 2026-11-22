@@ -332,6 +332,120 @@ contract AgentPackCore {
         emit Unequipped(msg.sender);
     }
 
+    /*──────────────────── 6.5 · 规则电路：卡的实际作用 ────────────────────*/
+    // 卡不是图片，是一条可验证的支出规则。
+    // ruleOf(cardId) 读出这条规则的参数；checkPayment(...) 用同一套参数复算
+    // 一笔支付是否守约。与 TapeID 的 rule certificate 同一思路：
+    // 它不阻止支付，它让任何人都能在事后复算——规则公开、参数不可改。
+    // 金额单位统一为「美分」，避免浮点。
+
+    uint8 public constant RULE_DAILY_CAP   = 0; // 止损：每日支出上限
+    uint8 public constant RULE_SINGLE_MAX  = 1; // 梭哈：单笔上限
+    uint8 public constant RULE_AGENT_ONLY  = 2; // 风控：只付给持有 Agent ID 的地址
+    uint8 public constant RULE_GROWTH      = 3; // 加仓：额度随当日成功笔数增长
+    uint8 public constant RULE_DAILY_COUNT = 4; // 清仓：每日笔数上限
+    uint8 public constant RULE_MICRO_PASS  = 5; // 抄底：小额免确认
+    uint8 public constant RULE_HIGH_LIMIT  = 6; // 杠杆：高额度，超一半需人工
+    uint8 public constant RULE_COOLDOWN    = 7; // 钻石手：两笔之间的冷却
+    uint8 public constant RULE_NAMED_PAYEE = 8; // 身份卡：只付给这张卡的正主
+
+    /// @notice 读出卡上的规则（纯函数，任何人可查）
+    /// @return ruleType 0..8，见上方常量
+    /// @return p1 主参数：美分 / 笔数 / 秒 / 地址
+    /// @return p2 次参数（加仓电路 = 每笔增长百分比）
+    function ruleOf(uint256 cardId) public view returns (uint8 ruleType, uint256 p1, uint256 p2) {
+        if (_owners[cardId] == address(0)) revert NoSuchCard();
+        CardInfo memory c = cardInfo[cardId];
+
+        if (c.kind == 1) {
+            return (RULE_NAMED_PAYEE, uint256(uint160(pool[c.ref].agent)), 0);
+        }
+
+        ruleType = uint8(c.ref % HOUSE_CARDS);
+        uint256 mult = 100 + uint256(c.rarity) * 40 + uint256(c.star) * 20; // 稀有度/星级放大
+
+        if (ruleType == RULE_DAILY_CAP)        p1 = 2000 * mult / 100;   // $20 起
+        else if (ruleType == RULE_SINGLE_MAX)  p1 = 5000 * mult / 100;   // $50 起
+        else if (ruleType == RULE_AGENT_ONLY)  p1 = 0;
+        else if (ruleType == RULE_GROWTH)    { p1 = 3000 * mult / 100; p2 = 2; } // 每日 +2%/笔
+        else if (ruleType == RULE_DAILY_COUNT) p1 = 3 + uint256(c.rarity) / 2 + c.star;
+        else if (ruleType == RULE_MICRO_PASS)  p1 = 500 * mult / 100;    // $5 起
+        else if (ruleType == RULE_HIGH_LIMIT)  p1 = 10000 * mult / 100;  // $100 起
+        else {
+            uint256 cut = uint256(c.rarity) * 300 + uint256(c.star) * 120;
+            p1 = cut < 3600 ? 3600 - cut : 300; // 60 分钟起，最低 5 分钟
+        }
+    }
+
+    /// @notice 复算一笔支付是否守约（view，不改变任何状态）
+    /// @dev 调用方提供当日已花、当日笔数、上一笔时间——任何人可用钱包流水复算
+    function checkPayment(
+        address agent,
+        uint256 amountCents,
+        address payee,
+        uint256 spentTodayCents,
+        uint16 txCountToday,
+        uint64 lastPaymentAt,
+        bool humanApproved
+    ) external view returns (bool ok, string memory reason) {
+        uint256 cardId = activeCircuit[agent];
+        if (cardId == 0) return (false, "no rule equipped");
+
+        (uint8 t, uint256 p1, uint256 p2) = ruleOf(cardId);
+
+        if (t == RULE_DAILY_CAP) {
+            if (spentTodayCents + amountCents <= p1) return (true, "within daily cap");
+            if (humanApproved) return (true, "over cap, human approved");
+            return (false, "daily cap exceeded");
+        }
+        if (t == RULE_SINGLE_MAX) {
+            if (amountCents <= p1) return (true, "within single max");
+            return (false, "single payment too large");
+        }
+        if (t == RULE_AGENT_ONLY) {
+            if (isAgentIdHolder(payee)) return (true, "payee holds Agent ID");
+            return (false, "payee has no Agent ID");
+        }
+        if (t == RULE_GROWTH) {
+            uint256 cap = p1 * (100 + uint256(txCountToday) * p2) / 100;
+            if (spentTodayCents + amountCents <= cap) return (true, "within growing cap");
+            if (humanApproved) return (true, "over cap, human approved");
+            return (false, "growing cap exceeded");
+        }
+        if (t == RULE_DAILY_COUNT) {
+            if (txCountToday < p1) return (true, "within daily count");
+            return (false, "daily tx count reached");
+        }
+        if (t == RULE_MICRO_PASS) {
+            if (amountCents <= p1) return (true, "micro payment, no approval");
+            if (humanApproved) return (true, "human approved");
+            return (false, "needs human approval");
+        }
+        if (t == RULE_HIGH_LIMIT) {
+            if (amountCents > p1) return (false, "over high limit");
+            if (amountCents * 2 > p1 && !humanApproved) return (false, "over half limit, needs human");
+            return (true, "within high limit");
+        }
+        if (t == RULE_COOLDOWN) {
+            if (lastPaymentAt == 0 || block.timestamp >= uint256(lastPaymentAt) + p1) {
+                return (true, "cooldown satisfied");
+            }
+            return (false, "cooldown not elapsed");
+        }
+        // RULE_NAMED_PAYEE
+        if (uint256(uint160(payee)) == p1) return (true, "designated payee");
+        return (false, "not the designated payee");
+    }
+
+    /// @notice 查某个 Agent 当前穿着的规则（无卡时 ruleType = 255）
+    function equippedRule(address agent)
+        external view returns (uint256 cardId, uint8 ruleType, uint256 p1, uint256 p2)
+    {
+        cardId = activeCircuit[agent];
+        if (cardId == 0) return (0, 255, 0, 0);
+        (ruleType, p1, p2) = ruleOf(cardId);
+    }
+
     /*──────────────────── 7 · 升星 ────────────────────*/
     /// @dev 简化规则（与 CT 的 2/4/7/11/16 不同，README 披露）：1 张燃料 = 1 星，上限 5
     function starUp(uint256 baseCardId, uint256[] calldata fuel) external onlyAgent {

@@ -21,8 +21,19 @@ contract MockAgentIdRegistry {
     }
 }
 
+/// @dev 测试专用：暴露 internal _mint，用来精确构造指定稀有度/编号的卡
+contract CoreHarness is AgentPackCore {
+    constructor(address r, address p) AgentPackCore(r, p) {}
+
+    function mintTest(address to, uint8 rarity, uint8 star, uint8 kind, uint32 ref)
+        external returns (uint256 id)
+    {
+        id = _mint(to, CardInfo({rarity: rarity, star: star, kind: kind, ref: ref}));
+    }
+}
+
 contract AgentPackCoreTest is Test {
-    AgentPackCore internal core;
+    CoreHarness internal core;
     MockAgentIdRegistry internal reg;
 
     address internal alice = makeAddr("alice"); // 有 .ai 的普通玩家
@@ -32,7 +43,7 @@ contract AgentPackCoreTest is Test {
 
     function setUp() public {
         reg = new MockAgentIdRegistry();
-        core = new AgentPackCore(address(reg), prizePool);
+        core = new CoreHarness(address(reg), prizePool);
         reg.give(alice);
         reg.give(bob);
         vm.deal(alice, 10 ether);
@@ -374,5 +385,144 @@ contract AgentPackCoreTest is Test {
             if (sb[i] != pb[i]) return (false, "");
         }
         return (true, sb);
+    }
+
+    /*──── 10 · 规则电路：卡的实际作用 ────*/
+    function _equipNew(address who, uint8 rarity, uint8 star, uint8 kind, uint32 ref)
+        internal returns (uint256 id)
+    {
+        id = core.mintTest(who, rarity, star, kind, ref);
+        vm.prank(who);
+        core.equip(id);
+    }
+
+    function test_RuleOf_ParamsScaleWithRarityAndStar() public {
+        uint256 c0 = core.mintTest(alice, 0, 0, 0, 0);
+        (uint8 t0, uint256 p0,) = core.ruleOf(c0);
+        assertEq(t0, core.RULE_DAILY_CAP());
+        assertEq(p0, 2000); // $20
+
+        uint256 c1 = core.mintTest(alice, 4, 2, 0, 0); // SSR + 2 星 → mult 100+160+40=300
+        (, uint256 p1,) = core.ruleOf(c1);
+        assertEq(p1, 6000); // $60
+
+        uint256 cd = core.mintTest(alice, 0, 0, 0, 7);
+        (, uint256 cool,) = core.ruleOf(cd);
+        assertEq(cool, 3600);
+
+        vm.expectRevert(AgentPackCore.NoSuchCard.selector);
+        core.ruleOf(99999);
+    }
+
+    function test_CheckPayment_NoEquippedRule() public view {
+        (bool ok, string memory why) = core.checkPayment(alice, 100, bob, 0, 0, 0, false);
+        assertFalse(ok);
+        assertEq(why, "no rule equipped");
+    }
+
+    function test_CheckPayment_DailyCap() public {
+        _equipNew(alice, 0, 0, 0, 0); // $20/day
+        (bool ok,) = core.checkPayment(alice, 1500, bob, 0, 0, 0, false);
+        assertTrue(ok);
+        (ok,) = core.checkPayment(alice, 2001, bob, 0, 0, 0, false);
+        assertFalse(ok);
+        (ok,) = core.checkPayment(alice, 500, bob, 1900, 0, 0, false); // 1900+500 > 2000
+        assertFalse(ok);
+        (ok,) = core.checkPayment(alice, 500, bob, 1900, 0, 0, true);  // 人工放行
+        assertTrue(ok);
+    }
+
+    function test_CheckPayment_SingleMax() public {
+        _equipNew(alice, 0, 0, 0, 1); // $50 single
+        (bool ok,) = core.checkPayment(alice, 5000, bob, 0, 0, 0, false);
+        assertTrue(ok);
+        (ok,) = core.checkPayment(alice, 5001, bob, 0, 0, 0, false);
+        assertFalse(ok);
+    }
+
+    function test_CheckPayment_AgentIdOnly() public {
+        _equipNew(alice, 0, 0, 0, 2);
+        (bool ok,) = core.checkPayment(alice, 100000, bob, 0, 0, 0, false); // bob 有 .ai
+        assertTrue(ok);
+        (ok,) = core.checkPayment(alice, 100000, carol, 0, 0, 0, false);   // carol 没有
+        assertFalse(ok);
+    }
+
+    function test_CheckPayment_Growth() public {
+        _equipNew(alice, 0, 0, 0, 3); // $30 base, +2%/tx
+        (bool ok,) = core.checkPayment(alice, 3000, bob, 0, 0, 0, false);
+        assertTrue(ok);
+        (ok,) = core.checkPayment(alice, 3001, bob, 0, 0, 0, false);
+        assertFalse(ok);
+        (ok,) = core.checkPayment(alice, 3600, bob, 0, 10, 0, false); // 3000*120%
+        assertTrue(ok);
+        (ok,) = core.checkPayment(alice, 3601, bob, 0, 10, 0, false);
+        assertFalse(ok);
+    }
+
+    function test_CheckPayment_DailyCount() public {
+        _equipNew(alice, 0, 0, 0, 4); // 3 笔/日
+        (bool ok,) = core.checkPayment(alice, 1, bob, 0, 2, 0, false);
+        assertTrue(ok);
+        (ok,) = core.checkPayment(alice, 1, bob, 0, 3, 0, false);
+        assertFalse(ok);
+    }
+
+    function test_CheckPayment_MicroPass() public {
+        _equipNew(alice, 0, 0, 0, 5); // < $5 免确认
+        (bool ok,) = core.checkPayment(alice, 500, bob, 0, 0, 0, false);
+        assertTrue(ok);
+        (ok,) = core.checkPayment(alice, 501, bob, 0, 0, 0, false);
+        assertFalse(ok);
+        (ok,) = core.checkPayment(alice, 900, bob, 0, 0, 0, true);
+        assertTrue(ok);
+    }
+
+    function test_CheckPayment_HighLimitNeedsHuman() public {
+        _equipNew(alice, 0, 0, 0, 6); // $100, 超一半要人工
+        (bool ok,) = core.checkPayment(alice, 5000, bob, 0, 0, 0, false);
+        assertTrue(ok);
+        (ok,) = core.checkPayment(alice, 5001, bob, 0, 0, 0, false);
+        assertFalse(ok);
+        (ok,) = core.checkPayment(alice, 5001, bob, 0, 0, 0, true);
+        assertTrue(ok);
+        (ok,) = core.checkPayment(alice, 10001, bob, 0, 0, 0, true);
+        assertFalse(ok);
+    }
+
+    function test_CheckPayment_Cooldown() public {
+        vm.warp(100000);
+        _equipNew(alice, 0, 0, 0, 7); // 60 分钟
+        (bool ok,) = core.checkPayment(alice, 1, bob, 0, 0, uint64(block.timestamp - 3601), false);
+        assertTrue(ok);
+        (ok,) = core.checkPayment(alice, 1, bob, 0, 0, uint64(block.timestamp), false);
+        assertFalse(ok);
+        (ok,) = core.checkPayment(alice, 1, bob, 0, 0, 0, false); // 从未付过
+        assertTrue(ok);
+    }
+
+    function test_CheckPayment_IdentityCardNamedPayee() public {
+        vm.prank(bob);
+        core.claimIntoPool(); // pool[0] = bob
+        uint256 id = core.mintTest(alice, 3, 0, 1, 0);
+        vm.prank(alice);
+        core.equip(id);
+
+        (bool ok,) = core.checkPayment(alice, 999999, bob, 0, 0, 0, false);
+        assertTrue(ok);
+        (ok,) = core.checkPayment(alice, 1, carol, 0, 0, 0, false);
+        assertFalse(ok);
+    }
+
+    function test_EquippedRule_ReadsActiveCard() public {
+        (uint256 none, uint8 tNone,,) = core.equippedRule(alice);
+        assertEq(none, 0);
+        assertEq(tNone, 255);
+
+        uint256 id = _equipNew(alice, 3, 0, 0, 1);
+        (uint256 cid, uint8 t, uint256 p1,) = core.equippedRule(alice);
+        assertEq(cid, id);
+        assertEq(t, core.RULE_SINGLE_MAX());
+        assertEq(p1, 5000 * (100 + 3 * 40) / 100); // SR → $110
     }
 }

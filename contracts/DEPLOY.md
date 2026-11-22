@@ -1,6 +1,6 @@
 # AgentPackCore · 部署与验证手册
 
-> 前置：`cd hackathon/agentpacks/contracts && forge test` → **18/18 全绿**
+> 前置：`cd hackathon/agentpacks/contracts && forge test` → **30/30 全绿**
 > 合约：自包含单文件（零依赖 ERC-721，BscScan 单文件验证最省事）
 
 ---
