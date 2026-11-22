@@ -926,6 +926,8 @@ function renderMis(){
 /* ══════════ 卡池 ══════════ */
 function ensurePool(){
   DEMO_NAMES.forEach(n=>{if(!S.pool.some(p=>p.name===n))S.pool.push({name:n,active:true,mine:false,pulls:0})});
+  // 迁移：旧版虚构演示名不在当前 DEMO_NAMES → 绝版（被抽过的停发，没被抽过的直接清掉）
+  S.pool=S.pool.filter(p=>p.mine||DEMO_NAMES.includes(p.name)||(p.pulls>0?(p.active=false,true):false));
   if(S.name&&!S.pool.some(p=>p.name===S.name))S.pool.push({name:S.name,active:S.myInPool,mine:true,pulls:0});
 }
 function renderPool(){
