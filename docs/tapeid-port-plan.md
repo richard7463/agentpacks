@@ -20,19 +20,44 @@
 ## 2. 搬进 Agent Packs 的架构（Phase 1）
 
 ```
-AgentPackCore（现有，加 3 处）
+AgentPackCore（现有，加 4 处）
  ├─ constructor 加 tapeOutProcessor 地址 + 8 个 house 电路的 circuitId（部署时固化，无 setter）
  ├─ circuitOf(cardId) view → (processor, circuitId, nIn, nOut)
+ ├─ setRuleConfig(cardId, cfg) onlyCardOwner ← 用户可编辑的数值配置（见下）
  └─ checkPayment(...) 升级：把支付上下文打包成输入字 → staticcall processor.eval(circuitId, word)
      → 答案由真 NAND 门产生；eval 异常 = fail-closed（unproven → 拒绝/转人工）
 ```
 
-**8 张 house 电路卡各绑定一条真网表**（止损/梭哈/风控/加仓/清仓/抄底/杠杆/钻石手），
-用 TapeForge 的 spec 语言重写（每个都是 4-6 bit 进 / 2 bit 出的小分类电路，参考
-templates.ts 里 liquidation/circuit-breaker 的写法）。稀有度/星级不改电路，只改
-**配置**（预算步长、冷却秒数档位）——和 TapeID「同字节 + 各人参数」完全同构。
+### 2.1 数值可编辑（TapeID 同款「不可变电路 + 用户配置」分离）
 
-一次流片 8 条电路（各约 20-60 门），NAND 成本 ≈ agent-spend 单价水平，可忽略。
+TapeID 的分工：电路字节全生态一套（45 门 agent-spend，谁都是同一段字节）；
+**unitUsd / dailyBudgetUsd / payees 不在电路里**，在 owner 签名卡里——所以改预算
+不用重新流片，改的只是配置。参数编辑器只生成 diff 预览、确认才发布（OneSentenceRuleEditor）。
+
+我们的落地：
+
+| 层 | 谁定 | 怎么存 |
+|---|---|---|
+| **电路字节**（8 条网表） | 部署时流片一次，合约固化 circuitId | processor 链上，永不可改 |
+| **数值配置**（预算步长 / 冷却档位 / 收款名单 root） | **卡主自己调** | `setRuleConfig(cardId, cfg)`，`onlyCardOwner`，链上存储 |
+| **档位上限** | 稀有度 × 星级决定 | C 卡预算上限 $20/日，SSR×mult；玩家在**上限内**自由调 |
+
+要点：
+- `setRuleConfig` 是**卡主自己的数据**，不是协议 setter——与"合约无 owner/无 admin"原则不冲突
+- 稀有度决定上限、玩家调数值：收集价值（稀有度）与实用价值（合手）兼得
+- 前端编辑器照抄 TapeID 的模式：改动先生成 diff 预览，`确认 → 一笔交易上链`，不直接发布
+- `ruleOf()` 返回 `(circuitId, 网表哈希, 用户配置, 上限)`——复算方拿到的就是完整事实
+
+### 2.2 电路 NFT 的售卖与限量（事实核查）
+
+- **可以售卖**：circuit NFT 是标准 ERC-721（processor `tapeout()` 铸造、`transferFrom` 过户）。
+  TapeID 的 `TapeIDPackageMarket` 就是用它把「名字 + 全部电路」一笔交易打包转售的。
+  我们的卡同样是 ERC-721，穿着卖掉自动脱下（已实现）
+- **字节层面无法限量**：网表字节是公开的，任何人可以拿同一段字节再流片一次（新 id 新 NFT）。
+  这是 TapeOut 生态的 permissionless 本质
+- **限量限的是卡，不是字节**：AgentPackCore 控制铸卡节奏（免费包 1/天 + 付费包），
+  正主退池 = 身份卡绝版（已实现），百连创世停售（已实现）。卡的稀缺性来自
+  集合本身（稀有度/星级/绝版），不来自字节独占——和 CT Packs 的卡一个道理
 
 ## 3. 前端与测试
 

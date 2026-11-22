@@ -105,7 +105,7 @@ const RULE_DEF=[
   {n:'身份卡 · 指定收款方', s:()=>'只付给正主', l:p=>`只允许付给这张身份卡的正主（${p}），链上按地址校验。`},
 ];
 function usd(cents){const v=cents/100;return Number.isInteger(v)?v.toFixed(0):v.toFixed(2)}
-function ruleParams(c){
+function ruleDerived(c){
   if(c.kind===1){const p=S.pool[c.ref];return{t:8,p1:p?p.name:'—',p2:0}}
   const mult=100+c.r*40+c.star*20,t=c.ref%8;let p1=0,p2=0;
   if(t===0)p1=2000*mult/100;
@@ -116,6 +116,33 @@ function ruleParams(c){
   else if(t===6)p1=10000*mult/100;
   else if(t===7){const cut=c.r*300+c.star*120;p1=cut<3600?3600-cut:300}
   return{t,p1,p2};
+}
+// 卡主可编辑的数值（TapeID：不可变电路 + 用户签名参数）。ovr 存在卡对象上，
+// 主网对应 setRuleConfig(cardId, cfg)——只有卡主能改，电路字节永不变。
+function ruleParams(c){
+  const d=ruleDerived(c);
+  if(c.ovr!=null&&d.t!==2&&d.t!==8)d.p1=c.ovr;
+  return d;
+}
+function ruleRange(c){ // 数值可调范围：[下限, 卡档位上限]
+  const {t,p1}=ruleDerived(c);
+  if(t===4)return[1,Math.round(p1)];
+  if(t===7)return[Math.max(60,Math.floor(p1/4)),Math.round(p1*4)];
+  return[100,Math.round(p1)];
+}
+function fmtParam(t,v){
+  if(t===4)return v+' 笔';
+  if(t===7)return Math.round(v/60)+' 分钟';
+  return '$'+usd(v);
+}
+function parseRuleSentence(t,txt){
+  if(!txt)return null;
+  const m=String(txt).replace(/,/g,'').match(/(\d+(?:\.\d+)?)\s*(美元|美金|刀|块|usd|\$|笔|次|小时|分钟|秒)/i);
+  if(!m)return null;
+  const v=parseFloat(m[1]),u=m[2].toLowerCase();
+  if(t===4)return /笔|次/.test(u)?Math.round(v):null;
+  if(t===7){const s=/小时/.test(u)?v*3600:/分钟/.test(u)?v*60:v;return Math.round(s)}
+  return /笔|次|小时|分钟|秒/.test(u)?null:Math.round(v*100);
 }
 function ruleShort(c){const {t,p1}=ruleParams(c);return RULE_DEF[t].s(p1)}
 function ruleLong(c){const {t,p1}=ruleParams(c);return RULE_DEF[t].l(p1)}
@@ -466,6 +493,10 @@ function renderCards(){
 function detail(id){
   const c=S.cards.find(x=>x.id===id);if(!c)return;
   const st=statsOf(c);
+  const edD=ruleDerived(c),edT=edD.t;
+  const edAvail=c.kind===0&&edT!==2;
+  const [edLo,edHi]=ruleRange(c);
+  const edCur=ruleParams(c).p1;
   const fuel=S.cards.filter(x=>x.id!==c.id&&x.id!==S.equipped);
   const m=$('#mbox');
   m.innerHTML=`<div class="detail">
@@ -494,6 +525,17 @@ function detail(id){
         </div>
         <div class="rb-out" id="chkOut">按卡上参数复算一笔支付，不产生交易。</div>
         <div class="rb-note">equip() 后生效 · 任何人可调用 checkPayment() 复算</div>
+        ${edAvail?`
+        <div class="rb-ed">
+          <div class="rb-ed-head"><span class="eyebrow" style="margin:0">调数值 · TapeID 同款</span>
+            ${c.ovr!=null?'<span class="chip gold">已自定义</span>':''}</div>
+          <p class="rb-desc">数值跟卡走，只有卡主能改；上限由稀有度 × 星级决定。${c.ovr!=null?'':'默认即卡档位上限，往下调越守越严。'}</p>
+          <div class="rb-test">
+            <input class="inp" id="edSent" placeholder="一句话：把上限改成 35 美元 / 冷却改成 90 分钟">
+            <button class="btn sm cut" id="edPrev">生成对比</button>
+          </div>
+          <div class="rb-out" id="edOut">可调范围 ${fmtParam(edT,edLo)} – ${fmtParam(edT,edHi)} · 当前 ${fmtParam(edT,edCur)}</div>
+        </div>`:''}
       </div>
       <div class="row" style="margin-top:14px">
         <button class="btn sm ${S.equipped===c.id?'':'primary'}" id="mEq">${S.equipped===c.id?'脱下这张卡':'穿到我的 Agent ID 上'}</button>
@@ -515,6 +557,24 @@ function detail(id){
     const out=$('#chkOut');
     out.className='rb-out '+(ok?'ok':'bad');
     out.textContent=(ok?'PASS · ':'FAIL · ')+msg+'（$'+usd(amt)+'）';
+  };
+  const edBtn=$('#edPrev');
+  if(edBtn)edBtn.onclick=()=>{
+    const txt=$('#edSent').value;
+    const val=parseRuleSentence(edT,txt);
+    const out=$('#edOut');
+    if(val==null){out.className='rb-out bad';
+      out.textContent='没听懂。试试「把上限改成 35 美元」「每天最多 5 笔」「冷却改成 90 分钟」。';return}
+    if(val<edLo||val>edHi){out.className='rb-out bad';
+      out.textContent='超档：这张卡的范围是 '+fmtParam(edT,edLo)+' – '+fmtParam(edT,edHi)+'。要么调进来，要么升星 / 换更高稀有度的卡。';return}
+    out.className='rb-out';
+    out.innerHTML=fmtParam(edT,edCur)+' → <b style="color:var(--pass)">'+fmtParam(edT,val)+'</b> ✓ 档位内<br>'+
+      '只修改签名参数，电路本身不变。主网 = <span class="mono">setRuleConfig(#'+c.id+', cfg)</span> 一笔交易。 '+
+      '<button class="btn sm primary cut" id="edOk">确认修改</button>'+
+      (c.ovr!=null?' <button class="btn sm ghost" id="edRst">恢复卡档位</button>':'');
+    $('#edOk').onclick=()=>{c.ovr=val;save();beep(660,.1);toast('数值已更新：'+fmtParam(edT,val));detail(id)};
+    const rst=$('#edRst');
+    if(rst)rst.onclick=()=>{delete c.ovr;save();toast('已恢复卡档位');detail(id)};
   };
   const picked=new Set();
   $$('#fuelBox .fchip').forEach(ch=>ch.onclick=()=>{

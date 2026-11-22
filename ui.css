@@ -529,6 +529,9 @@ h1,h2,.u-copy h2,.sec-head h2{text-wrap:balance}
 .rb-out.ok{color:var(--pass);box-shadow:inset 0 0 0 1px rgba(108,242,214,.35)}
 .rb-out.bad{color:var(--fail);box-shadow:inset 0 0 0 1px rgba(255,92,122,.35)}
 .rb-note{margin-top:8px;font-size:12px;color:var(--mist2)}
+.rb-ed{margin-top:12px;padding-top:12px;border-top:1px solid var(--line2)}
+.rb-ed-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
+.rb-ed .chip.gold{align-self:center}
 .fuel{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;max-height:120px;overflow-y:auto}
 .fchip{font-size:12px;padding:5px 11px;border-radius:99px;cursor:pointer;color:var(--mist);border:1px solid var(--line2);transition:.2s}
 .fchip:hover{color:var(--paper)}
