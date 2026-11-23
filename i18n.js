@@ -155,8 +155,9 @@
         if (!originals.has(n)) originals.set(n, raw);
         const out = tx(raw);
         if (out !== raw) n.nodeValue = out;
-      } else if (originals.has(n) && n.nodeValue !== raw && /[\u4e00-\u9fff]/.test(originals.get(n))) {
-        n.nodeValue = originals.get(n);
+      } else if (originals.has(n)) {
+        const orig = originals.get(n);
+        if (n.nodeValue !== orig) n.nodeValue = orig;
       }
     }
     document.querySelectorAll('[placeholder],[title],[aria-label]').forEach(el => {
