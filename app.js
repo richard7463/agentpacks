@@ -670,9 +670,10 @@ function flip(d,c){
   if(flipN>=5){
     $('#bDone').style.display='';$('#bAll').style.display='none';
     $('#ovlHint').textContent='';
-    const top=Math.max(...opening.map(x=>x.r));
-    toast('开出 '+opening.map(x=>RAR[x.r]).join(' · ')+(top>=4?' 🔥':''));
-    const star=opening.filter(x=>x.kind===1).sort((a,b)=>b.r-a.r)[0];
+    const arr=(opening&&opening.length)?opening:[c];
+    const top=Math.max(...arr.map(x=>x.r));
+    toast('开出 '+arr.map(x=>RAR[x.r]).join(' · ')+(top>=4?' 🔥':''));
+    const star=arr.filter(x=>x.kind===1).sort((a,b)=>b.r-a.r)[0];
     if(star){$('#bShareX').style.display='';$('#bShareX').onclick=()=>shareCard(star);
       $('#ovlHint').textContent='抽到 '+cname(star)+' · 当场晒到 X，再领 1 个包';}
   }
