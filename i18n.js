@@ -171,7 +171,7 @@
       });
     });
     const btn = document.getElementById('langBtn');
-    if (btn) btn.textContent = lang === 'en' ? '中文' : 'EN';
+    if (btn) btn.textContent = lang === 'en' ? '中' : '语';
     if (obs) obs.observe(document.body, { childList: true, subtree: true, characterData: true });
   }
 
