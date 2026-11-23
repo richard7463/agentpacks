@@ -125,7 +125,7 @@ forge script script/Deploy.s.sol:DeployMainnet \
 
 | 缺口 | 影响 | 计划 |
 |---|---|---|
-| WalletConnect | 普通手机浏览器无法连 | S0.5 补 |
-| 英文只覆盖 landing/story/lab | 游戏内仍中文 | S1 全量 i18n |
+| WalletConnect | 普通手机浏览器 | ✅ 已接线：填 projectId 即可用（cloud.reown.com 免费申请） |
+| 游戏内英文 | 主界面 | ✅ 已上线中/EN 切换（`i18n.js`，主要 UI 全覆盖） |
 | 主网未部署 | 无法展示真实 tx | 等凭据 |
 | demo 终版未合成 | 只有 44s 产品实录 | 等 AI《守门之夜》片段，合成 60–90s |
