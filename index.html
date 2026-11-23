@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="ui.css?v=51">
+<link rel="stylesheet" href="ui.css?v=52">
 </head>
 <body>
 <a class="skip" href="#main">跳到内容</a>
@@ -225,13 +225,14 @@
 <!-- ══════════ 守门人 ══════════ -->
 <section class="view" id="v-gate">
   <div class="page-head">
-    <div><h2>守门人</h2><p class="ph-sub">上半：拨动输入，看规则电路怎么回答。下半：10 笔真实付款冲向你的 Agent，规则先判、你可人工推翻。</p></div>
-    <span class="call">eval() · checkPayment()</span>
+    <div><h2>守门人</h2><p class="ph-sub">这页只要 60 秒：先拨一拨开关，看懂你卡里的电路怎么替 AI 做决定；再亲自守一次门。</p></div>
+    <span class="call">真电路 · 链上 · 谁也改不了</span>
   </div>
 
   <div class="block">
-    <div class="panel-head"><h3>① 电路剧场 · 风控电路 11 门 NAND</h3><span class="chip gold">allow / ask 双输出</span></div>
-<p class="sub">规则只有一句：<b>金额没超剩余额度、或有人工批准 → 放行；否则，收款方在白名单 → 转人工；其余 → 拒签</b>。这就是 guard 在钱包签名前问电路的那句话（抄自 tapeid <span class="mono">apps/signer/src/guard.ts</span>：allow / ask / deny，网络异常 fail-closed 不签名）。</p>
+    <div class="panel-head"><h3>① 你的卡会思考：拨一拨，亲眼看它判</h3><span class="chip gold">10 秒看懂</span></div>
+<p class="sub">规则就一句话：<b>钱没超、或有人点头 → 放行；超了但收款人认识 → 先问下人；其他 → 直接拒签。</b><br>
+    这不是写在纸上的条款，是<b>焊死在链上的一颗真电路</b>——部署之后，连我们都改不了它。</p>
 
     <div class="th-layout">
       <div class="th-in" id="thIn"></div>
@@ -240,17 +241,17 @@
     </div>
 
     <div class="row">
-      <button class="btn primary xl" id="thRun">运行 eval()</button>
+      <button class="btn primary xl" id="thRun">看它怎么判</button>
       <button class="btn ghost" id="thRand">随机一笔付款</button>
-      <button class="btn ghost" id="thFail">模拟断网 · fail-closed</button>
+      <button class="btn ghost" id="thFail">假装断网试试</button>
     </div>
-    <div class="banner" id="thMsg">输入拨杆在左边，输出灯在右边。网表字节与 TapeOut 处理器同格式（每门 7 字节）；部署后此处展示的就是合约里同一段字节。</div>
+    <div class="banner" id="thMsg">左边四个开关就是一笔付款的全部信息。按一下，看信号在电路里跑完全程——<b>这就是你的 AI 每笔付款前，真真切切发生的事</b>。</div>
   </div>
   </div>
 
   <div class="block">
-    <div class="panel-head"><h3>② 实战守门 · 10 笔付款请求</h3><span class="chip">评级 S 奖 3 包</span></div>
-    <p class="sub">把上面剧场里的规则叠成规则栈，去接 10 笔真实付款——骗局混在里面，规则先判，你 6 秒内可推翻。</p>
+    <div class="panel-head"><h3>② 亲自守一次门：10 笔付款冲过来，骗子混在里面</h3><span class="chip">评级 S 奖 3 包</span></div>
+    <p class="sub">把①里那套规则叠成你的<b>规则栈</b>（最多 3 张卡），去接 10 笔付款——<b>仿冒的 .ai、重复扣款、天价"紧急退款"就混在里面</b>。规则先判，你 6 秒内可推翻。</p>
   <div id="gateSetup">
     <div class="gate-intro">
       <div>
@@ -482,8 +483,8 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js" defer></script>
-<script src="app.js?v=51" defer></script>
-<script src="fx.js?v=51" defer></script>
-<div class="ver-badge">v51</div>
+<script src="app.js?v=52" defer></script>
+<script src="fx.js?v=52" defer></script>
+<div class="ver-badge">v52</div>
 </body>
 </html>
