@@ -129,3 +129,9 @@ forge script script/Deploy.s.sol:DeployMainnet \
 | 游戏内英文 | 主界面 | ✅ 已上线中/EN 切换（`i18n.js`，主要 UI 全覆盖） |
 | 主网未部署 | 无法展示真实 tx | 等凭据 |
 | demo 终版未合成 | 只有 44s 产品实录 | 等 AI《守门之夜》片段，合成 60–90s |
+
+## 8. DeWEB 链上版（已准备）
+
+- `python3 tools/build_deweb.py` → `deweb/site/` + `deweb/manifest.json`（116 文件 / 10.69 MB，HTML/CSS 链外引用 0）
+- `node tools/publish_deweb.mjs --container ... --pk ... --name "<id>.<cpu>.tape"` 发布并激活
+- 详见 `deweb/README.md`；需主网 circuit NFT + 已开通 container

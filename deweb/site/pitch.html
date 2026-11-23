@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>卡灵战争 · Agent Packs — Pitch</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<style>
+:root{--bg:#0a0812;--ink:#0F0C24;--panel:#130f1e;--panel2:#181226;--paper:#F2EFFF;
+  --mist:#9C96C4;--mist2:#6b639a;--gold:#F2C14E;--gold2:#f5d67a;--teal:#6CF2D6;
+  --red:#FF5C7A;--violet:#B79BFF;--line:#2b2550}
+*{margin:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--paper);font-family:'Archivo','Inter',system-ui,sans-serif;line-height:1.7;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(55% 38% at 50% -4%,rgba(183,155,255,.13),transparent 60%),
+             radial-gradient(40% 30% at 90% 100%,rgba(242,193,78,.06),transparent 60%)}
+a{color:var(--gold);text-decoration:none}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px;position:relative;z-index:1}
+nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(10,8,18,.86);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:20px;height:60px}
+.brand{font-weight:900;letter-spacing:.16em;font-size:12px}
+nav .sp{flex:1}
+nav a.l{font-size:12.5px;color:var(--mist)} nav a.l:hover{color:var(--paper)}
+nav a.cta{background:var(--paper);color:var(--ink);font-weight:800;font-size:12.5px;padding:8px 16px;border-radius:99px}
+header{padding:150px 0 90px}
+.kick{font-size:11px;letter-spacing:.5em;color:var(--mist2);margin-bottom:22px}
+h1{font-size:clamp(40px,7.6vw,84px);font-weight:900;line-height:1.04;letter-spacing:-.025em}
+.g{background:linear-gradient(105deg,#f5d67a,#f2c14e 30%,#fff6cf 50%,#c89b3c 72%,#f5d67a);
+  background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:foil 6s linear infinite}
+@keyframes foil{to{background-position:220% 0}}
+.lede{margin-top:30px;font-size:18px;color:var(--mist);max-width:40em;line-height:1.8}
+.lede b{color:var(--paper)}
+.hero-cta{display:flex;gap:12px;margin-top:40px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:50px;padding:0 28px;border-radius:99px;font-weight:800;font-size:14.5px}
+.btn.p{background:linear-gradient(90deg,#FFD76A,#F2C14E);color:#100C22;box-shadow:0 18px 44px -16px rgba(242,193,78,.55)}
+.btn.g{border:1px solid var(--line);color:var(--paper);background:rgba(255,255,255,.02)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:64px}
+.metrics div{border:1px solid var(--line);border-radius:14px;padding:18px 20px;background:rgba(255,255,255,.015)}
+.metrics b{display:block;font-size:25px;font-weight:900;font-variant-numeric:tabular-nums}
+.metrics span{font-size:10.5px;letter-spacing:.22em;color:var(--mist2)}
+section{padding:88px 0;border-top:1px solid var(--line)}
+.shead{display:flex;align-items:baseline;gap:16px;margin-bottom:16px}
+.shead em{font-style:normal;font-size:11px;letter-spacing:.4em;color:var(--gold)}
+h2{font-size:clamp(28px,4.4vw,44px);font-weight:900;line-height:1.18;letter-spacing:-.015em}
+h2 b{color:var(--gold)}
+.sub{color:var(--mist);font-size:16px;max-width:46em;margin:16px 0 36px;line-height:1.8}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:900px){.grid2,.grid3,.grid4{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}
+.card{border:1px solid var(--line);border-radius:16px;padding:24px;background:linear-gradient(180deg,rgba(255,255,255,.022),transparent)}
+.card .no{font-size:10.5px;letter-spacing:.28em;color:var(--mist2);margin-bottom:10px}
+.card h3{font-size:19px;margin-bottom:8px;font-weight:800}
+.card p{font-size:14px;color:var(--mist);line-height:1.8}
+.card .mono,.mono{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--teal)}
+.quote{border-left:2px solid rgba(242,193,78,.5);padding-left:22px;margin:36px 0;color:var(--mist);font-size:18px;line-height:1.8}
+.quote b{color:var(--paper)}
+/* roster */
+.roster{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+@media(max-width:980px){.roster{grid-template-columns:repeat(3,1fr)}}
+.k{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#12102b;position:relative;transition:.25s}
+.k:hover{transform:translateY(-4px);border-color:rgba(242,193,78,.45)}
+.k img{width:100%;aspect-ratio:63/88;object-fit:cover;display:block}
+.k .m{padding:9px 11px 11px}
+.k .rn{font-size:9px;letter-spacing:.2em;color:var(--mist2)}
+.k h4{font-size:13.5px;margin:2px 0 3px}
+.k .r{font-size:11px;color:var(--mist);line-height:1.45}
+.k .gg{position:absolute;top:7px;right:7px;font-size:9.5px;font-weight:800;padding:2px 8px;border-radius:99px;
+  background:rgba(10,8,25,.86);border:1px solid rgba(242,193,78,.5);color:var(--gold)}
+/* table */
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{font-size:10.5px;letter-spacing:.18em;color:var(--mist2);font-weight:600}
+td.mono{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--teal)}
+.ok{color:var(--teal)} .warn{color:var(--gold)} .bad{color:var(--red)}
+/* flow */
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:900px){.flow{grid-template-columns:repeat(2,1fr)}}
+.flow .step{border:1px solid var(--line);border-radius:14px;padding:20px;position:relative;background:rgba(255,255,255,.015)}
+.flow .step b{display:block;font-size:11px;letter-spacing:.28em;color:var(--gold);margin-bottom:8px}
+.flow .step h4{font-size:15.5px;margin-bottom:6px}
+.flow .step p{font-size:12.5px;color:var(--mist)}
+.flow .step::after{content:'→';position:absolute;right:-12px;top:50%;transform:translateY(-50%);color:var(--mist2)}
+.flow .step:last-child::after{content:''}
+/* family */
+.fam{border:1px solid var(--line);border-radius:14px;padding:20px}
+.fam h3{font-size:16px;margin-bottom:6px}
+.fam p{font-size:13px;color:var(--mist)}
+.f0 h3{color:var(--teal)}.f1 h3{color:var(--red)}.f2 h3{color:var(--gold)}.f3 h3{color:var(--violet)}
+footer{padding:70px 0 80px;border-top:1px solid var(--line);color:var(--mist2);font-size:12px}
+footer .row{display:flex;gap:20px;flex-wrap:wrap;justify-content:space-between}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <span class="brand">卡灵战争 · AGENT PACKS</span><span class="sp"></span>
+  <a class="l" href="#problem">问题</a>
+  <a class="l" href="#how">机制</a>
+  <a class="l" href="#twelve">十二卡灵</a>
+  <a class="l" href="#proof">验证</a>
+  <a class="l" href="#economy">经济</a>
+  <a class="cta" href=".">进入游戏</a>
+</div></nav>
+
+<header><div class="wrap">
+  <div class="kick">BINANCE AGENT ID HACKATHON · SEASON 0 · BNB SMART CHAIN</div>
+  <h1>你抽到的不是英雄，<br>是一条<span class="g">规则</span>。</h1>
+  <p class="lede">12 条 NAND 电路，流片在链上。每张卡都是<b>一条真的规则</b>，替持有 Agent ID 的真人守住每一笔 AI 付款。装备之后，判定从门电路里读出来——<b>任何人可复算，没有人能改。</b></p>
+  <div class="hero-cta">
+    <a class="btn p" href=".">领今日免费包</a>
+    <a class="btn g" href="story.html">读世界观 →</a>
+  </div>
+  <div class="metrics">
+    <div><b>12</b><span>规则 / 卡灵</span></div>
+    <div><b>4 → 189</b><span>NAND 门数</span></div>
+    <div><b>58</b><span>合约测试</span></div>
+    <div><b>0</b><span>发行代币</span></div>
+  </div>
+</div></header>
+
+<section id="problem"><div class="wrap">
+  <div class="shead"><em>01</em><h2>问题：AI 已经开始替人花钱，<br>但没有人能证明它<b>守没守规矩</b>。</h2></div>
+  <p class="sub">条款会被重新解释，代码会被升级覆盖，承诺会被遗忘。用户真正需要的不是又一个"风控后台"，而是一条<b>可以被任何人当场复算</b>的规则。</p>
+  <div class="grid3">
+    <div class="card"><div class="no">仿冒者</div><h3>名字差一个字母</h3><p>收款地址像到连人都会犹豫。没有白名单规则，钱就出去了。</p></div>
+    <div class="card"><div class="no">回声</div><h3>同一张账单付两次</h3><p>一分钟内无人察觉。没有每日额度与冷却，重复付款无法拦截。</p></div>
+    <div class="card"><div class="no">温柔的升级</div><h3>真服务商，十倍金额</h3><p>界面是真的，金额是假的。没有半闸与会签，人类永远最后知道。</p></div>
+  </div>
+  <div class="quote">规则写在条款里会被解释，写在代码里会被升级，写在承诺里会被忘记。<b>只有刻进电路、流片上链的规则，只能被读取。</b></div>
+</div></section>
+
+<section id="how"><div class="wrap">
+  <div class="shead"><em>02</em><h2>机制：一张卡 = 一条网表 = 一枚链上电路 NFT</h2></div>
+  <p class="sub">不是"带技能的图片"。卡的本体是一串 7 字节门电路，任何人可以逐门求值。</p>
+  <div class="flow">
+    <div class="step"><b>STEP 1 · 抽</b><h4>抽出规则</h4><p>每包必出 1 张名人卡 + 1 张电路卡。电路卡指向 12 条真网表之一。</p></div>
+    <div class="step"><b>STEP 2 · 流片</b><h4>tapeOut(cardId)</h4><p>按真门数买 NAND，把电路 NFT 铸进你的钱包。未流片不能装备。</p></div>
+    <div class="step"><b>STEP 3 · 穿卡</b><h4>equip(cardId)</h4><p>规则绑定到你的 Agent ID。电路 NFT 可转售，规则随卡走。</p></div>
+    <div class="step"><b>STEP 4 · 守门</b><h4>checkPayment()</h4><p>staticcall 处理器 eval()，判定从门里读出；读不到就 fail-closed。</p></div>
+  </div>
+  <div class="grid2" style="margin-top:26px">
+    <div class="card">
+      <div class="no">合约侧</div>
+      <h3>判定不在服务器，在电路里</h3>
+      <p>合约把运行时事实打包成输入字（金额是否越界、收款方是否持 .ai、审批数、封控态），然后 <span class="mono">staticcall processor.eval(circuitId, input)</span>。处理器宕机 → 返回 <span class="bad">false</span>，不是"也许"。</p>
+    </div>
+    <div class="card">
+      <div class="no">用户侧</div>
+      <h3>卡灵真的能挡住钱</h3>
+      <p><span class="mono">GuardVault.pay()</span> 先问电路再转账。规则不通过 → <span class="bad">revert</span>，钱不动。AI 热钱包只能发起，超额要 owner 本人 <span class="mono">approveNext()</span>。</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="twelve"><div class="wrap">
+  <div class="shead"><em>03</em><h2>十二卡灵 · 四大家族</h2></div>
+  <p class="sub">门数就是灵魂重量。白名单 4 门，双签 189 门——每一门都经过全输入穷举验证。</p>
+  <div class="roster" id="roster"></div>
+  <div class="grid4" style="margin-top:20px">
+    <div class="fam f0"><h3>交易军团 · 青</h3><p>守额度的人：止损、梭哈、加仓、清仓、抄底。</p></div>
+    <div class="fam f1"><h3>风控堡垒 · 红</h3><p>踩刹车的人：冷却、封控。被骗那一刻，全线封死。</p></div>
+    <div class="fam f2"><h3>安全圣殿 · 金</h3><p>验明正身的人：白名单、半闸。答不上来一律拒签。</p></div>
+    <div class="fam f3"><h3>协作议会 · 紫</h3><p>要求同意的人：双签、会签、委托。</p></div>
+  </div>
+</div></section>
+
+<section id="proof"><div class="wrap">
+  <div class="shead"><em>04</em><h2>验证：不是 PPT，是已经跑起来的东西</h2></div>
+  <p class="sub">线上可用、合约可查、网表可复现。以下数字全部来自仓库与链上。</p>
+  <table>
+    <thead><tr><th>项目</th><th>状态</th><th>证据</th></tr></thead>
+    <tbody>
+      <tr><td>12 条真 NAND 网表</td><td class="ok">完成</td><td class="mono">tools/mint12.mjs · 全输入穷举</td></tr>
+      <tr><td>合约测试</td><td class="ok">58 / 58</td><td class="mono">AgentPackCore 42 + GuardVault 16</td></tr>
+      <tr><td>本地全旅程 E2E</td><td class="ok">全绿</td><td class="mono">领包→开包→流片→穿卡→入池→买包→邀请</td></tr>
+      <tr><td>前端</td><td class="ok">已上线</td><td class="mono">agentid.cards（6 tab + 实验室 + 世界观）</td></tr>
+      <tr><td>OG 分享</td><td class="ok">28 组</td><td class="mono">/c/{name} + /og/{name}.jpg · Twitterbot 已验证抓取</td></tr>
+      <tr><td>主网部署</td><td class="warn">待凭据</td><td class="mono">BSC 56 · 需 RPC / 私钥 / BscScan key</td></tr>
+    </tbody>
+  </table>
+  <div class="quote" style="margin-top:34px">"规则不阻止支付，它让<b>是否守约</b>变成任何人都能复算的一件事。"——这是我们和所有卡牌项目的分界线。</div>
+</div></section>
+
+<section id="agentid"><div class="wrap">
+  <div class="shead"><em>05</em><h2>Binance Agent ID：不是登录方式，是<b>身份本体</b></h2></div>
+  <div class="grid3">
+    <div class="card"><div class="no">入口</div><h3>持 .ai 才能领包</h3><p><span class="mono">claimDailyPack / buyPack</span> 均校验官方注册表 <span class="mono">0x60B9…022F</span>。没有 Agent ID，连门都进不来。</p></div>
+    <div class="card"><div class="no">归属</div><h3>规则挂在身份上</h3><p><span class="mono">activeCircuit[agent]</span> 把电路与真人绑定。卡可以转售，但"谁在守门"永远可查。</p></div>
+    <div class="card"><div class="no">边界</div><h3>不查钱包、不查资产</h3><p>只校验"是否持有"，不做按名查地址。卡池自愿认领，退出后已发卡绝版。</p></div>
+  </div>
+</div></section>
+
+<section id="economy"><div class="wrap">
+  <div class="shead"><em>06</em><h2>经济：不赌、不发币、不承诺收益</h2></div>
+  <div class="grid2">
+    <div class="card">
+      <h3>收入只有一种：卡包与流片</h3>
+      <p>单包 0.002 BNB；十连 / 百连为数量档，不降价。流片按真门数计费（NAND + 协议费）。没有 token，没有质押，没有"年化"。</p>
+      <table style="margin-top:14px">
+        <tr><td>每日免费包</td><td class="mono">1 / 天 / KYC</td></tr>
+        <tr><td>每日上限</td><td class="mono">120 包</td></tr>
+        <tr><td>创世百连</td><td class="mono">333 笔 · 永久绝版</td></tr>
+        <tr><td>奖池分账</td><td class="mono">链上公示地址</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3>稀缺来自规则，不来自通胀</h3>
+      <p>卡的价值来自它守什么：白名单卡防仿冒，双签卡防大额单点，封控卡防连环被骗。重复卡用于升星，不制造无限增发。</p>
+      <p style="margin-top:12px;color:var(--mist2);font-size:12.5px">概率：C 46.4% / UC 30% / R 15% / SR 6% / SSR 2% / UR 0.5% / LR 0.1%。全部写在开包页。</p>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="shead"><em>07</em><h2>为什么是现在</h2></div>
+  <div class="grid3">
+    <div class="card"><div class="no">趋势</div><h3>Agent 开始接管支付</h3><p>AI 订阅、自动采购、API 计费——付款正在从"人点确认"变成"agent 自动执行"。规则必须可验证。</p></div>
+    <div class="card"><div class="no">技术</div><h3>NAND 流片已经可行</h3><p>TapeOut 把电路铸成 NFT，eval 是免费 view。我们把它从"极客玩具"做成了可玩的卡牌。</p></div>
+    <div class="card"><div class="no">分发</div><h3>Binance Wallet 就是入口</h3><p>dApp 浏览器 + 注入式钱包，无需下载。开包、流片、穿卡、付款，全在一个页面完成。</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="shead"><em>08</em><h2>第 0 战季路线</h2></div>
+  <table>
+    <thead><tr><th>阶段</th><th>内容</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>S0 · 现在</td><td>12 规则 / 开包 / 流片 / 实验室 / 分享</td><td class="ok">已上线</td></tr>
+      <tr><td>S0.5</td><td>BSC 主网 + GuardVault + 真处理器</td><td class="warn">待部署</td></tr>
+      <tr><td>S1</td><td>卡灵战棋回归 / 赛季排行 / 卡组分享</td><td>规划中</td></tr>
+      <tr><td>S2</td><td>规则市场（创作者发卡）/ 战队</td><td>概念</td></tr>
+    </tbody>
+  </table>
+</div></section>
+
+<footer><div class="wrap row">
+  <span>卡灵战争 · Agent Packs · agentid.cards</span>
+  <span>12 rules · 58 tests · exhaustive verification · anyone can eval()</span>
+  <span><a href="/">游戏</a> · <a href="/story.html">世界观</a> · <a href="/en/">English</a> · <a href="/terms.html">条款</a></span>
+</div></footer>
+
+<script>
+const K=[
+ {f:0,t:'t0',n:'守账武士',rn:'止损',rl:'每日支出上限',g:36},
+ {f:0,t:'t1',n:'巨剑狂战士',rn:'梭哈',rl:'单笔上限',g:22},
+ {f:2,t:'t2',n:'验证圣骑',rn:'白名单',rl:'只付持 .ai 地址',g:4},
+ {f:0,t:'t3',n:'复利剑士',rn:'加仓',rl:'额度随成功笔数增长',g:39},
+ {f:0,t:'t4',n:'居合剑客',rn:'清仓',rl:'每日笔数',g:22},
+ {f:0,t:'t5',n:'影刺客',rn:'抄底',rl:'小额免人工',g:20},
+ {f:2,t:'t6',n:'天平魔导师',rn:'杠杆',rl:'高额半闸需人点头',g:125},
+ {f:1,t:'t7',n:'晶拳僧',rn:'钻石手',rl:'两笔之间冷却',g:31},
+ {f:1,t:'t8',n:'落闸骑士',rn:'封控',rl:'被骗即全线封死',g:15},
+ {f:3,t:'t9',n:'双子武士',rn:'双签',rl:'超半额两人共批',g:189},
+ {f:3,t:'t10',n:'圆桌议长',rn:'会签',rl:'超额 M 人议决',g:90},
+ {f:3,t:'t11',n:'信使官',rn:'委托',rl:'限时窗口指定收款',g:4}
+];
+document.getElementById('roster').innerHTML=K.map(k=>`
+ <div class="k">
+   <img src="heroes/${k.t}.jpg" alt="${k.n}" loading="lazy"><span class="gg">${k.g} 门</span>
+   <div class="m"><div class="rn">${k.rn}</div><h4>${k.n}</h4><div class="r">${k.rl}</div></div>
+ </div>`).join('');
+</script>
+</body>
+</html>

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#0F0C24">
+<title>卡灵战争 Agent Packs · 你抽到的不是英雄，是一条规则</title>
+<link rel="stylesheet" href="ui.css?v=63">
+</head>
+<body>
+<a class="skip" href="#main">跳到内容</a>
+<div class="bg" aria-hidden="true"><div class="bg-glow"></div><div class="bg-noise"></div></div>
+
+<header class="topbar">
+  <div class="tb">
+    <a class="brand" id="brandHome" href="#" aria-label="Agent Packs 首页">
+      <span class="brand-mark" aria-hidden="true"><i>AP</i></span>
+      <span class="brand-txt">卡灵战争<em>Agent Packs · 第 0 战季</em></span>
+    </a>
+
+    <nav class="tabs" id="tabs" aria-label="主导航">
+      <a class="tab" href="story.html">世界观</a>
+      <button class="tab" data-v="open">开包</button>
+      <button class="tab" data-v="cards">收藏</button>
+      <button class="tab" data-v="gate">实验室<span class="tab-new">新</span></button>
+      <button class="tab" data-v="shop">补给</button>
+      <button class="tab" data-v="tasks">任务</button>
+      <button class="tab" data-v="verify">卡池</button>
+    </nav>
+
+    <div class="tb-stats">
+      <div class="stat"><i>卡包</i><b id="chPacks">0/12</b><em id="chRf">已满</em></div>
+      <div class="stat pts"><i>积分</i><b id="chPts">0</b></div>
+      <div class="stat agent"><i>身份</i><b id="chName">游客</b></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="main">
+
+<!-- ══════════ 落地页 ══════════ -->
+<section id="land">
+  <div class="hero">
+    <div class="hero-copy">
+      <p class="kicker"><span class="kicker-dot"></span>第 0 战季开放中：每个卡灵就是一条链上规则 · Binance Agent ID 做身份，TapeOut 电路做魂</p>
+      <h1 class="reveal-lines"><span class="ln"><span>开包开出的</span></span><span class="ln"><span>不是图片，</span></span><span class="ln"><span>是一个有名字的&nbsp;AI</span></span></h1>
+      <p class="lead">每包必出 1 张<b>名人卡</b>——<b>.ai</b> 身份、照片上卡、规则链上可读。把卡穿到你的 Agent ID 上，任何人都能在 BscScan 读出它的参数，再拿一笔支付复算它有没有守约。</p>
+      <div class="hero-cta">
+        <button class="btn primary xl" id="bLandOpen">免费开一包</button>
+        <button class="btn ghost xl" id="bLandPool">查我在不在卡池</button>
+        <a class="btn ghost xl" href="story.html" style="text-decoration:none">世界观 →</a>
+      </div>
+      <p class="hero-meta">现在有 <b id="landN">12</b> 个免费包，不用注册，不用钱包。</p>
+    </div>
+
+    <div class="hero-art">
+      <button class="pack-wrap" id="heroPackWrap" data-tilt aria-label="撕开一包">
+        <span class="pack-svg" id="heroPack"></span>
+        <span class="foil" aria-hidden="true"></span>
+        <span class="glare" aria-hidden="true"></span>
+      </button>
+      <p class="pack-hint" aria-hidden="true">点一下，或者沿顶部虚线划开</p>
+    </div>
+  </div>
+
+  <section class="odds-block" aria-labelledby="oddsH">
+    <div class="sec-head">
+      <h2 id="oddsH">每 1000 张卡里，各稀有度有几张</h2>
+      <p>概率写死在合约常量里，没有任何函数能改它。色带按真实 ‰ 等比绘制——最细那 1‰ 就是 1 个像素宽。</p>
+    </div>
+    <div id="oddsLadder"></div>
+  </section>
+
+  <section class="utility" aria-labelledby="utilH">
+    <div class="slab-stage">
+      <div class="slab" data-tilt>
+        <div class="slab-label">
+          <div><span class="sl-k">规则证书</span><b id="slabCert">#000042</b></div>
+          <div class="sl-grade"><span>SSR</span><b>★1</b></div>
+        </div>
+        <div class="slab-well"><div class="slab-card" id="slabCard"></div></div>
+        <div class="slab-foot mono">ruleOf(42) → (0, 2800, 0)</div>
+      </div>
+    </div>
+    <div class="u-copy">
+      <h2 id="utilH">每张卡都是一张可以复算的规则证书</h2>
+      <p class="u-lead">评级卡砖证明一张卡是真的；这里的卡证明一个 Agent 守不守规矩。规则本身不拦截付款，它让「有没有越界」变成任何人都能查的事实。</p>
+      <dl class="rule-list">
+        <div>
+          <dt>止损电路</dt>
+          <dd>每天最多花 $20，超出要人工放行。稀有度和星级越高，额度越大。</dd>
+          <dd class="mono">checkPayment(agent, 2500, payee, 1800, …) → false</dd>
+        </div>
+        <div>
+          <dt>风控电路</dt>
+          <dd>收款方必须也持有官方 Agent ID，否则拒绝。</dd>
+          <dd class="mono">isAgentIdHolder(payee)</dd>
+        </div>
+        <div>
+          <dt>身份卡</dt>
+          <dd>抽到某个 .ai 的身份卡，就能把收款方锁死在这个人身上，适合订阅。</dd>
+          <dd class="mono">payee == pool[ref].agent</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="story" id="story" aria-labelledby="storyH">
+    <div class="story-pin">
+      <div class="story-stage" aria-hidden="true">
+        <div class="story-glow"></div>
+        <div class="story-card" id="storyCard">
+          <div class="sc-face sc-back"><span class="sc-r">SSR</span><span class="sc-b">Agent Packs</span><span class="foil"></span></div>
+          <div class="sc-face sc-front" id="storyFront"></div>
+        </div>
+        <ol class="story-pay" id="storyPay">
+          <li data-at=".70"><b>$12.40</b><span>GPU 推理账单</span><em class="ok">通过</em></li>
+          <li data-at=".79"><b>$48.00</b><span>数据集订阅，今天已花 $20</span><em class="ask">超上限，要人工确认</em></li>
+          <li data-at=".88"><b>$320.00</b><span>「紧急退款」陌生地址</span><em class="bad">拦截</em></li>
+        </ol>
+      </div>
+      <div class="story-copy">
+        <h2 id="storyH" class="sr-only">一张卡怎么变成一条规则</h2>
+        <ol class="story-steps">
+          <li data-step="0"><span class="step-n">1</span><h3>开包</h3><p>免费包会自己回满。新手第一包保底 SSR，连续 10 张没出 SR 就强制给一张。</p></li>
+          <li data-step="1"><span class="step-n">2</span><h3>翻面就是规则</h3><p>卡背印着一条支出规则。稀有度和星级越高，额度越大，参数在链上任何人都读得到。</p></li>
+          <li data-step="2"><span class="step-n">3</span><h3>穿上就生效</h3><p>把卡穿到你的 Agent ID 上，每一笔付款都能拿它复算：通过、要人工确认，还是拦截。想先试试，带 3 张去「守门人」拦骗局。</p></li>
+        </ol>
+        <div class="story-progress"><i id="storyBar"></i></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="land-foot">
+    <span>卡灵战争 · 第 0 战季</span>
+    <span><span class="mono">AgentPackCore.sol</span> 30/30 测试通过 · BNB Chain</span>
+  </footer>
+</section>
+
+<!-- ══════════ 开包 ══════════ -->
+<section class="view" id="v-open">
+  <div class="page-head">
+    <div><h2>开包</h2><p class="ph-sub">免费包每 20 秒回 1 个，最多存 12 个。</p></div>
+    <span class="call">claimDailyPack()</span>
+  </div>
+
+  <div class="bench">
+    <div class="pm-left">
+      <span class="pm-label">可以开的包</span>
+      <div class="pm-num"><b id="pmCount">0</b><span>/ 12</span></div>
+      <div class="pm-bar"><i id="pmFill"></i></div>
+      <span class="pm-note" id="regen">已满</span>
+    </div>
+    <div class="pm-right">
+      <div class="pm-btns">
+        <button class="btn primary xl" id="bOpen1">开 1 包</button>
+        <button class="btn ghost xl" id="bOpen5">连开 5 包</button>
+      </div>
+      <p class="sub">主网上对应每天一次的 <span class="mono">claimDailyPack()</span>，开包结果由合约的提交-揭示流程决定。</p>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="panel-head"><h3>待开的包</h3><span class="chip" id="pkN">0 包</span></div>
+    <div id="pkRow" class="packrow"></div>
+  </div>
+
+  <div class="block">
+    <div class="panel-head"><h3>概率与保底</h3><span class="chip">链上常量</span></div>
+    <div id="oddsLadder2"></div>
+    <ul class="rules">
+      <li>新手第一包的第 5 张，保底 SSR 或更高。</li>
+      <li>连续 10 张没出 SR，下一张强制 SR 或更高。</li>
+      <li>演示档和 <span class="mono">AgentPackCore.sol</span> 用同一套规则，可以在 BscScan 核对。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══════════ 收藏 ══════════ -->
+<section class="view" id="v-cards">
+  <div class="page-head">
+    <div><h2>收藏</h2><p class="ph-sub">点一张卡，可以穿上、升星或卖掉。</p></div>
+    <span class="call">equip() · starUp()</span>
+  </div>
+
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="排序">
+      <button class="seg-b on" data-sort="r">按稀有度</button>
+      <button class="seg-b" data-sort="id">按获得时间</button>
+      <button class="seg-b" data-sort="atk">按攻击力</button>
+    </div>
+    <span class="sub" id="cstat"></span>
+  </div>
+  <div class="toolbar" style="margin-top:10px">
+    <div class="seg" role="group" aria-label="电路家族筛选" id="cFam">
+      <button class="seg-b on" data-fam="-1">全部</button>
+      <button class="seg-b" data-fam="0">交易</button>
+      <button class="seg-b" data-fam="1">风控</button>
+      <button class="seg-b" data-fam="2">安全</button>
+      <button class="seg-b" data-fam="3">协作</button>
+    </div>
+  </div>
+  <div class="cgrid" id="cGrid"></div>
+
+  <div class="redeem">
+    <div>
+      <h3>用积分换一张 SR</h3>
+      <p class="sub">500 分换 1 张保底 SR。积分只能在站内用，不能提现。</p>
+    </div>
+    <button class="btn primary" id="bRedeem">花 500 分兑换</button>
+  </div>
+</section>
+
+<!-- ══════════ 守门人 ══════════ -->
+<section class="view" id="v-gate">
+  <div class="page-head">
+    <div><h2>实验室</h2><p class="ph-sub">三步走：① 拨开关看懂电路怎么判 ② 亲自守 10 笔付款 ③ 连真钱包上链验证。</p></div>
+    <span class="call">真电路 · 链上 · 谁也改不了</span>
+  </div>
+
+  <div class="block">
+    <div class="panel-head"><h3>① 你的卡会思考：拨一拨，亲眼看它判</h3><span class="chip gold">10 秒看懂</span></div>
+<p class="sub">规则就一句话：<b>钱没超、或有人点头 → 放行；超了但收款人认识 → 先问下人；其他 → 直接拒签。</b><br>
+    这不是写在纸上的条款，是<b>焊死在链上的一颗真电路</b>——部署之后，连我们都改不了它。</p>
+
+    <div class="th-layout">
+      <div class="th-in" id="thIn"></div>
+      <div class="th-stage" id="thStage" aria-hidden="true"></div>
+      <div class="th-out"><div class="th-verdict" id="thVerdict"><span class="tv-k">GUARD</span><b class="tv-v">—</b><span class="tv-sub">拨动输入后运行</span></div></div>
+    </div>
+
+    <div class="row">
+      <button class="btn primary xl" id="thRun">看它怎么判</button>
+      <button class="btn ghost" id="thRand">随机一笔付款</button>
+      <button class="btn ghost" id="thFail">假装断网试试</button>
+    </div>
+    <div class="banner" id="thMsg">左边四个开关就是一笔付款的全部信息。按一下，看信号在电路里跑完全程——<b>这就是你的 AI 每笔付款前，真真切切发生的事</b>。</div>
+    <div class="sub" style="margin-top:12px;color:var(--mist2)">这颗电路：永远在线 · 永不升级 · 断网也宁拒不猜。给懂行的人：11 门 NAND 网表 · TapeOut 流片 · <span class="mono">eval()</span> 任何人免费复算 · <span class="mono">fail-closed</span>。</div>
+  </div>
+
+  <div class="block">
+    <div class="panel-head"><h3>② 亲自守一次门：10 笔付款冲过来，骗子混在里面</h3><span class="chip">评级 S 奖 3 包</span></div>
+    <p class="sub">把①里那套规则叠成你的<b>规则栈</b>（最多 3 张卡），去接 10 笔付款——<b>仿冒的 .ai、重复扣款、天价"紧急退款"就混在里面</b>。规则先判，你 6 秒内可推翻。</p>
+  <div id="gateSetup">
+    <div class="gate-intro">
+      <div>
+        <h3>怎么玩</h3>
+        <ol class="gate-how">
+          <li>从收藏里挑最多 3 张电路卡，叠成你 Agent 的规则栈。所有规则都通过，才算规则放行。</li>
+          <li>每笔请求有 6 秒。不动手，就按规则的判定自动处理；按 <kbd>A</kbd> 拦截、<kbd>D</kbd> 放行（方向键 ← → 也行），就是人工推翻。</li>
+          <li>请求里混着骗局：仿冒的 .ai、重复扣款、天价「紧急退款」。拦下骗局，放行真账单。</li>
+        </ol>
+      </div>
+      <div class="gate-best" id="gateBest"></div>
+    </div>
+    <div class="block">
+      <div class="panel-head"><h3>规则栈</h3><span class="chip" id="gateN">0 / 3</span></div>
+      <div class="gate-stack" id="gateStack"></div>
+      <div class="team-pool gate-pool" id="gatePool"></div>
+      <div class="row"><button class="btn primary xl" id="bGateGo">开始守门</button><span class="sub" id="gateHint"></span></div>
+    </div>
+  </div>
+
+  <div id="gatePlay" hidden>
+    <div class="gate-hud">
+      <div><i>第</i><b id="gQ">1</b><i>/ 10 笔</i></div>
+      <div><i>今天已付</i><b id="gPaid">$0</b></div>
+      <div><i>拦下骗局</i><b id="gSaved" class="ok">$0</b></div>
+      <div><i>被骗走</i><b id="gLost" class="bad">$0</b></div>
+      <div><i>误杀真账单</i><b id="gMiss">0</b></div>
+    </div>
+    <div class="gate-arena">
+      <article class="invoice" id="gInv"></article>
+      <div class="gate-side">
+        <div class="gate-rules" id="gRules"></div>
+        <div class="gate-timer"><i id="gTimer"></i></div>
+        <div class="gate-btns">
+          <button class="btn ghost xl gate-block" id="bGBlock">拦截</button>
+          <button class="btn primary xl gate-pass" id="bGPass">放行</button>
+        </div>
+        <p class="sub gate-tip" id="gTip">不动手就按规则处理。</p>
+      </div>
+    </div>
+    <ol class="gate-log" id="gLog"></ol>
+  </div>
+
+  <div id="gateEnd" hidden></div>
+
+
+  <div class="block">
+    <div class="panel-head"><h3>③ 上链验证：真钱包 · 真合约 · BscScan</h3><span class="call" id="cChain">BNB 主网 56</span></div>
+    <p class="sub">这一页的操作全部由 <span class="mono">AgentPackCore</span> 执行，并在合约里核验你的 Agent ID。合约部署后，把地址粘到下面即可启用。</p>
+  <div class="block">
+    <div class="claim-row">
+      <label class="sr-only" for="cAddr">合约地址</label>
+      <input class="inp mono" id="cAddr" placeholder="AgentPackCore 合约地址 0x…">
+      <button class="btn primary" id="bSaveAddr">保存地址</button>
+      <button class="btn ghost" id="bTogChain">切换网络</button>
+    </div>
+    <div id="chainBox" class="chainbox"></div>
+    <div class="banner">开一包在链上是三步：<span class="mono">claimDailyPack → packCommit → 等一个区块 → packReveal</span>。<br>流片是第四步：<span class="mono">tapeOut(cardId)</span> 按门数买 NAND → circuit NFT 进你的钱包、可转售；<b>电路卡必须先流片才能穿</b>。演示档不受此限。</div>
+  </div>
+
+  <div class="block">
+    <div class="panel-head"><h3>复算一笔支付</h3><span class="chip">只读调用，不花 gas</span></div>
+    <p class="sub">读出你现在穿着的规则，再拿一笔支付去复算。参数全部来自 <span class="mono">ruleOf()</span>，任何人都能重放。</p>
+    <div class="claim-row">
+      <input class="inp" id="rcAmt" type="number" min="0" step="0.01" placeholder="金额（美元）" aria-label="金额（美元）">
+      <input class="inp" id="rcSpent" type="number" min="0" step="0.01" placeholder="今天已花（美元）" aria-label="今天已花（美元）">
+      <input class="inp mono" id="rcPayee" placeholder="收款方 0x…（留空表示自己）" aria-label="收款方地址">
+      <button class="btn primary" id="bRuleCheck">复算</button>
+    </div>
+    <div class="banner" id="ruleOut">连接钱包后会依次调用 equippedRule(agent) 和 checkPayment(agent, amount, payee, spent, …)。</div>
+  </div>
+
+  <div class="block">
+    <div class="panel-head"><h3>④ 用卡付款：卡灵的闸门（GuardVault）</h3><span class="chip">真拦截</span></div>
+    <p class="sub">把 BNB 存进金库，付款必须先过卡：规则不通过就 <span class="mono">revert</span>。AI 热钱包只能发起，超额要你本人点头。<b>卡从"建议"变成"法律"。</b></p>
+    <div class="claim-row">
+      <label class="sr-only" for="vAddr">GuardVault 地址</label>
+      <input class="inp mono" id="vAddr" placeholder="GuardVault 地址 0x…">
+      <button class="btn primary" id="bSaveVault">保存金库</button>
+      <button class="btn ghost" id="bVaultRate">设费率</button>
+    </div>
+    <div class="claim-row">
+      <label class="sr-only" for="vDep">存入 BNB</label>
+      <input class="inp" id="vDep" type="number" min="0" step="0.001" placeholder="存入 BNB">
+      <button class="btn ghost" id="bVaultDeposit">存入</button>
+      <label class="sr-only" for="vPay">付款 BNB</label>
+      <input class="inp" id="vPay" type="number" min="0" step="0.001" placeholder="付款 BNB">
+      <input class="inp mono" id="vPayee" placeholder="收款方 0x…">
+      <button class="btn primary" id="bVaultPay">用卡付款</button>
+    </div>
+    <div class="banner" id="vaultOut">先保存金库地址。费率口径：1 美分 = 0.0001 BNB（演示用，可随时由你重设）。</div>
+  </div>
+</section>
+
+<!-- ══════════ 自走棋 ══════════ -->
+<section class="view" id="v-chess">
+  <div class="page-head">
+    <div><h2>自走棋</h2><p class="ph-sub">带 3 张卡穿越五轮周期，全自动战斗。</p></div>
+    <span class="chip" id="rec">战绩 0/0</span>
+  </div>
+
+  <div class="chess-hero">
+    <div class="ch-copy">
+      <h3>从 2017 打到 2025</h3>
+      <p>卡背的电路就是技能：止损回血、梭哈狂暴、杠杆自损、钻石手反弹。每章 3 波小怪加 1 个 Boss，第一次通关送 2 包和 30 分。</p>
+    </div>
+    <ol class="timeline" aria-label="五个章节">
+      <li><b>2017</b><span>ICO 狂潮</span></li>
+      <li><b>2018</b><span>漫长冬天</span></li>
+      <li><b>2022</b><span>暴雷纪元</span></li>
+      <li><b>2024</b><span>Meme 狂欢</span></li>
+      <li><b>2025</b><span>大清算</span></li>
+    </ol>
+  </div>
+
+  <div class="chess-cols">
+    <div class="block">
+      <div class="panel-head"><h3>上场阵容</h3><span class="chip" id="teamN">0 / 3</span></div>
+      <p class="sub">从收藏里选 3 张卡。点已上场的卡可以换下；不选就自动带最强的 3 张。</p>
+      <div class="team-slots" id="teamSlots"></div>
+      <div class="team-pool" id="teamPool"></div>
+    </div>
+    <div class="block">
+      <div class="panel-head"><h3>通关进度</h3><span class="chip" id="chDone">0 / 5</span></div>
+      <div class="chprog" id="chProg"></div>
+      <p class="sub" style="margin-top:12px">进度目前存在本机。主网版会把战绩写进 Agent ID 的链上档案。</p>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="panel-head"><h3>选一章开打</h3></div>
+    <div class="chapters" id="chGrid"></div>
+
+    <div id="arena">
+      <div class="arena-top">
+        <span class="arena-tag" id="arenaTag">第 1 波</span>
+        <span class="sub" id="arenaCh"></span>
+      </div>
+      <div class="arena-grid">
+        <div class="side"><div class="side-h">我方</div><div class="units" id="unitsMe"></div></div>
+        <div class="vs">VS</div>
+        <div class="side"><div class="side-h">敌方</div><div class="units" id="unitsEn"></div></div>
+      </div>
+      <div id="units" class="hidden-units"></div>
+      <div class="blog" id="blog"></div>
+      <div class="row"><button class="btn primary" id="bNext" style="display:none">打下一波</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 补给 ══════════ -->
+<section class="view" id="v-shop">
+  <div class="page-head">
+    <div><h2>补给</h2><p class="ph-sub">主网用 BNB 直接付款：每笔一半销毁，一半进公示奖池。</p></div>
+    <span class="call">buyPack(tier)</span>
+  </div>
+
+  <div class="shop">
+    <article class="tier">
+      <h3>单包</h3>
+      <div class="price">0.002<em>BNB</em></div>
+      <ul><li>1 个包 = 5 张卡</li><li>单包价，随买随开</li><li>第 5 张保底 SR+</li></ul>
+      <button class="btn ghost wide" data-buy="0">开 1 包</button>
+    </article>
+    <article class="tier">
+      <h3>十连</h3>
+      <div class="price">0.02<em>BNB</em></div>
+      <ul><li>10 个包 = 50 张卡</li><li>单包价 ×10，不涨价</li><li>积分 +50，兑 SR 提速</li></ul>
+      <button class="btn ghost wide" data-buy="1">开 10 包</button>
+    </article>
+    <article class="tier featured">
+      <span class="tier-tag">第 1 季起停售</span>
+      <h3>百连 · 创世</h3>
+      <div class="price">0.2<em>BNB</em></div>
+      <ul><li>100 个包 = 500 张卡</li><li>单包价 ×100，不涨价</li><li>停售后永久绝版纪念</li></ul>
+      <button class="btn primary wide" data-buy="2">开 100 包</button>
+    </article>
+  </div>
+  <p class="sub shop-note">三档单包价统一 <span class="mono">0.002 BNB</span>，十连/百连只是数量（合约 <span class="mono">TIER_QTY = [1,10,100]</span>）。演示档免费发放，不扣钱。</p>
+  <p class="sub shop-note">演示档里三档都免费发放，不会扣任何钱。</p>
+  <p class="sub shop-note"><b>游客 = 演示档</b>：每天最多 <span class="mono">20 包</span>（含恢复 / 分享 / 任务 / 补给全部演示发放），只存在本机（localStorage），不可流片、不可上链，清缓存即重置。<b>持 Binance Agent ID 的地址</b>才能调用 <span class="mono">claimDailyPack()</span>（1 包 / 24h）和 <span class="mono">buyPack()</span>（≤120 包 / 天）；分享链接带邀请参数，受邀 .ai 地址开满 15 包后，双方各得 1 包链上奖励。</p>
+  <div class="row"><button class="btn ghost sm" id="bFollow">关注 @agentpacks，领 10 包（演示）</button></div>
+</section>
+
+<!-- ══════════ 任务 ══════════ -->
+<section class="view" id="v-tasks">
+  <div class="page-head">
+    <div><h2>每日任务</h2><p class="ph-sub">每天 0 点（UTC+8）重置，做完就能领包。</p></div>
+  </div>
+
+  <div class="block streak-panel">
+    <div class="panel-head">
+      <h3>连续登录第 <span id="streakN">1</span> 天</h3>
+      <span class="sub" id="streakD">每天回来一次，第 7 天保底 SSR 包。</span>
+    </div>
+    <div id="streakBox" class="streak"></div>
+  </div>
+
+  <div class="summary" id="misSummary"></div>
+  <div class="sect-head"><h3>今天的任务</h3></div>
+  <div id="misBox" class="tgrid"></div>
+  <div class="lockrow" id="misLock"></div>
+  <div class="finishrow" id="misFoot"></div>
+</section>
+
+<!-- ══════════ 卡池 ══════════ -->
+<section class="view" id="v-verify">
+  <div class="page-head">
+    <div><h2>卡池</h2><p class="ph-sub">只有本人自愿认领，才会被做成身份卡。</p></div>
+    <span class="call">claimIntoPool()</span>
+  </div>
+  <div class="block">
+    <p class="sub">你的 .ai 每被抽到一次，你得 10 分。卡面只印名字，不包含任何钱包信息。退出后，已经发出的卡成为绝版，不再新发。</p>
+    <div class="claim-row">
+      <label class="sr-only" for="nmIn">你的 .ai 名字</label>
+      <input class="inp" id="nmIn" placeholder="你的 .ai 名字，比如 kestrel.ai" maxlength="24" autocomplete="off">
+      <button class="btn primary" id="bClaim">认领入池</button>
+    </div>
+    <div id="poolBox" class="poolbox"></div>
+    <div class="danger-row">
+      <button class="btn ghost sm" id="bLeavePool">退出卡池</button>
+      <button class="btn ghost sm danger" id="bReset">重置演示档</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 电路剧场 ══════════ -->
+
+
+<!-- ══════════ 链上 ══════════ -->
+
+
+</main>
+
+<!-- ══════════ 开包仪式 ══════════ -->
+<div id="ovl" role="dialog" aria-modal="true" aria-label="开包">
+  <div class="ovl-top"><span id="ovlTag">开包中</span><button class="ovl-x" id="bClose" aria-label="关闭">✕</button></div>
+  <div id="stage"></div>
+  <div class="ovl-actions">
+    <button class="btn primary" id="bOpenIt">撕开卡包</button>
+    <button class="btn ghost" id="bAll" style="display:none">全部翻开</button>
+    <button class="btn primary" id="bDone" style="display:none">收进收藏</button>
+    <button class="btn cut" id="bShareX" style="display:none">晒到 X</button>
+  </div>
+  <div class="ovl-hint" id="ovlHint">点卡包撕开</div>
+</div>
+
+<div id="mmodal" role="dialog" aria-modal="true" aria-label="卡牌详情"><div class="mbox" id="mbox"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="vendor/ethers.umd.min.js" defer></script>
+<script src="privy-widget.js?v=2" defer></script>
+<script src="i18n.js?v=68" defer></script>
+<script src="app.js?v=65" defer></script>
+<script src="fx.js?v=63" defer></script>
+<div class="ver-badge">v63</div>
+</body>
+</html>
