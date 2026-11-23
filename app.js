@@ -171,7 +171,7 @@ async function renderShareCard(c){
   x.strokeStyle='rgba(242,193,78,.55)';x.lineWidth=3;x.strokeRect(6,6,588,828);
   return new Promise(ok=>cv.toBlob(ok,'image/png'));
 }
-function shareURL(c){return 'https://agentid.cards/c/'+cname(c).replace('.ai','')}
+function shareURL(c){return 'https://agentid.cards/c/'+cname(c).replace('.ai','')+'?r='+encodeURIComponent(RAR[c.r]+(c.star?'★'+c.star:''))+'&id='+c.id}
 function shareText(c){return '我在 Agent Packs 抽到了 '+cname(c)+' · '+RAR[c.r]+(c.star?' ★'+c.star:'')+' → '+shareURL(c)}
 async function shareCard(c){
   // X 的 OG 链接预览：推文只带链接，X 自动抓 og:image 渲染名人卡（CT Packs 同款）

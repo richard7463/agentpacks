@@ -1,18 +1,73 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>我抽到了 bezos.ai · Agent Packs</title>
+<title>有人抽到了 bezos.ai · Agent Packs</title>
 <meta property="og:type" content="website">
-<meta property="og:title" content="我抽到了 bezos.ai · Agent Packs">
-<meta property="og:description" content="每包必出一张名人卡，照片直接上卡面。来开一包 →">
+<meta property="og:title" content="有人抽到了 bezos.ai · Agent Packs">
+<meta property="og:description" content="每包必出一张名人卡，照片直接上卡面。来免费开一包 →">
 <meta property="og:image" content="https://agentid.cards/og/bezos.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="我抽到了 bezos.ai · Agent Packs">
+<meta name="twitter:title" content="有人抽到了 bezos.ai · Agent Packs">
 <meta name="twitter:description" content="每包必出一张名人卡，照片直接上卡面。">
 <meta name="twitter:image" content="https://agentid.cards/og/bezos.jpg">
-<style>body{margin:0;background:#0F0C24;color:#F2EFFF;font:16px/1.8 system-ui,Arial;display:grid;place-items:center;height:100vh;text-align:center}
-h2{font-size:26px;margin:0 0 8px}a{color:#F2C14E;text-decoration:none;border-bottom:1px solid}</style>
-</head><body><div>
-<h2>🎉 我抽到了 bezos.ai</h2>
-<p>蓝色起源 · 每包必出名人卡</p>
-<p><a href="https://agentid.cards/">→ 来开一包</a></p>
-</div></body></html>
+<style>
+*{box-sizing:border-box;margin:0}
+body{min-height:100vh;background:#0F0C24;color:#F2EFFF;font:15px/1.8 system-ui,'Noto Sans SC',Arial;
+  display:flex;align-items:center;justify-content:center;padding:28px 16px;
+  background-image:radial-gradient(80% 60% at 50% 0%,rgba(138,240,255,.16),transparent 70%)}
+.wrap{max-width:920px;width:100%;text-align:center}
+.eyebrow{font-size:11px;letter-spacing:.28em;color:#9C96C4;margin-bottom:14px}
+h1{font-size:clamp(26px,5vw,40px);font-weight:900;line-height:1.25}
+h1 b{color:rgb(138,240,255)}
+.card{width:240px;aspect-ratio:63/88;margin:34px auto 18px;border-radius:12px;position:relative;
+  overflow:hidden;box-shadow:0 34px 70px -26px rgba(0,0,0,.95),0 0 0 1px rgba(242,193,78,.4);transform:rotate(-2deg)}
+.card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 15%}
+.card .mono{position:absolute;inset:0;display:grid;place-items:center;font-size:96px;font-weight:900;color:rgb(138,240,255);text-shadow:0 0 44px currentColor}
+.card::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 52%,rgba(10,8,25,.92))}
+.card .nm{position:absolute;left:12px;bottom:10px;font-weight:800;font-size:17px;z-index:2}
+.card .tg{position:absolute;left:12px;bottom:34px;font-size:11px;color:rgb(138,240,255);z-index:2}
+.card .rr{position:absolute;top:10px;right:10px;z-index:2;font-weight:900;font-size:13px;padding:3px 10px;border-radius:99px;background:rgba(10,8,25,.8);border:1px solid rgba(242,193,78,.5);color:#F2C14E}
+.meta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:8px 0 26px}
+.meta span{font-size:12px;color:#9C96C4;border:1px solid #2b2550;border-radius:99px;padding:5px 13px}
+.meta b{color:#F2C14E}
+.cta{display:inline-block;background:linear-gradient(90deg,#FFD76A,#F2C14E);color:#100C22;
+  font-weight:900;font-size:16px;padding:15px 34px;border-radius:99px;text-decoration:none;
+  box-shadow:0 18px 44px -14px rgba(242,193,78,.55);transition:.2s}
+.cta:hover{transform:translateY(-2px)}
+.steps{display:flex;gap:0;justify-content:center;margin:30px 0 10px;flex-wrap:wrap}
+.steps div{font-size:11.5px;color:#9C96C4;padding:6px 16px;border-top:1px solid #2b2550}
+.steps b{color:#F2EFFF}
+.foot{margin-top:26px;font-size:11px;color:#5d5687}
+.foot a{color:#F2C14E;text-decoration:none}
+</style></head><body><div class="wrap">
+<div class="eyebrow">AGENT PACKS · 每包必出名人卡</div>
+<h1>有人抽到了 <b>bezos.ai</b></h1>
+<div class="card">
+  <img src="https://agentid.cards/faces/bezos.jpg" alt="bezos.ai">
+  <span class="rr" id="rr">SR+</span>
+  <span class="tg">蓝色起源</span>
+  <span class="nm">bezos.ai</span>
+</div>
+<div class="meta">
+  <span>稀有度 <b id="rr2">SR+</b></span>
+  <span>卡号 <b id="cid">#—</b></span>
+  <span>规则 <b>只付给正主 · 链上可复算</b></span>
+  <span>身份 <b>opt-in 卡池 · 正主得分</b></span>
+</div>
+<a class="cta" href="https://agentid.cards/">🎁 我也要开一包（每天免费）</a>
+<div class="steps">
+  <div><b>01</b> 开包 · 照片上卡</div>
+  <div><b>02</b> 穿上 Agent ID</div>
+  <div><b>03</b> 规则链上可验</div>
+  <div><b>04</b> 晒到 X · 领 1 包</div>
+</div>
+<div class="foot">概率写死在合约 · 无 setter · BNB Chain<br>
+<a href="https://agentid.cards/">agentid.cards</a></div>
+</div>
+<script>
+// 分享链接可带 ?r=SSR&id=42：页面实时点亮稀有度和卡号
+const q=new URLSearchParams(location.search);
+const r=q.get('r')||'SR+';document.getElementById('rr').textContent=r;
+document.getElementById('rr2').textContent=r;
+if(q.get('id'))document.getElementById('cid').textContent='#'+q.get('id');
+</script>
+</body></html>
