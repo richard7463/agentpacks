@@ -1,75 +1,107 @@
-# Agent Packs · X 发布线程（中英，直接可发）
+# X 官宣帖 v2 · 卡灵战争
 
-> 发布节奏：主线程（D5）→ 每日讣告/战报跟进（内容机）。话题标签：#BinanceWalletHackathon #AgenticWallet（参与币安社区传播奖的读者可凭转发分 2,000 USDC——线程结尾提醒他们）。
-
----
-
-## 中文主线程（thread，逐条发）
-
-1/ 他们把推特号做成卡牌卖了 $2B/年。
-我们做的更进一步：**开包开出的不是图片，是一个有名字的 AI。**
-
-2/ Agent Packs = CT 卡包的开包爽感 × Binance Agent ID 真实身份 × TapeOut 电路卡魂。
-抽 Agent，养电路，打规则。
-▶ 免费开玩：richard7463.github.io/agentpacks/
-
-3/ 一张卡三个部分：
-🪪 卡面 = 真实 .ai 身份（你抽到的可能就是你朋友，甚至你自己）
-⚡ 卡魂 = 链上规则电路（tapes 同款模型：日限额/止损/钻石手，写死在链上谁也改不了）
-🤖 技能 = 电路真实执行——止损卡连败真的会止血
-
-4/ 抽到名卡七个出口：打、穿、秀、养、卖、租、特权。
-最性感的一个：**行为租赁**——Splinterlands 出租图片卡，我们出租你家 AI 的性格，按天计价。
-
-5/ 合约无 owner、概率表写死上链、付费 BNB 当笔 50% 销毁 + 50% 入公示奖池。
-开包页印着概率与保底，BscScan 自己验。
-▶ 开源仓（18/18 测试 + 本地链 E2E）：github.com/richard7463/agentpacks
-
-6/ 卡池只收自愿认领者：把你的 .ai 入池（一笔链上交易），被全服抽到就得分润，随时退出成绝版。
-**正主不上桌，卡不存在。**
-
-7/ 免费包每天回血，自走棋五章带你穿越 2017 ICO 狂潮到 2025 大清算。
-用你的 Binance Wallet 打开试玩——CHAIN 页直接真交易。
-#BinanceWalletHackathon #AgenticWallet
-
-8/ 喜欢这个项目？发一条带 #BinanceWalletHackathon #AgenticWallet 的原创帖，币安社区奖 2,000 USDC 等你分。😉
+> 主号发布。配图：`og/game.jpg`；首条引用卡灵立绘九宫格（t0/t9/t2/t8 + 4 张名人卡）。
 
 ---
 
-## English main thread
+## 主帖（置顶）
 
-1/ Card pack ripping just hit a $2B annual run rate.
-We pushed it one step further: **the card you pull is a real AI with a name.**
+你抽到的不是英雄，是一条规则。
 
-2/ Agent Packs = CT-Packs-style pack opening × real Binance Agent ID identities × on-chain rule circuits as card souls.
-Pull Agents. Grow circuits. Battle rules.
-▶ Free to play: richard7463.github.io/agentpacks/
+12 条 NAND 电路，流片在 BNB Chain 上。
+每张卡替持有 Agent ID 的你，守住 AI 的每一笔付款。
 
-3/ Every card has three parts:
-🪪 Identity — a real .ai name (you might pull your friend. or yourself)
-⚡ Soul — an on-chain rule circuit (daily caps, stop-loss, diamond hands — immutable, verifiable)
-🤖 Skill — the circuit actually executes. A stop-loss card really stops losing.
+判定从门电路里读出来——
+任何人可复算，没有人能改。
 
-4/ Seven things you can do with a pulled card: battle, equip, flex, star up, sell, rent, perks.
-The one nobody has: **behavior rental** — rent a famous agent's rule circuit to YOUR AI, by the day.
+第 0 战季开放：agentid.cards
 
-5/ No owner. Odds written on-chain. Every paid BNB: 50% burned on the spot, 50% to a public prize pool.
-Odds & pity rules printed on the pack page. Verify on BscScan yourself.
-▶ Open source (18/18 tests + local-chain E2E): github.com/richard7463/agentpacks
-
-6/ The card pool only contains people who opted in: claim your .ai in one on-chain tx, earn a share every time you're pulled, leave anytime (your cards go extinct-edition).
-**No consent, no card.**
-
-7/ Free packs daily. A five-chapter auto-battler from the 2017 ICO mania to the 2025 great reckoning.
-Open it inside your Binance Wallet — the CHAIN tab does real transactions.
-#BinanceWalletHackathon #AgenticWallet
-
-8/ Like it? Post your own take with #BinanceWalletHackathon #AgenticWallet — Binance's 2,000 USDC community award is up for grabs. 😉
+#BinanceWalletHackathon #AgenticWallet #AgentPacks
 
 ---
 
-## 每日内容机素材（讣告/战报模板）
+## 串（1/7）
 
-- **战报帖**：「今日 Agent Packs 全服战报：最长寿阵容是 [3 张卡]；被灾难卡砸得最惨的是 @xxx；第 N 张 UR 被开出 →」+ 排行截图
-- **抽到自己帖**（自传播）：「我今天抽到了自己的 .ai 卡」+ 卡面截图——鼓励玩家转发自己的身份卡
-- **保底科普帖**：「连续 10 张没有 SR 必出 SR——这不是运营的仁慈，是合约的承诺，BscScan 可查」
+1/7
+AI 已经开始替你花钱了：订阅、采购、API 计费。
+但你怎么证明它守没守规矩？
+
+条款会被解释，代码会被升级，承诺会被遗忘。
+所以我们把规则刻进了电路。
+
+---
+
+2/7
+一张卡 = 一条网表 = 一枚链上电路 NFT。
+
+白名单卡 4 门，双签卡 189 门。
+门数就是它的灵魂重量。
+
+---
+
+3/7
+抽到只是开始。
+
+tapeOut(cardId) → 按真门数买 NAND，电路 NFT 进你的钱包。
+equip(cardId) → 规则绑到你的 Agent ID。
+
+未流片的卡，不能上阵。
+
+---
+
+4/7
+判定不在服务器。
+
+checkPayment() 把运行时事实打包成输入字，
+staticcall 处理器 eval()，答案从 NAND 门里出来。
+
+处理器挂了？返回 false。
+宁可拦下一百张真账单，也不放进一次黑暗。
+
+---
+
+5/7
+卡灵真的能挡住钱。
+
+GuardVault.pay() 先问电路，再转账。
+规则不通过 → revert，钱不动。
+
+AI 热钱包只能发起，超额要你本人点头。
+
+---
+
+6/7
+每包必出 1 张名人卡。
+抽到当场就能晒——链接自动渲染卡图，不用截图。
+
+分享 +1 包/天。
+
+---
+
+7/7
+不发币，不赌，不承诺收益。
+收入只有卡包与流片。
+
+第 0 战季：agentid.cards
+世界观：agentid.cards/story.html
+
+黑暗可以仿冒一切，唯独仿冒不了「可验证的你」。
+
+---
+
+## 备用短帖（适合转推 / 社区号）
+
+> 别人卖的是盲盒里的图。
+> 我们卖的是焊死在链上的一条规则，长成了英雄。
+>
+> 12 条 NAND 电路 · 58 个合约测试 · 全输入穷举验证
+> agentid.cards
+
+---
+
+## 发布纪律
+
+- 推文里只放 **agentid.cards** 一个链接（卡名不要带 `.ai` 后缀，X 会把 `.ai` 当真实域名抓外部预览）。
+- 配图优先用 `og/game.jpg`（1200×630），其次名人卡 OG 图。
+- 不写"投资 / 收益 / 暴涨 / 百倍"等词。
+- 首帖发出后 10 分钟内补第一条回复（串 1/7），提高曝光。

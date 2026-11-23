@@ -1148,6 +1148,7 @@ async function chainRead(fn,args){
 }
 function renderChain(){
   const box=$('#chainBox');if(!box)return;
+  if($('#vAddr'))$('#vAddr').value=vaultAddr();
   $('#cAddr').value=coreAddr();
   $('#cChain').textContent=netName();
   if(!coreAddr()){
@@ -1254,6 +1255,75 @@ $('#bRuleCheck').onclick=async()=>{
 $('#bTogChain').onclick=()=>{
   localStorage.setItem('ap_chain',netId()==='38'?'61':'38');
   renderChain();toast('切换到 '+netName());
+};
+
+/* ══════════ GuardVault：卡灵的闸门 ══════════ */
+const VAULT_ABI=[
+ "function deposit() payable",
+ "function withdraw(uint256)",
+ "function setRate(uint256)",
+ "function setAgent(address)",
+ "function approveNext()",
+ "function setTripped(bool)",
+ "function pay(address,uint256,uint8) returns (uint256)",
+ "function payFor(address,address,uint256,uint8) returns (uint256)",
+ "function preview(address,address,uint256,uint8) view returns (bool,string,uint256)",
+ "function balanceOf(address) view returns (uint256)",
+ "function rateWeiPerCent(address) view returns (uint256)"
+];
+function vaultAddr(){return localStorage.getItem('ap_vault')||''}
+function vaultContract(signer){return new ethers.Contract(vaultAddr(),VAULT_ABI,signer)}
+function vaultSay(t,cls){const o=$('#vaultOut');o.className='banner'+(cls?' '+cls:'');o.innerHTML=t}
+async function vaultSigner(){const p=await chainProvider();await p.send('eth_requestAccounts',[]);return p.getSigner()}
+$('#bSaveVault').onclick=()=>{
+  const v=$('#vAddr').value.trim();
+  if(v&&!/^0x[0-9a-fA-F]{40}$/.test(v))return toast('地址格式不正确');
+  localStorage.setItem('ap_vault',v);
+  toast(v?'金库地址已保存':'已清空');
+  if(v)vaultSay('金库 <span class="mono">'+v.slice(0,10)+'…'+v.slice(-6)+'</span> · 连接钱包后可存可取。');
+};
+$('#bVaultRate').onclick=async()=>{
+  try{
+    const s=await vaultSigner();await ensureChain();
+    const tx=await vaultContract(s).setRate(ethers.BigNumber.from('100000000000000')); // 1e14 wei / 美分
+    vaultSay('设定费率… <span class="mono">'+tx.hash.slice(0,12)+'…</span>');
+    await tx.wait();
+    vaultSay('费率已设为 1 美分 = 0.0001 BNB。','ok');
+  }catch(e){vaultSay('● '+(e.reason||e.message||e),'bad')}
+};
+$('#bVaultDeposit').onclick=async()=>{
+  try{
+    const v=parseFloat($('#vDep').value)||0;
+    if(v<=0)return vaultSay('先填一个大于 0 的 BNB 数量。','bad');
+    const s=await vaultSigner();await ensureChain();
+    const tx=await vaultContract(s).deposit({value:ethers.utils.parseEther(String(v))});
+    vaultSay('存入中… <span class="mono">'+tx.hash.slice(0,12)+'…</span>');
+    await tx.wait();
+    const bal=await vaultContract(await chainProvider()).balanceOf(await s.getAddress());
+    vaultSay('已存入 '+v+' BNB · 金库余额 '+ethers.utils.formatEther(bal)+' BNB。','ok');
+  }catch(e){vaultSay('● '+(e.reason||e.message||e),'bad')}
+};
+$('#bVaultPay').onclick=async()=>{
+  try{
+    if(!vaultAddr())return vaultSay('先保存 GuardVault 地址。','bad');
+    const v=parseFloat($('#vPay').value)||0;
+    if(v<=0)return vaultSay('先填一个大于 0 的付款金额。','bad');
+    const payee=$('#vPayee').value.trim();
+    if(!/^0x[0-9a-fA-F]{40}$/.test(payee))return vaultSay('收款方地址格式不对。','bad');
+    const s=await vaultSigner();await ensureChain();
+    const me=await s.getAddress();
+    const wei=ethers.utils.parseEther(String(v));
+    const [ok,why,cents]=await vaultContract(await chainProvider()).preview(me,payee,wei,0);
+    vaultSay('预演：'+(ok?'<b style="color:var(--teal)">PASS</b>':'<b style="color:var(--red)">FAIL</b>')+' · '+why+' <span class="mono">· '+cents.toString()+' 美分</span>');
+    if(!ok)return;
+    const tx=await vaultContract(s).pay(payee,wei,0);
+    vaultSay('付款中… <span class="mono">'+tx.hash.slice(0,12)+'…</span>');
+    await tx.wait();
+    vaultSay('✅ 付款成功：卡放行了这笔钱。 <span class="mono">'+why+'</span>','ok');
+  }catch(e){
+    const m=e.reason||e.message||String(e);
+    vaultSay('⛔ 被卡灵拦下：<b style="color:var(--red)">'+m+'</b> —— 钱没动。','bad');
+  }
 };
 
 /* ══════════ 电路剧场：NAND 网表引擎 + 渲染（TapeOut 字节格式）══════════

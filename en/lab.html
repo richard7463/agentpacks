@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kaling War · The Lab</title>
+<meta name="description" content="Play with the gates. See exactly how a card decides, and how anyone can recompute it on BNB Chain.">
+<meta property="og:image" content="https://agentid.cards/og/game.jpg">
+<style>
+:root{--ink:#0F0C24;--ink2:#18143B;--paper:#F2EFFF;--mist:#9C96C4;--mist2:#6b639a;
+  --gold:#F2C14E;--teal:#6CF2D6;--red:#FF5C7A;--violet:#B79BFF;--line:#2b2550}
+*{margin:0;box-sizing:border-box}
+body{background:var(--ink);color:var(--paper);font-family:'Archivo','Inter',system-ui,sans-serif;line-height:1.65}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(60% 40% at 50% -5%,rgba(183,155,255,.12),transparent 62%)}
+a{color:var(--gold);text-decoration:none}
+.wrap{max-width:1080px;margin:0 auto;padding:0 26px;position:relative}
+nav{position:sticky;top:0;z-index:9;background:rgba(15,12,36,.84);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:22px;height:62px}
+.brand{font-weight:900;letter-spacing:.14em;font-size:13px}
+nav .sp{flex:1}
+nav a.l{font-size:13px;color:var(--mist)} nav a.l:hover{color:var(--paper)}
+nav a.cta{background:var(--paper);color:var(--ink);font-weight:800;font-size:13px;padding:9px 18px;border-radius:99px}
+header{padding:76px 0 30px}
+.kick{font-size:11px;letter-spacing:.5em;color:var(--mist);margin-bottom:18px}
+h1{font-size:clamp(34px,6vw,62px);font-weight:900;line-height:1.06;letter-spacing:-.02em}
+.lede{margin-top:20px;font-size:17px;color:var(--mist);max-width:40em}
+section{padding:56px 0;border-top:1px solid var(--line)}
+h2{font-size:clamp(24px,3.6vw,34px);font-weight:900;margin-bottom:10px;letter-spacing:-.01em}
+.sub{color:var(--mist);font-size:15px;margin-bottom:28px;max-width:44em}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.card{border:1px solid var(--line);border-radius:16px;padding:22px;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent)}
+.card h3{font-size:15px;letter-spacing:.16em;color:var(--mist2);margin-bottom:16px;text-transform:uppercase}
+/* nand */
+.gate{display:flex;align-items:center;gap:26px;flex-wrap:wrap}
+.sw{display:flex;align-items:center;gap:10px;font-family:ui-monospace,Menlo,monospace;font-size:13px}
+.sw input{appearance:none;width:46px;height:26px;border-radius:99px;background:#241f45;border:1px solid var(--line);position:relative;cursor:pointer;transition:.2s}
+.sw input::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--mist);transition:.2s}
+.sw input:checked{background:rgba(108,242,214,.2);border-color:rgba(108,242,214,.6)}
+.sw input:checked::after{left:22px;background:var(--teal)}
+.gatebox{font-family:ui-monospace,Menlo,monospace;font-size:13px;border:1px solid var(--line);border-radius:12px;padding:14px 18px;background:#12102b;min-width:220px}
+.gatebox b{font-size:26px;color:var(--gold)}
+.tt{width:100%;border-collapse:collapse;font-family:ui-monospace,Menlo,monospace;font-size:13px;margin-top:14px}
+.tt th,.tt td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:center}
+.tt th{color:var(--mist2);font-size:11px;letter-spacing:.16em}
+.tt tr.on td{background:rgba(108,242,214,.07)}
+.tt .y{color:var(--teal)} .tt .n{color:var(--mist2)}
+/* simulator */
+.row{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.row label{width:130px;font-size:12.5px;color:var(--mist);letter-spacing:.08em}
+.row input[type=range]{flex:1;accent-color:var(--gold)}
+.row output{width:74px;text-align:right;font-family:ui-monospace,Menlo,monospace;font-size:13px;color:var(--gold)}
+.verdict{border-radius:14px;padding:18px 20px;font-size:15px;border:1px solid var(--line);background:#12102b;margin-top:8px}
+.verdict .tag{font-family:ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.16em;padding:3px 10px;border-radius:99px;margin-right:10px}
+.tag.pass{background:rgba(108,242,214,.14);color:var(--teal);border:1px solid rgba(108,242,214,.4)}
+.tag.ask{background:rgba(242,193,78,.14);color:var(--gold);border:1px solid rgba(242,193,78,.4)}
+.tag.deny{background:rgba(255,92,122,.14);color:var(--red);border:1px solid rgba(255,92,122,.4)}
+.bits{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--mist);margin-top:12px;line-height:1.9;word-break:break-all}
+/* scenarios */
+table.sc{width:100%;border-collapse:collapse;font-size:14px}
+.sc th,.sc td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line)}
+.sc th{font-size:11px;letter-spacing:.18em;color:var(--mist2)}
+.sc td.mono{font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+.code{background:#0b091c;border:1px solid var(--line);border-radius:12px;padding:16px 18px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:#cfc8ee;overflow-x:auto;line-height:1.8}
+.code .k{color:var(--violet)} .code .s{color:var(--teal)} .code .c{color:var(--mist2)}
+.note{border-left:2px solid rgba(242,193,78,.5);padding-left:18px;color:var(--mist);font-size:15px;margin:26px 0}
+footer{padding:56px 0 70px;border-top:1px solid var(--line);color:var(--mist2);font-size:12px}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a class="brand" href="/en/">KALING WAR</a><span class="sp"></span>
+  <a class="l" href="/en/">Home</a><a class="l" href="/en/story.html">Story</a><a class="l" href="/">中文</a>
+  <a class="cta" href="/">Open a pack</a>
+</div></nav>
+
+<header><div class="wrap">
+  <div class="kick">THE LAB · NO WALLET NEEDED</div>
+  <h1>Don't trust the card.<br>Read the gates.</h1>
+  <p class="lede">Every verdict in this game is produced by NAND gates. Here you can flip the switches yourself, watch the truth table, and then check the same inputs against the live contract.</p>
+</div></header>
+
+<section><div class="wrap">
+  <h2>1 · A NAND gate is the whole universe</h2>
+  <p class="sub">NAND outputs 0 only when both inputs are 1. Everything else — adders, comparators, the twelve rules — is built from this one gate.</p>
+  <div class="grid">
+    <div class="card">
+      <h3>Interactive gate</h3>
+      <div class="gate">
+        <div>
+          <div class="sw"><input type="checkbox" id="a" checked><span>A</span></div>
+          <div class="sw" style="margin-top:10px"><input type="checkbox" id="b" checked><span>B</span></div>
+        </div>
+        <div class="gatebox">NAND(A,B) = <b id="out">0</b><div style="color:var(--mist2);font-size:11.5px;margin-top:6px">only 1 AND 1 gives 0</div></div>
+      </div>
+      <table class="tt" id="tt">
+        <thead><tr><th>A</th><th>B</th><th>NAND</th></tr></thead><tbody></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Why this matters</h3>
+      <p style="font-size:14.5px;color:var(--mist);margin-bottom:14px">A rule written as text can be argued with. A rule written as gates can only be evaluated. The card you pull is a <b style="color:var(--paper)">netlist</b>: a list of 7-byte gates, each pointing at two earlier signals.</p>
+      <div class="code">
+<span class="c">// one gate = 7 bytes</span><br>
+00 <span class="s">000005</span> <span class="s">000005</span> <span class="c">// NAND(sig5, sig5) = NOT</span><br>
+00 <span class="s">000003</span> <span class="s">000006</span> <span class="c">// …and so on</span>
+      </div>
+      <p style="font-size:13px;color:var(--mist2);margin-top:12px">Signal 0 = constant 0, signal 1 = constant 1, signals 2…n+1 = inputs, then one signal per gate.</p>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>2 · Simulate the Stop-Loss Kaling</h2>
+  <p class="sub">The real netlist is 36 gates. Its rule: <span style="font-family:ui-monospace,Menlo,monospace;color:var(--teal)">allow = (amount ≤ left) OR human</span>, <span style="font-family:ui-monospace,Menlo,monospace;color:var(--gold)">ask = (amount &gt; left) AND NOT human</span>. Move the sliders.</p>
+  <div class="grid">
+    <div class="card">
+      <h3>Payment facts</h3>
+      <div class="row"><label>amount</label><input type="range" id="amt" min="0" max="200" value="120"><output id="amtv">$120</output></div>
+      <div class="row"><label>left today</label><input type="range" id="left" min="0" max="200" value="80"><output id="leftv">$80</output></div>
+      <div class="row"><label>human</label><input type="range" id="hum" min="0" max="1" value="0"><output id="humv">no</output></div>
+      <div class="verdict" id="verdict"><span class="tag deny">DENY</span><span id="why">daily cap exceeded</span></div>
+      <div class="bits" id="bits"></div>
+    </div>
+    <div class="card">
+      <h3>What the chain sees</h3>
+      <div class="code">
+<span class="c">// the contract packs facts into one input word</span><br>
+word = 2 | (within ? 2 : 1) &lt;&lt; 3 | human &lt;&lt; 6<br><br>
+<span class="c">// then asks the circuit, not a server</span><br>
+(ok, ret) = processor.<span class="k">staticcall</span>(<br>
+&nbsp;&nbsp;abi.encodeWithSelector(eval, circuitId, bytes)<br>
+)<br>
+<span class="c">// eval reverts → fail-closed → payment refused</span>
+      </div>
+      <p style="font-size:13.5px;color:var(--mist);margin-top:14px">No oracle. No backend. The answer is recomputable by anyone holding the circuit id.</p>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>3 · Ten payments, one night</h2>
+  <p class="sub">These are the scenarios the on-chain guard is tested against. Same inputs, same verdicts — every run.</p>
+  <table class="sc">
+    <thead><tr><th>#</th><th>Scenario</th><th>Rule that fires</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td>01</td><td>Vendor invoice, $12</td><td class="mono">daily cap</td><td style="color:var(--teal)">PASS</td></tr>
+      <tr><td>02</td><td>Same invoice twice</td><td class="mono">daily cap</td><td style="color:var(--red)">DENY</td></tr>
+      <tr><td>03</td><td>Impostor, one letter off</td><td class="mono">allowlist</td><td style="color:var(--red)">DENY</td></tr>
+      <tr><td>04</td><td>Urgent refund, 10×</td><td class="mono">high limit</td><td style="color:var(--gold)">ASK HUMAN</td></tr>
+      <tr><td>05</td><td>Owner approves it</td><td class="mono">high limit</td><td style="color:var(--teal)">PASS</td></tr>
+      <tr><td>06</td><td>Two payments, 10s apart</td><td class="mono">cooldown</td><td style="color:var(--red)">DENY</td></tr>
+      <tr><td>07</td><td>Fraud already detected</td><td class="mono">lockdown</td><td style="color:var(--red)">DENY</td></tr>
+      <tr><td>08</td><td>$40 with one approval</td><td class="mono">dual sign</td><td style="color:var(--gold)">ASK HUMAN</td></tr>
+      <tr><td>09</td><td>$40 with two approvals</td><td class="mono">dual sign</td><td style="color:var(--teal)">PASS</td></tr>
+      <tr><td>10</td><td>Payment outside the window</td><td class="mono">delegation</td><td style="color:var(--red)">DENY</td></tr>
+    </tbody>
+  </table>
+</div></section>
+
+<section><div class="wrap">
+  <h2>4 · Verify it yourself</h2>
+  <p class="sub">You don't need to trust this page. Read the contract on BscScan, or call it from any wallet.</p>
+  <div class="code">
+<span class="c">// 1. what rule is this agent wearing?</span><br>
+equippedRule(agent) → (cardId, ruleType, p1, p2)<br><br>
+<span class="c">// 2. recompute any payment</span><br>
+checkPayment(agent, amountCents, payee, spentToday, txCount, lastAt,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;humanApproved, approvals, tripped) → (ok, reason)<br><br>
+<span class="c">// 3. ask the circuit directly (free view)</span><br>
+processor.eval(circuitId, inputBytes) → verdict byte
+  </div>
+  <p class="note">If the processor is down, the contract returns <b style="color:var(--paper)">false</b>. Not "maybe". The gate stays shut.</p>
+  <p style="margin-top:26px"><a class="cta" href="/" style="display:inline-block;background:linear-gradient(90deg,#FFD76A,#F2C14E);color:#100C22;font-weight:800;padding:16px 40px;border-radius:99px">Open the live app →</a></p>
+</div></section>
+
+<footer><div class="wrap">KALING WAR · AGENT PACKS · agentid.cards — 12 rules · exhaustively verified · anyone can eval()</div></footer>
+
+<script>
+/* NAND demo */
+const A=document.getElementById('a'),B=document.getElementById('b'),OUT=document.getElementById('out');
+const tbody=document.querySelector('#tt tbody');
+function nand(x,y){return (x&&y)?0:1}
+function drawTT(){
+  const cur=[+A.checked,+B.checked];
+  tbody.innerHTML=[[0,0],[0,1],[1,0],[1,1]].map(([x,y])=>{
+    const v=nand(x,y),on=(x===cur[0]&&y===cur[1]);
+    return `<tr class="${on?'on':''}"><td>${x}</td><td>${y}</td><td class="${v?'y':'n'}">${v}</td></tr>`;
+  }).join('');
+  OUT.textContent=nand(cur[0],cur[1]);
+}
+A.onchange=B.onchange=drawTT;drawTT();
+
+/* stop-loss simulator */
+const amt=document.getElementById('amt'),left=document.getElementById('left'),hum=document.getElementById('hum');
+const amtv=document.getElementById('amtv'),leftv=document.getElementById('leftv'),humv=document.getElementById('humv');
+const verdict=document.getElementById('verdict'),why=document.getElementById('why'),bits=document.getElementById('bits');
+function sim(){
+  const a=+amt.value,l=+left.value,h=+hum.value;
+  amtv.textContent='$'+a;leftv.textContent='$'+l;humv.textContent=h?'yes':'no';
+  const within=a<=l, allow=within||!!h, ask=!allow&&!h;
+  let tag='deny',txt='daily cap exceeded';
+  if(allow){tag='pass';txt=within?'within daily cap':'over cap, human approved'}
+  else if(ask){tag='ask';txt='over cap, needs human'}
+  verdict.innerHTML=`<span class="tag ${tag}">${tag==='pass'?'PASS':tag==='ask'?'ASK HUMAN':'DENY'}</span><span>${txt}</span>`;
+  const word=2|((within?2:1)<<3)|(h<<6);
+  bits.textContent=`input word = ${word}  ·  bits = ${word.toString(2).padStart(7,'0')}  ·  allow=${allow?1:0} ask=${ask?1:0}`;
+}
+[amt,left,hum].forEach(e=>e.oninput=sim);sim();
+</script>
+</body>
+</html>

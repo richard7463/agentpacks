@@ -1,53 +1,130 @@
-# Agent Packs · 黑客松提交清单与数据冲刺
+# 卡灵战争 · Agent Packs — 黑客松提交清单（v3 · 2026-11-23）
 
-> 提交截止 2026-12-09 16:00（UTC+8）。目标：**真实 Agent ID 交互地址 ≥ 80**（门槛 30，冲领航奖排名）。
+> 截止 **2026-12-09 16:00（UTC+8）**。目标：真实 Agent ID 交互地址 ≥ 80（门槛 30），同时把"规则可验证"讲成技术差异点。
 
 ---
 
-## 1. 提交表单字段（逐项就绪）
+## 0. 一句话
 
-- **项目名称**：Agent Packs（无任何币安/BNB 冒充词）
-- **官网**：`[部署后回填]`
-- **合约（BscScan 已验证开源）**：`AgentPackCore`：`[部署后回填]`
-- **Agent ID 使用说明**（表单里贴这段）：
+**你抽到的不是英雄，是一条规则。** 12 条 NAND 电路流片在 BNB Chain 上，每张卡替持有 Agent ID 的真人守住 AI 的每一笔付款——判定从门电路里读出来，任何人可复算。
 
-  > Agent Packs 把 Binance Agent ID 做成卡牌的身份本体：每张卡关联一个真实 .ai 名字；认领、每日免费包、邀请奖励结算均在合约层校验官方 Agent ID 注册表（SPACE ID Agent ID, ERC-721: 0x60B9…022f）。每日免费包（`claimDailyPack`）是 Agent ID 持有者的专属福利——每次领取即一笔链上交互，形成每日回访；邀请持 .ai 好友开满 15 包，双方在链上结算奖励包（`invite`）；后续赛季的造卡分润亦记账至 .ai 身份名下。本项目不提供任何"按名查他人钱包/资产"的功能，身份仅用于卡面署名与权益归属。
+- 官网：**https://agentid.cards**
+- 世界观：https://agentid.cards/story.html
+- 英文站：https://agentid.cards/en/
+- Pitch：https://agentid.cards/pitch.html
+- 仓库：https://github.com/richard7463/agentpacks
 
-- **项目描述一句话**：用 Binance Agent ID 做身份、用 TapeOut 电路做灵魂的 Agent 卡牌游戏——抽 Agent，养电路，打规则。
+---
 
-## 2. 九条安全红线对照
+## 1. 提交表单字段
+
+| 字段 | 内容 |
+|---|---|
+| 项目名称 | **卡灵战争（Agent Packs）** |
+| 官网 | https://agentid.cards |
+| 合约 | `AgentPackCore`：`[部署后回填]`<br>`GuardVault`：`[部署后回填]` |
+| 链 | BNB Smart Chain 56（测试网 97） |
+| 开源 | MIT，BscScan 已验证源码 |
+
+**Agent ID 使用说明（表单粘贴版）：**
+
+> 卡灵战争把 Binance Agent ID 做成卡牌的身份本体。持有 .ai 的地址才能领每日免费包（`claimDailyPack`）与购买卡包（`buyPack`），合约直接校验官方注册表 `0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F`。抽到的电路卡经 `tapeOut` 流片成链上电路 NFT，`equip` 后绑定到该 Agent ID（`activeCircuit[agent]`）；任何支付方可调用 `checkPayment` 从 NAND 电路得到放行/拦截判定。`GuardVault` 让规则真正拦住资金：规则不通过则交易 revert。我们不提供按名字查询他人钱包或资产的功能，身份只用于权益归属与卡面署名。
+
+---
+
+## 2. 技术验证（全部可复现）
+
+| 项 | 数字 / 状态 | 证据 |
+|---|---|---|
+| 规则数 | 12（kind 0）+ 身份卡（kind 1） | `AgentPackCore.sol` 常量 |
+| 真 NAND 网表 | 12 条，4 → 189 门 | `tools/netlists12.json` |
+| 全输入穷举 | 2 → 8,192 例/条，全部通过 | `tools/mint12.mjs` |
+| 合约测试 | **58 / 58** | `forge test`（Core 42 + Vault 16） |
+| 本地 E2E | 全绿 | `contracts/run_local_e2e.sh` |
+| 判定路径 | `checkPayment → staticcall processor.eval` | fail-closed |
+| 前端 | 6 tab + 实验室 + 世界观 + EN | v58 已上线 |
+| OG 分享 | 28 组落地页 + 1200×630 图 | Twitterbot 实测抓取 |
+
+---
+
+## 3. 九条安全红线对照
 
 | # | 红线 | 对照 |
 |---|---|---|
-| 1 | 不扫码登录/不存会话 | 纯前端钱包直连 ✅ |
-| 2 | Skill 不绕过用户确认 | 买包/开包每笔钱包确认 ✅ |
-| 3 | 不无感转走/无限授权 | 无 approve；BNB 直接支付、去向公示 ✅ |
-| 4 | 开源 + 披露 owner 权限 | 无 owner/无提款路径；分账规则公开 ✅ |
-| 5 | 不冒用币安品牌 | 名字/域名零品牌词 ✅ |
-| 6 | 不收集助记词/私钥 | ✅ |
-| 7 | 不承诺收益 | 积分不可提现、全 utility 措辞 ✅ |
-| 8 | 交易页面风险提示 | 开包页脚：概率公开+保底+链上支付不可撤回 ✅ |
-| 9 | Agent ID ≠ 查钱包工具 | 仅卡面署名 ✅ |
+| 1 | 不扫码登录 / 不存会话 | 纯前端钱包直连，无后端会话 ✅ |
+| 2 | 不绕过用户确认 | 买包 / 开包 / 流片 / 付款每笔钱包确认 ✅ |
+| 3 | 不无感转走 / 无限授权 | 无 approve；BNB 直接支付；GuardVault 只能由本人或授权 agent 发起 ✅ |
+| 4 | 开源 + 披露权限 | MIT；无 owner 提款路径；奖池地址公开；GuardVault 无管理员 ✅ |
+| 5 | 不冒用币安品牌 | 名称 / 域名零品牌词 ✅ |
+| 6 | 不收集助记词 / 私钥 | ✅ |
+| 7 | 不承诺收益 | 无 token、无年化；积分不可提现 ✅ |
+| 8 | 风险提示 | 开包页概率公示 + `/terms.html` 条款与免责声明 ✅ |
+| 9 | Agent ID ≠ 查钱包工具 | 仅校验"是否持有"，仅用于署名与权益 ✅ |
 
-## 3. 数据冲刺方案（目标 ≥80 个 .ai 地址）
+---
+
+## 4. 主网部署（等凭据）
+
+需要用户提供：
+
+```bash
+export BSC_RPC_URL=...          # 主网 RPC
+export PRIVATE_KEY=...          # 部署私钥（建议新钱包，只放部署 gas）
+export BSCSCAN_KEY=...          # 合约开源验证
+export PRIZE_POOL=0x...         # 公示奖池（建议多签）
+export TAPE_PROCESSOR=0x...     # CPU Factory createCPU 自部署的处理器
+```
+
+执行：
+
+```bash
+cd contracts
+forge script script/Deploy.s.sol:DeployMainnet \
+  --rpc-url $BSC_RPC_URL --private-key $PRIVATE_KEY --broadcast --verify
+```
+
+部署后：
+
+1. 把 `AgentPackCore` 与 `GuardVault` 地址写进前端（当前支持 localStorage，正式版应硬编码默认值）。
+2. 用 `createCPU` 自建处理器，写入 `TAPE_PROCESSOR`，跑一遍 12 条网表流片。
+3. 主网实测：领包 → 开包 → 流片 → 穿卡 → GuardVault 付款（成功 + 被拦各一笔）。
+4. BscScan 源码验证（MIT）。
+
+---
+
+## 5. 数据冲刺（目标 ≥80 个 .ai 地址）
 
 | 机制 | 作用 |
 |---|---|
-| **每日免费包** | 每个 .ai 用户每天回来领一笔便宜 tx——交互地址数×留存天数 = 领航奖核心数据 |
-| **邀请裂变** | 开满 15 包算有效邀请、双方得包——老带新标准漏斗 |
-| **首包必 SSR** | 新用户第一包就出好卡（CT Packs 验证过的转化钩子），截图即社交传播 |
-| **抽到熟人牌** | 卡池含真实 .ai 名字 → "我抽到你了" 天然 UGC |
-| **社区传播奖杠杆** | 引导用户发 X 帖（#BinanceWalletHackathon #AgenticWallet）→ 他们可分币安 2,000 USDC |
-| 渠道 | 黑客松同行互访 + CT 卡包玩家群（同好人群）+ 币安钱包社区 |
+| 每日免费包 | 每个 .ai 每天一笔低成本 tx，交互地址 × 留存天数 |
+| 分享 +1 包/天 | OG 卡图直接进 X 时间线，点击回站 |
+| 邀请 | 开满 15 包双方结算奖励包 |
+| 名人卡 | 每包必出 1 张，抽到即可晒 |
+| 实验室 | 无需钱包也能玩，降低首访门槛 |
+| 渠道 | 黑客松同行、CT 卡包玩家、币安钱包社区 |
 
-**纪律**：不用批量注册账号刷量（取消资格红线）；与自家其他项目（WORM/Stave）不做机械互刷，各自建真实漏斗。
+**纪律**：不批量注册、不机械互刷。
 
-## 4. 提交前 48 小时清单
+---
 
-- [ ] 合约主网部署 + BscScan 验证（MIT 开源）
-- [ ] 概率与保底规则印在开包页（合规也是卖点）
-- [ ] 免费包 / 认领 / 邀请三条 .ai 流程各实测一笔主网交易
-- [ ] ≥30 真实 .ai 地址达成（目标 80）
-- [ ] 表单四要素（名称/官网/合约/Agent ID 说明）填好，12-05 前早交
-- [ ] 页脚风险声明 + Terms（BNB 去向：销毁/奖池分账）
-- [ ] 确认一支独立队伍身份提交（一队一项目规则）
+## 6. 提交前 48 小时
+
+- [ ] 主网部署 + BscScan 验证
+- [ ] 处理器 `createCPU` + 12 条网表流片
+- [ ] 主网三笔实测（领包 / 买包 / GuardVault 付款）
+- [ ] 前端默认合约地址硬编码 + `?v=59`
+- [ ] ≥30 真实 .ai 地址（目标 80）
+- [ ] demo 视频（60–90 秒：开包 → 名人卡 → 晒 X → 流片 → 守门拦截）
+- [ ] 表单四要素填好，12-05 前早交
+- [ ] 确认独立队伍身份（一队一项目）
+
+---
+
+## 7. 已知缺口
+
+| 缺口 | 影响 | 计划 |
+|---|---|---|
+| WalletConnect | 普通手机浏览器无法连 | S0.5 补 |
+| 英文只覆盖 landing/story/lab | 游戏内仍中文 | S1 全量 i18n |
+| 主网未部署 | 无法展示真实 tx | 等凭据 |
+| demo 视频未剪 | 提交缺一项 | 等 AI 片段 + 录屏 |

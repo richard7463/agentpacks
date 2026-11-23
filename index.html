@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="ui.css?v=57">
+<link rel="stylesheet" href="ui.css?v=58">
 </head>
 <body>
 <a class="skip" href="#main">跳到内容</a>
@@ -38,6 +38,7 @@
       <button class="tab" data-v="shop">补给</button>
       <button class="tab" data-v="tasks">任务</button>
       <button class="tab" data-v="verify">卡池</button>
+      <a class="tab" href="en/index.html" title="English">EN</a>
     </nav>
 
     <div class="tb-stats">
@@ -324,6 +325,27 @@
     </div>
     <div class="banner" id="ruleOut">连接钱包后会依次调用 equippedRule(agent) 和 checkPayment(agent, amount, payee, spent, …)。</div>
   </div>
+
+  <div class="block">
+    <div class="panel-head"><h3>④ 用卡付款：卡灵的闸门（GuardVault）</h3><span class="chip">真拦截</span></div>
+    <p class="sub">把 BNB 存进金库，付款必须先过卡：规则不通过就 <span class="mono">revert</span>。AI 热钱包只能发起，超额要你本人点头。<b>卡从"建议"变成"法律"。</b></p>
+    <div class="claim-row">
+      <label class="sr-only" for="vAddr">GuardVault 地址</label>
+      <input class="inp mono" id="vAddr" placeholder="GuardVault 地址 0x…">
+      <button class="btn primary" id="bSaveVault">保存金库</button>
+      <button class="btn ghost" id="bVaultRate">设费率</button>
+    </div>
+    <div class="claim-row">
+      <label class="sr-only" for="vDep">存入 BNB</label>
+      <input class="inp" id="vDep" type="number" min="0" step="0.001" placeholder="存入 BNB">
+      <button class="btn ghost" id="bVaultDeposit">存入</button>
+      <label class="sr-only" for="vPay">付款 BNB</label>
+      <input class="inp" id="vPay" type="number" min="0" step="0.001" placeholder="付款 BNB">
+      <input class="inp mono" id="vPayee" placeholder="收款方 0x…">
+      <button class="btn primary" id="bVaultPay">用卡付款</button>
+    </div>
+    <div class="banner" id="vaultOut">先保存金库地址。费率口径：1 美分 = 0.0001 BNB（演示用，可随时由你重设）。</div>
+  </div>
 </section>
 
 <!-- ══════════ 自走棋 ══════════ -->
@@ -482,8 +504,8 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js" defer></script>
-<script src="app.js?v=57" defer></script>
-<script src="fx.js?v=57" defer></script>
-<div class="ver-badge">v57</div>
+<script src="app.js?v=58" defer></script>
+<script src="fx.js?v=58" defer></script>
+<div class="ver-badge">v58</div>
 </body>
 </html>
