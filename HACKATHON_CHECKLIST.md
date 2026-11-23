@@ -114,7 +114,7 @@ forge script script/Deploy.s.sol:DeployMainnet \
 - [ ] 主网三笔实测（领包 / 买包 / GuardVault 付款）
 - [ ] 前端默认合约地址硬编码 + `?v=59`
 - [ ] ≥30 真实 .ai 地址（目标 80）
-- [ ] demo 视频（60–90 秒：开包 → 名人卡 → 晒 X → 流片 → 守门拦截）
+- [x] demo 产品实录（已录制：`demo/kaling-walkthrough.mp4`，44s：开包 → 名人卡 → 晒 X → 实验室复算 → 世界观；待与 AI 守门之夜片段合成 60–90s 终版）
 - [ ] 表单四要素填好，12-05 前早交
 - [ ] 确认独立队伍身份（一队一项目）
 
@@ -127,4 +127,4 @@ forge script script/Deploy.s.sol:DeployMainnet \
 | WalletConnect | 普通手机浏览器无法连 | S0.5 补 |
 | 英文只覆盖 landing/story/lab | 游戏内仍中文 | S1 全量 i18n |
 | 主网未部署 | 无法展示真实 tx | 等凭据 |
-| demo 视频未剪 | 提交缺一项 | 等 AI 片段 + 录屏 |
+| demo 终版未合成 | 只有 44s 产品实录 | 等 AI《守门之夜》片段，合成 60–90s |
