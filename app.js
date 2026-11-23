@@ -1349,8 +1349,17 @@ function renderChain(){
     try{st('● 揭示 packReveal #'+chainPending.pid+'…');
       const rc=await chainSend('packReveal',[chainPending.pid,chainPending.salt]);
       const start=Number(await chainRead('cardCount'));
-      let ids='';for(let i=start-4;i<=start;i++){try{const c=await chainRead('cardInfo',[i]);ids+=' #'+i+'·'+RAR[c[0]];}catch(e){}}
-      chainPending=null;savePending();
+      let ids='';
+      for(let i=start-4;i<=start;i++){try{
+        const c=await chainRead('cardInfo',[i]);
+        ids+=' #'+i+'·'+RAR[c[0]];
+        // 把链上电路卡同步进收藏，用户才能点开它流片
+        if(Number(c[2])===0&&!S.cards.some(x=>x.id===i)){
+          S.cards.push({id:i,r:Number(c[0]),star:Number(c[1]),kind:0,ref:Number(c[3])});
+          S.nextId=Math.max(S.nextId,i+1);
+        }
+      }catch(e){}}
+      save();renderAll();chainPending=null;savePending();
       st('● 开包成功 '+txLink(rc.transactionHash)+'<br>开出：'+ids,'ok');
       beep(784,.25,'triangle',.09);
     }catch(e){st('● '+(e.reason||e.message||e),'bad')}};
