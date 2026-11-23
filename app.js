@@ -178,7 +178,9 @@ async function shareCard(c){
   const t=shareText(c);
   beep(660,.08);
   // 关键：canShare 同步判定，不做 await——否则 window.open 丢失用户手势被弹窗拦截器吞掉
-  if(navigator.canShare&&navigator.canShare({text:t})){
+  // 桌面端跳过系统分享菜单（一步直达 X 编辑器）；手机端走原生分享
+  const mobile=matchMedia&&matchMedia('(pointer:coarse)').matches;
+  if(mobile&&navigator.canShare&&navigator.canShare({text:t})){
     try{await navigator.share({text:t});shareBonus();return}catch(e){}
   }
   const w=window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(t),'_blank');
