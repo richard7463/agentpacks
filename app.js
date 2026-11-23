@@ -743,7 +743,7 @@ function detail(id){
         </div>
         <div class="rb-out" id="chkOut">按卡上参数复算一笔支付，不产生交易。</div>
         <div class="rb-note">equip() 后生效 · 任何人可调用 checkPayment() 复算</div>
-        <div style="margin-top:10px"><button class="btn sm ghost" id="mTheater">去剧场看这条规则怎么跑 →</button></div>
+        <div style="margin-top:10px"><button class="btn sm ghost" id="mTheater">亲眼看这条规则怎么判 →</button></div>
         ${edAvail?`
         <div class="rb-ed">
           <div class="rb-ed-head"><span class="eyebrow" style="margin:0">调数值 · TapeID 同款</span>
@@ -1256,10 +1256,10 @@ $('#bTogChain').onclick=()=>{
    信号编号同 TapeOut：0/1=常量，2..5=输入(a,l,pk,h)，6..=逐门。
    字节格式：每门 7B = 0x00 + 两信号 u24，与处理器 tapeout(bytes,nIn,nOut) 一致。 */
 const TH={nIn:4,gates:[[3,3],[2,6],[7,7],[5,5],[4,4],[10,9],[8,9],[12,12],[13,11],[14,14],[13,13]],nOut:2};
-const TH_IN=[{k:'a',n:'金额超档',d:'a=1 → 这笔 $150；a=0 → 这笔 $8'},
-             {k:'l',n:'额度还有',d:'l=1 → 今日额度还有余量'},
-             {k:'pk',n:'白名单内',d:'pk=1 → 收款方在白名单 / 有 Agent ID'},
-             {k:'h',n:'人工批准',d:'h=1 → 有人点头放行'}];
+const TH_IN=[{k:'a',n:'这笔钱有点大',d:'打开 = 大额（比如 $150）'},
+             {k:'l',n:'今天额度还够',d:'打开 = 剩余额度还不少'},
+             {k:'pk',n:'收款人我认识',d:'打开 = 在白名单 / 有 Agent ID'},
+             {k:'h',n:'有人点头了',d:'打开 = 人工已批准'}];
 const thBytes=()=>TH.gates.reduce((s,[x,y])=>s+'00'+x.toString(16).padStart(6,'0')+y.toString(16).padStart(6,'0'),'');
 function thTrace(word){
   const sig=new Uint8Array(2+TH.nIn+TH.gates.length);sig[1]=1;
