@@ -127,6 +127,10 @@
     '概率': 'Odds', '保底': 'Pity', '规则说明': 'Rule details', '返回': 'Back',
     '连接中…': 'Connecting…', '请稍候': 'One moment',
     '手机钱包连接': 'Connect mobile wallet',
+    '用 X / 邮箱连接（Privy）': 'Connect with X / Email (Privy)',
+    '连接中…': 'Connecting…',
+    '登录后自动生成嵌入钱包 · BNB Chain · 无需下载 App。': 'An embedded wallet is created on login · BNB Chain · no app needed.',
+    '● 未检测到注入钱包 —— 可用下方 X / 邮箱 登录（Privy 嵌入钱包），或用 Binance Wallet 内置浏览器打开。': 'No injected wallet found — log in with X / Email below (Privy embedded wallet), or use the Binance Wallet browser.',
     '查询': 'Query', '取消': 'Cancel', '确认': 'Confirm', '关闭': 'Close',
     '没有钱包': 'No wallet found', '请先连接钱包': 'Connect a wallet first',
   };
