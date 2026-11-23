@@ -233,7 +233,7 @@ const KALING=[
 ];
 document.getElementById('roster').innerHTML=KALING.map(k=>`
  <div class="hcard f${k.f}">
-   <div class="art"><img src="../heroes/${k.t}.jpg" alt="${k.n}" loading="lazy"><span class="rr">${k.rn}</span>
+   <div class="art"><img src="../heroes/${k.t}.jpg" alt="${k.n}" loading="eager" decoding="async"><span class="rr">${k.rn}</span>
      <div class="info"><em>KALING · ${k.t.toUpperCase()}</em><h3>${k.n}</h3>
        <div class="rl">${k.rl}</div>
        <div class="stats"><span><b>${k.g}</b> NAND gates</span><span>depth <b>${k.d}</b></span><span>exhaustive ✓</span></div>
