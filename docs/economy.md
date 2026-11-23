@@ -55,6 +55,9 @@
   - ABI：`createCPU(string name,string symbol,string story,uint256 transistorSupply,uint256 mintPrice) payable returns (address transistors,address circuits)`
   - BNB 工厂 `0x68224F668083c29e9800Be2a646d42d18cedF7e2`：`deployFee()=1e7`（0.1 BEM，8 位小数），BEM=`0x5ce033B2bFCa3Af30b3e8C8457DeaF776A8b695a`，需先 `approve(factory,1e7)`
   - `mintPrice` 上限约 `1e12` raw（1e13 报 `price too high`）；TapeFly 用 `1e6` = 0.01 BEM/门
+  - **我们定的价格（2026-11-23 owner 拍板）**：`1,734,000` raw = 0.01734 BEM/门 ≈ $0.167/门（BEM≈$9.61）
+    → 平均 60 门的一次流片 ≈ **$10**；4 门≈$0.67，36 门≈$6，125 门≈$20.8，189 门≈$31.5
+    → 这些钱全部进我们自己的 transistor（我们就是卖家），不经过任何中间方
   - 旧 processor `0xb1024b...` 的 transistor **minted=1e6 / cap=1e6 已卖空**，不能再用
 - **要做赚钱的版本**：部署自己的 processor（草案见 `docs/KalingProcessor.draft.sol.txt`）——
   自带 transistor，费用 immutable、即时转我们的 treasury、无 owner/提款路径。

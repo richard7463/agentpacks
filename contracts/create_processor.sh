@@ -12,7 +12,7 @@ NAME="${NAME:-Kaling Circuit}"
 SYMBOL="${SYMBOL:-KALC}"
 STORY="${STORY:-Kaling War: 12 NAND rule circuits verified by exhaustive enumeration.}"
 SUPPLY="${SUPPLY:-1000000}"      # NAND raw units (token 0)
-MINT_PRICE="${MINT_PRICE:-50000}" # 0.0005 BEM / gate (~$0.005 @ BEM=$10)
+MINT_PRICE="${MINT_PRICE:-1734000}" # 0.01734 BEM/gate ≈ $0.167/gate @ BEM=$9.61 → 60 门≈$10
 FEE="10000000"                   # 0.1 BEM deploy fee (deployFee())
 
 GAS=(--gas-price 300000000 --priority-gas-price 100000000)
