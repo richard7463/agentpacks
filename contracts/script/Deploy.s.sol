@@ -20,6 +20,25 @@ contract DeployLocal is Script {
     }
 }
 
+/// @notice BSC 测试网全流程：Mock 注册表（给测试地址发 .ai）+ Mock 真 NAND 处理器 + Core + 金库
+///         PRIZE_POOL 固定为测试收款地址；部署私钥走环境变量 DEPLOY_PK（不要写进仓库）
+contract DeployTestnet is Script {
+    address constant PRIZE_POOL = 0x3f665386b41Fa15c5ccCeE983050a236E6a10108;
+
+    function run() external returns (AgentPackCore core, GuardVault vault, MockAgentIdRegistry reg) {
+        uint256 pk = vm.envUint("DEPLOY_PK");
+        address deployer = vm.addr(pk);
+        vm.startBroadcast(pk);
+        reg = new MockAgentIdRegistry();
+        MockTapeProcessor proc = new MockTapeProcessor();
+        core = new AgentPackCore(address(reg), PRIZE_POOL, address(proc));
+        vault = new GuardVault(address(core));
+        reg.give(PRIZE_POOL);   // 测试地址持 .ai，可领免费包 / 买包 / 入池
+        reg.give(deployer);     // 部署者自己也可跑全流程
+        vm.stopBroadcast();
+    }
+}
+
 /// @notice BNB 智能链主网：官方 Agent ID 注册表 + 公示奖池 + 真处理器 + 金库
 ///         环境变量：
 ///           AGENT_ID_REGISTRY  （默认官方 0x60B9…022F）
