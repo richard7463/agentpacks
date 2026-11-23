@@ -780,6 +780,18 @@ function detail(id){
         </div>
         <div class="rb-out" id="chkOut">按卡上参数复算一笔支付，不产生交易。</div>
         <div class="rb-note">equip() 后生效 · 任何人可调用 checkPayment() 复算</div>
+        ${c.kind===0?`<div class="rb-test" style="margin-top:12px;display:block">
+          <span class="eyebrow" style="margin:0 0 8px">链上流片 · TAPE OUT</span>
+          <div class="rb-out" id="chainTapeOut">读 tapeCost(#${c.id}) 拿真实 NAND 报价（电路 NFT 归你，可转售）。</div>
+          <div class="row" style="margin-top:8px;flex-wrap:wrap">
+            <button class="btn sm ghost" id="mTapeQuote">查报价</button>
+            <button class="btn sm primary" id="mTapeChain" disabled>确认流片（钱包签名）</button>
+          </div>
+          <div class="row" style="margin-top:8px;flex-wrap:wrap">
+            <input class="inp mono" id="evalIn" placeholder="eval 输入字节 0x…（低位在前）">
+            <button class="btn sm ghost" id="mEval">问电路</button>
+          </div>
+        </div>`:''}
         <div style="margin-top:10px"><button class="btn sm ghost" id="mTheater">亲眼看这条规则怎么判 →</button></div>
         ${edAvail?`
         <div class="rb-ed">
@@ -815,6 +827,45 @@ function detail(id){
     beep(880,.12);beep(1320,.2,'triangle',.06);
     toast('流片完成 · circuit #'+S.tapeSeq+'（演示标记，主网 = tapeOut(cardId) 真实买 NAND）');
     detail(id);
+  };
+  /* ── 链上流片面板：真 tapeOut + 真 eval ── */
+  const cto=$('#chainTapeOut'),cq=$('#mTapeQuote'),cc=$('#mTapeChain');
+  let quoteWei=null;
+  if(cq)cq.onclick=async()=>{
+    try{
+      if(!coreAddr())return cto.textContent='先在「实验室」保存 AgentPackCore 地址。';
+      if(!window.ethereum)return cto.textContent='没有检测到钱包，请用 Binance Wallet / MetaMask 打开。';
+      const [cost,gates]=await chainRead('tapeCost',[c.id]);
+      quoteWei=cost;
+      cto.innerHTML='需 <b style="color:var(--gold)">'+ethers.utils.formatEther(cost)+' BNB</b> · '+gates.toString()+' 门 NAND · 电路 NFT 直接进你钱包。';
+      cc.disabled=false;
+    }catch(e){cto.textContent='报价失败：'+(e.reason||e.message||e)}
+  };
+  if(cc)cc.onclick=async()=>{
+    try{
+      if(!quoteWei)return toast('先查报价');
+      const sg=await vaultSigner();await ensureChain();
+      const tx=await new ethers.Contract(coreAddr(),CHAIN_ABI,sg).tapeOut(c.id,{value:quoteWei});
+      cto.textContent='流片交易已发出 '+tx.hash.slice(0,12)+'… 等待确认';
+      await tx.wait();
+      const cid=await chainRead('cardCircuit',[c.id]);
+      cto.innerHTML='✅ 流片成功 · <a href="'+chainScan()+'/token/'+processorAddr()+'?a='+cid.toString()+'" target="_blank" style="color:var(--gold)">circuit #'+cid.toString()+' ↗</a> · 电路 NFT 可转售。';
+      beep(880,.12);toast('真身 circuit NFT 已进钱包');
+    }catch(e){cto.textContent='⛔ '+(e.reason||e.message||e)}
+  };
+  const me=$('#mEval');
+  if(me)me.onclick=async()=>{
+    try{
+      const hex=$('#evalIn').value.trim();
+      if(!/^0x([0-9a-fA-F]{2})*$/.test(hex))return toast('输入字节格式不对，例如 0x05');
+      const cid=await chainRead('cardCircuit',[c.id]);
+      if(Number(cid)===0)return toast('这张卡还没链上流片');
+      const p=await chainProvider();
+      const ret=await new ethers.Contract(processorAddr(),PROC_ABI,p).eval(cid,hex);
+      const b=Array.from(ethers.utils.arrayify(ret));
+      const v=b[0]||0;
+      cto.innerHTML='eval('+cid.toString()+', '+hex+') → <b style="color:var(--gold)">0x'+v.toString(16).padStart(2,'0')+'</b> · allow='+(v&1)+' ask='+((v>>1)&1);
+    }catch(e){cto.textContent='eval 失败：'+(e.reason||e.message||e)}
   };
   const mt=$('#mTheater');
   if(mt)mt.onclick=()=>{$('#mmodal').classList.remove('on');switchTab('gate');setTimeout(()=>{const t=document.querySelector('#thStage');t&&t.scrollIntoView({behavior:'smooth',block:'center'})},80)};
@@ -1147,8 +1198,11 @@ const CHAIN_ABI=[
  "function cardInfo(uint256) view returns ((uint8,uint8,uint8,uint32))",
  "function ruleOf(uint256) view returns (uint8,uint256,uint256)",
  "function equippedRule(address) view returns (uint256,uint8,uint256,uint256)",
- "function checkPayment(address,uint256,address,uint256,uint16,uint64,bool,uint8,bool) view returns (bool,string)"
+ "function checkPayment(address,uint256,address,uint256,uint16,uint64,bool,uint8,bool) view returns (bool,string)",
+ "function cardCircuit(uint256) view returns (uint256)",
+ "function tapeCost(uint256) view returns (uint256,uint256)"
 ];
+const PROC_ABI=["function eval(uint256,bytes) view returns (bytes)"];
 let chainAcc=null,chainPending=null;
 try{chainPending=JSON.parse(localStorage.getItem('ap_pending')||'null')}catch(e){}
 const TESTNET_CORE='0xdc2dcE427379a048280Bb43AeC5E7A302B732650';
@@ -1314,6 +1368,8 @@ const VAULT_ABI=[
  "function rateWeiPerCent(address) view returns (uint256)"
 ];
 function vaultAddr(){return localStorage.getItem('ap_vault')||(netId()==='61'?TESTNET_VAULT:'')}
+const TESTNET_PROC='0x36b5b5b0b8a8ee405d4db1c53dac591c1f5e8ac9';
+function processorAddr(){return localStorage.getItem('ap_processor')||(netId()==='61'?TESTNET_PROC:'')}
 function vaultContract(signer){return new ethers.Contract(vaultAddr(),VAULT_ABI,signer)}
 function vaultSay(t,cls){const o=$('#vaultOut');o.className='banner'+(cls?' '+cls:'');o.innerHTML=t}
 async function vaultSigner(){const p=await chainProvider();await p.send('eth_requestAccounts',[]);return p.getSigner()}
