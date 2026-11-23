@@ -1429,17 +1429,22 @@ const PUB_ABI=[
 const PUB_MAINNET='0xfbe8c8535bfa3602a4ab24f4a247a4cedc719f62';
 function pubAddr(){return PUB_MAINNET}
 let pubQuote=null;
-$('#bPubQuote')&&($('#bPubQuote').onclick=async()=>{
+async function autoPubQuote(){
   try{
-    const rule=Number($('#pubRule').value);
+    const rule=Number(($('#pubRule')||{}).value||0);
     const [bemCost,bnbCost,gates,nIn]=await (new ethers.Contract(pubAddr(),PUB_ABI,readProvider())).quote(rule);
     pubQuote={bemCost,bnbCost,gates,nIn};
-    $('#pubOut').innerHTML='规则 t'+rule+' · '+gates.toString()+' 门 · '+nIn.toString()+' 输入 → NAND <b style="color:var(--gold)">'
-      +ethers.utils.formatUnits(bemCost,8)+' BEM</b> + tapeout <b style="color:var(--gold)">'
-      +ethers.utils.formatEther(bnbCost)+' BNB</b>。先授权 BEM，再签名流片。';
-    $('#bPubTape').disabled=false;
-  }catch(e){$('#pubOut').textContent='报价失败：'+(e.reason||e.message||e)}
-});
+    const usd=(Number(bemCost)/1e8*9.61)+(Number(bnbCost)/1e18*560.67);
+    const pp=$('#pubPrice');if(pp)pp.textContent='≈ $'+usd.toFixed(2);
+    const po=$('#pubOut');
+    if(po)po.innerHTML='<b style="color:var(--gold)">≈ $'+usd.toFixed(2)+'</b> · '
+      +ethers.utils.formatUnits(bemCost,8)+' BEM (NAND) + '
+      +ethers.utils.formatEther(bnbCost)+' BNB (tapeout) · '+gates.toString()+' 门';
+    const bt=$('#bPubTape');if(bt)bt.disabled=false;
+  }catch(e){const pp=$('#pubPrice');if(pp)pp.textContent='价格读取失败';}
+}
+if($('#pubRule'))$('#pubRule').onchange=autoPubQuote;
+autoPubQuote();
 $('#bPubTape')&&($('#bPubTape').onclick=async()=>{
   try{
     if(!pubQuote)return toast('先查报价');
