@@ -115,7 +115,7 @@ forge script script/Deploy.s.sol:DeployMainnet \
 - [ ] 主网三笔实测（领包 / 买包 / GuardVault 付款）
 - [ ] 前端默认合约地址硬编码 + `?v=59`
 - [ ] ≥30 真实 .ai 地址（目标 80）
-- [x] demo 产品实录（已录制：`demo/kaling-walkthrough.mp4`，44s：开包 → 名人卡 → 晒 X → 实验室复算 → 世界观；待与 AI 守门之夜片段合成 60–90s 终版）
+- [x] demo 提交视频（`demo/kaling-demo-90s.mp4`，70s：立绘片头 → 44s 产品实录 → 落款片尾；合成脚本 `tools/make_demo.py`）
 - [ ] 表单四要素填好，12-05 前早交
 - [ ] 确认独立队伍身份（一队一项目）
 

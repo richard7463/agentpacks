@@ -2,7 +2,8 @@
 
 > 2026-11-22 与 owner 对齐确认。三句话：
 > **抽到的卡免费玩；流片才成真身；真身能装备、能卖。**
-> 处理器自部署，NAND 是我们的；guard 直接抄 TapeID。
+> ⚠ 2026-11-23 核实：**必须用我们自己的 processor + transistor，NAND 钱才是我们的**。
+> 借用 TapeOut 官方/他人 processor 时，`mintPrice` 归 TapeOut，我们流片收入为 0。
 
 ## 1. 资产分层
 
@@ -11,7 +12,7 @@
   · 游戏内可用：守门人 / 自走棋 / 复算演示
   · 规则 = (kind, ref, rarity, star) 算出的参数，链上 ruleOf() 可读
   · 不可装备真规则、不可进市场卖
-     │ 买 NAND → 流片（tapeOut(cardId)，单次 ~$0.4-0.7）
+     │ 买【我们的】NAND → 流片（tapeOut(cardId)，单次定价由我们定）
      ▼
 流片电路 NFT（circuit NFT，规则真身）
   · NAND 网表流片在【我们的处理器】上，进用户的 Binance wallet
@@ -24,7 +25,7 @@
 | 收入流 | 触发动作 | 量级 | 状态 |
 |---|---|---|---|
 | 卖包 | buyPack | 0.002 BNB/包：50% 当笔销毁 + 50% 奖池 | ✅ 合约已有 |
-| **NAND 消耗** | **每次流片** | 单门自定价（建议 0.00001 BNB → 60 门 ≈ $0.4） | 🚧 tapeOut(cardId) 开发中 |
+| **NAND 消耗** | **每次流片** | 我们的 transistor 自定价（建议 1e13 wei/门 → 60 门 ≈ $0.34） | ✅ 合约已实现；⚠ 需部署自己的 processor 才归我们 |
 | 市场费 + 版税 | 电路转售 | 1% 市场费生态惯例 + EIP-2981 自定 | S1 |
 | 升星 | 销毁燃料卡 | 系统内通缩，好卡不通胀 | ✅ 合约已有 |
 
@@ -44,8 +45,13 @@
 
 ## 5. 基础设施（自部署，非借用）
 
-- **CPU Factory**（BNB Chain `0x6822…7e2`）`createCPU` 一次性 ~0.007 BNB
-  → **我们自己的处理器**：NAND 铸价、tapeout 费、协议费参数全归我们
+- **已部署的测试**：TapeOut CPU Factory `0x68224F668083c29e9800Be2a646d42d18cedF7e2`
+  → 现成 processor `0xb1024b89886b9a34aa4ff5f31c411d708b20a14c`
+- **收入归属核查（重要）**：该 processor 的 `transistors()` = `0xCC42ba5…8087`（TapeOut 共享 NAND 代币），
+  `mintPrice=5e14`（≈$0.28/门）。用户流片的钱 100% 进 TapeOut，**我们赚 0**。
+- **要做赚钱的版本**：部署 `KalingProcessor`（草案见 `docs/KalingProcessor.draft.sol.txt`）——
+  自带 transistor，费用 immutable、即时转我们的 treasury、无 owner/提款路径。
+  门价自定：1e13 → 189 门卡 ≈ $1.08；5e13 → ≈ $5.31；对比现状 $53 且归他人。
 - guard 层**直接抄 TapeID** `apps/signer/src/guard.ts`：
   `evaluatePayment()` → allow / ask / deny，网络/API 异常 **fail-closed**；
   诚实边界：普通钱包可绕过，不宣称"合约自动拦截所有转账"
