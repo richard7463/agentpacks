@@ -55,6 +55,13 @@ interface IAgentIdRegistry {
     function balanceOf(address owner) external view returns (uint256);
 }
 
+/// @dev BEM (ERC-20)：官方 CPU Factory 创建的 transistor 用 BEM 收 NAND 钱，不是原生 BNB
+interface IBEM {
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+    function approve(address spender, uint256 amount) external returns (bool);
+    function allowance(address owner, address spender) external view returns (uint256);
+}
+
 contract AgentPackCore {
     /*──────────────────── 事件 ────────────────────*/
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
@@ -104,6 +111,7 @@ contract AgentPackCore {
     error AlreadyTaped();      // 这张卡已流片
     error NotTaped();          // 电路卡未流片，不能装备真身规则
     error NotCircuitOwner();   // 电路 NFT 已被转走，卡主失去规则使用权
+    error BadBEM();            // BEM 扣款/授权失败
     error DailyBuyCap();       // 每身份每日购买上限
     error GenesisSoldOut();    // 创世百连售罄，永久绝版
 
@@ -196,6 +204,8 @@ contract AgentPackCore {
     /*──────────────────── 流片（卡 → 真身 circuit NFT）────────────────────*/
     /// @notice 自部署的 TapeOut 处理器（constructor 注入；0 = 未接线，tapeOut 不可用）
     address public immutable tapeProcessor;
+    /// @notice BEM 代币地址（0 = 旧版 Mock：NAND 用原生 BNB 付；非 0 = 官方 transistor：先 pull BEM 再 mint）
+    address public immutable bemToken;
     /// @notice 卡 → circuit NFT id（0 = 未流片：仅游戏内参数卡）
     mapping(uint256 => uint256) public cardCircuit;
     /// @notice 创世百连已售笔数
@@ -219,11 +229,12 @@ contract AgentPackCore {
     mapping(address => mapping(address => bool)) private _operatorApprovals;
 
     /*──────────────────── 构造 ────────────────────*/
-    constructor(address agentIdRegistry_, address prizePool_, address tapeProcessor_) {
+    constructor(address agentIdRegistry_, address prizePool_, address tapeProcessor_, address bemToken_) {
         if (agentIdRegistry_ == address(0) || prizePool_ == address(0)) revert NoZeroAddress();
         agentIdRegistry = IAgentIdRegistry(agentIdRegistry_);
         prizePool = prizePool_;
         tapeProcessor = tapeProcessor_;
+        bemToken = bemToken_;
         HOUSE_NETLIST.push(hex"0000000500000500000002000009000000060000060000000a00000a0000000b00000c0000000600000a0000000e00000e0000000300000f000000030000030000000d00001100000010000012000000070000070000001300001300000014000015000000070000130000001700001700000004000018000000040000040000001600001a0000001900001b000000080000080000001c00001c0000000d00000d0000000300000e0000001100001f0000002000002100000014000022000000230000230000002200002200000007000025000000040000260000001a000024000000270000280000001d0000290000001d00001e0000002a00002a"); // t0 止损 · 36 门 · 7b 进 · 穷举 128 全过
         HOUSE_NETLIST.push(hex"000000050000050000000200000800000006000006000000090000090000000a00000b000000060000090000000d00000d0000000300000e000000030000030000000c0000100000000f0000110000000700000700000012000012000000130000140000000700001200000016000016000000040000170000000400000400000015000019000000000000000000001800001a0000001b00001b"); // t1 梭哈 · 22 门 · 6b 进 · 穷举 64 全过
         HOUSE_NETLIST.push(hex"00000002000002000000000000000000000300000300000004000004"); // t2 白名单 · 4 门 · 1b 进 · 穷举 2 全过
@@ -409,6 +420,9 @@ contract AgentPackCore {
     /// @notice 流片：把参数卡升级为真身 circuit NFT（进卡主钱包，可装备/可转售）。
     ///         付款 = 门数 × NAND 铸价 + 协议费 + tapeout 费（处理器实时报价，无溢价）。
     ///         NAND 逐门烧掉 = 本项目持续收入（见 docs/economy.md）。
+    /// @notice 流片。官方 transistor 用 BEM 买 NAND、用 BNB 付 tapeout 费：
+    ///         调用方需先 approve(bemToken, core, nandCost)，再带 tapeCost() 的 BNB 调本函数。
+    ///         bemToken = 0 时为旧版 Mock 路径（NAND 也用 BNB 付），供本地/测试网 E2E。
     function tapeOut(uint256 cardId) external payable {
         if (tapeProcessor == address(0)) revert NoProcessor();
         if (_owners[cardId] != msg.sender) revert NotCardOwner();
@@ -416,36 +430,53 @@ contract AgentPackCore {
         if (c.kind != 0) revert NotCircuitCard();
         if (cardCircuit[cardId] != 0) revert AlreadyTaped();
 
-        bytes memory nl = HOUSE_NETLIST[c.ref % HOUSE_CARDS];
-        uint256 gates = nl.length / 7;
+        (uint256 bemAmount, uint256 gates) = tapeNandCost(cardId);
         ITapeOutProcessor proc = ITapeOutProcessor(tapeProcessor);
         address trans = proc.transistors();
         uint256 tapeFee = proc.TAPEOUT_FEE();
-        uint256 cost = gates * ITransistors(trans).mintPrice()
-                     + ITransistors(trans).protocolFee()
-                     + tapeFee;
-        if (msg.value != cost) revert BadValue();
+        uint256 expected = bemToken == address(0) ? bemAmount + tapeFee : tapeFee;
+        if (msg.value != expected) revert BadValue();
 
-        ITransistors(trans).mint{value: cost - tapeFee}(0, gates); // 买 NAND
-        uint256 circuitId = proc.tapeout{value: tapeFee}(nl, HOUSE_NIN[uint8(c.ref % HOUSE_CARDS)], HOUSE_NOUT);
+        if (bemToken != address(0)) {
+            // 官方 TapeOut：BEM → Core → approve → transistor.mint()（mint 不收原生币）
+            if (!IBEM(bemToken).transferFrom(msg.sender, address(this), bemAmount)) revert BadBEM();
+            if (IBEM(bemToken).allowance(address(this), trans) != 0) IBEM(bemToken).approve(trans, 0);
+            if (!IBEM(bemToken).approve(trans, bemAmount)) revert BadBEM();
+            ITransistors(trans).mint(0, gates);
+        } else {
+            // 旧版 Mock：NAND 也是原生 BNB
+            ITransistors(trans).mint{value: bemAmount}(0, gates);
+        }
+
+        uint256 circuitId = proc.tapeout{value: tapeFee}(nlOf(c, gates), HOUSE_NIN[uint8(c.ref % HOUSE_CARDS)], HOUSE_NOUT);
         proc.transferFrom(address(this), msg.sender, circuitId); // circuit NFT 进卡主钱包
 
         cardCircuit[cardId] = circuitId;
-        emit CardTaped(cardId, circuitId, msg.sender, cost);
+        emit CardTaped(cardId, circuitId, msg.sender, expected);
     }
 
-    /// @notice 任意人可查：这张卡流片要多少钱（含 NAND + 费）
-    function tapeCost(uint256 cardId) external view returns (uint256 cost, uint256 gates) {
+    function nlOf(CardInfo memory c, uint256 gates) internal view returns (bytes memory) {
+        bytes memory nl = HOUSE_NETLIST[c.ref % HOUSE_CARDS];
+        require(nl.length / 7 == gates, "bad netlist");
+        return nl;
+    }
+
+    /// @notice NAND 部分的 BEM 报价（与 tapeCost 的 BNB 报价分开）
+    function tapeNandCost(uint256 cardId) public view returns (uint256 bemAmount, uint256 gates) {
         if (tapeProcessor == address(0)) revert NoProcessor();
         if (_owners[cardId] == address(0)) revert NoSuchCard();
         CardInfo memory c = cardInfo[cardId];
-        bytes memory nl = HOUSE_NETLIST[c.ref % HOUSE_CARDS];
-        gates = nl.length / 7;
-        ITapeOutProcessor proc = ITapeOutProcessor(tapeProcessor);
-        address trans = proc.transistors();
-        cost = gates * ITransistors(trans).mintPrice()
-             + ITransistors(trans).protocolFee()
-             + proc.TAPEOUT_FEE();
+        gates = HOUSE_NETLIST[c.ref % HOUSE_CARDS].length / 7;
+        address trans = ITapeOutProcessor(tapeProcessor).transistors();
+        bemAmount = gates * ITransistors(trans).mintPrice() + ITransistors(trans).protocolFee();
+    }
+
+    /// @notice 这张卡流片要付的 BNB（官方 transistor 只含 tapeout 费；NAND 另付 BEM）
+    function tapeCost(uint256 cardId) external view returns (uint256 cost, uint256 gates) {
+        (uint256 bemAmount, uint256 g) = tapeNandCost(cardId);
+        gates = g;
+        uint256 tapeFee = ITapeOutProcessor(tapeProcessor).TAPEOUT_FEE();
+        cost = bemToken == address(0) ? bemAmount + tapeFee : tapeFee;
     }
 
     /// @notice 穿卡：电路卡必须已流片（真身才能装备到身份上）；

@@ -24,7 +24,7 @@ contract MockAgentIdRegistry {
 
 /// @dev 测试专用：暴露 internal _mint，用来精确构造指定稀有度/编号的卡
 contract CoreHarness is AgentPackCore {
-    constructor(address r, address p, address t) AgentPackCore(r, p, t) {}
+    constructor(address r, address p, address t, address b) AgentPackCore(r, p, t, b) {}
 
     function mintTest(address to, uint8 rarity, uint8 star, uint8 kind, uint32 ref)
         external returns (uint256 id)
@@ -45,8 +45,8 @@ contract AgentPackCoreTest is Test {
 
     function setUp() public {
         reg = new MockAgentIdRegistry();
-        proc = new MockTapeProcessor();
-        core = new CoreHarness(address(reg), prizePool, address(proc));
+        proc = new MockTapeProcessor(address(0));
+        core = new CoreHarness(address(reg), prizePool, address(proc), address(0));
         reg.give(alice);
         reg.give(bob);
         vm.deal(alice, 10 ether);

@@ -12,8 +12,8 @@ contract DeployLocal is Script {
     function run() external returns (AgentPackCore core, GuardVault vault, MockAgentIdRegistry reg) {
         vm.startBroadcast();
         reg = new MockAgentIdRegistry();
-        MockTapeProcessor proc = new MockTapeProcessor();
-        core = new AgentPackCore(address(reg), msg.sender, address(proc)); // 本地：奖池=部署者
+        MockTapeProcessor proc = new MockTapeProcessor(address(0));
+        core = new AgentPackCore(address(reg), msg.sender, address(proc), address(0)); // 本地：奖池=部署者
         vault = new GuardVault(address(core));
         reg.give(msg.sender); // 给部署者发一个 .ai 便于全流程测试
         vm.stopBroadcast();
@@ -30,8 +30,8 @@ contract DeployTestnet is Script {
         address deployer = vm.addr(pk);
         vm.startBroadcast(pk);
         reg = new MockAgentIdRegistry();
-        MockTapeProcessor proc = new MockTapeProcessor();
-        core = new AgentPackCore(address(reg), PRIZE_POOL, address(proc));
+        MockTapeProcessor proc = new MockTapeProcessor(address(0));
+        core = new AgentPackCore(address(reg), PRIZE_POOL, address(proc), address(0));
         vault = new GuardVault(address(core));
         reg.give(PRIZE_POOL);   // 测试地址持 .ai，可领免费包 / 买包 / 入池
         reg.give(deployer);     // 部署者自己也可跑全流程
@@ -56,7 +56,7 @@ contract DeployMainnet is Script {
         //   未设 = tapeOut 不可用，且电路卡无法 equip（NotTaped）——上线前必须接好。
         address proc = vm.envOr("TAPE_PROCESSOR", address(0));
         vm.startBroadcast();
-        core = new AgentPackCore(registry, prize, proc);
+        core = new AgentPackCore(registry, prize, proc, 0x5ce033B2bFCa3Af30b3e8C8457DeaF776A8b695a);
         vault = new GuardVault(address(core));
         vm.stopBroadcast();
     }

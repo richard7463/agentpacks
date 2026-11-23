@@ -782,7 +782,7 @@ function detail(id){
         <div class="rb-note">equip() 后生效 · 任何人可调用 checkPayment() 复算</div>
         ${c.kind===0?`<div class="rb-test" style="margin-top:12px;display:block">
           <span class="eyebrow" style="margin:0 0 8px">链上流片 · TAPE OUT</span>
-          <div class="rb-out" id="chainTapeOut">读 tapeCost(#${c.id}) 拿真实 NAND 报价（电路 NFT 归你，可转售）。</div>
+          <div class="rb-out" id="chainTapeOut">读 tapeNandCost()/tapeCost() 拿真实 NAND（BEM）+ tapeout（BNB）报价；先授权 BEM 再流片，电路 NFT 归你。</div>
           <div class="row" style="margin-top:8px;flex-wrap:wrap">
             <button class="btn sm ghost" id="mTapeQuote">查报价</button>
             <button class="btn sm primary" id="mTapeChain" disabled>确认流片（钱包签名）</button>
@@ -828,24 +828,37 @@ function detail(id){
     toast('流片完成 · circuit #'+S.tapeSeq+'（演示标记，主网 = tapeOut(cardId) 真实买 NAND）');
     detail(id);
   };
-  /* ── 链上流片面板：真 tapeOut + 真 eval ── */
+  /* ── 链上流片面板：BEM 买 NAND + BNB 付 tapeout + 真 eval ── */
   const cto=$('#chainTapeOut'),cq=$('#mTapeQuote'),cc=$('#mTapeChain');
-  let quoteWei=null;
+  let quote=null;
   if(cq)cq.onclick=async()=>{
     try{
       if(!coreAddr())return cto.textContent='先在「实验室」保存 AgentPackCore 地址。';
       if(!window.ethereum)return cto.textContent='没有检测到钱包，请用 Binance Wallet / MetaMask 打开。';
-      const [cost,gates]=await chainRead('tapeCost',[c.id]);
-      quoteWei=cost;
-      cto.innerHTML='需 <b style="color:var(--gold)">'+ethers.utils.formatEther(cost)+' BNB</b> · '+gates.toString()+' 门 NAND · 电路 NFT 直接进你钱包。';
+      const [bemCost,gates]=await chainRead('tapeNandCost',[c.id]);
+      const [bnbCost]=await chainRead('tapeCost',[c.id]);
+      quote={bemCost,bnbCost,gates};
+      const sg=await vaultSigner();
+      const bal=await new ethers.Contract(bemAddr(),BEM_ABI,await chainProvider()).balanceOf(await sg.getAddress());
+      cto.innerHTML='NAND <b style="color:var(--gold)">'+ethers.utils.formatUnits(bemCost,8)+' BEM</b>'
+        +' + tapeout <b style="color:var(--gold)">'+ethers.utils.formatEther(bnbCost)+' BNB</b>'
+        +' · '+gates.toString()+' 门 · 你持有 '+ethers.utils.formatUnits(bal,8)+' BEM。';
       cc.disabled=false;
     }catch(e){cto.textContent='报价失败：'+(e.reason||e.message||e)}
   };
   if(cc)cc.onclick=async()=>{
     try{
-      if(!quoteWei)return toast('先查报价');
+      if(!quote)return toast('先查报价');
       const sg=await vaultSigner();await ensureChain();
-      const tx=await new ethers.Contract(coreAddr(),CHAIN_ABI,sg).tapeOut(c.id,{value:quoteWei});
+      const me=await sg.getAddress();
+      const bem=new ethers.Contract(bemAddr(),BEM_ABI,sg);
+      const allowance=await bem.allowance(me,coreAddr());
+      if(allowance.lt(quote.bemCost)){
+        cto.textContent='授权 '+ethers.utils.formatUnits(quote.bemCost,8)+' BEM 给 Core…';
+        const a=await bem.approve(coreAddr(),quote.bemCost);
+        await a.wait();
+      }
+      const tx=await new ethers.Contract(coreAddr(),CHAIN_ABI,sg).tapeOut(c.id,{value:quote.bnbCost});
       cto.textContent='流片交易已发出 '+tx.hash.slice(0,12)+'… 等待确认';
       await tx.wait();
       const cid=await chainRead('cardCircuit',[c.id]);
@@ -1200,13 +1213,21 @@ const CHAIN_ABI=[
  "function equippedRule(address) view returns (uint256,uint8,uint256,uint256)",
  "function checkPayment(address,uint256,address,uint256,uint16,uint64,bool,uint8,bool) view returns (bool,string)",
  "function cardCircuit(uint256) view returns (uint256)",
- "function tapeCost(uint256) view returns (uint256,uint256)"
+ "function tapeCost(uint256) view returns (uint256,uint256)",
+ "function tapeNandCost(uint256) view returns (uint256,uint256)"
 ];
+const BEM_ABI=[
+ "function approve(address,uint256) returns (bool)",
+ "function allowance(address,address) view returns (uint256)",
+ "function balanceOf(address) view returns (uint256)"
+];
+const BEM_MAINNET='0x5ce033B2bFCa3Af30b3e8C8457DeaF776A8b695a';
+function bemAddr(){return BEM_MAINNET}
 const PROC_ABI=["function eval(uint256,bytes) view returns (bytes)"];
 let chainAcc=null,chainPending=null;
 try{chainPending=JSON.parse(localStorage.getItem('ap_pending')||'null')}catch(e){}
-const MAINNET_CORE='0xdc2dcE427379a048280Bb43AeC5E7A302B732650';
-const MAINNET_VAULT='0x43AfFA20eAC55aAFFD8aB7B90729413d6aDCBc3A';
+const MAINNET_CORE='0xccfb372ad7864dbd68415427c41b69cadedd9f5e';
+const MAINNET_VAULT='0x2d2eec85839f6a3ed3dd32745edd72a64aed1e76';
 const MAINNET_PROC='0xAdfDB520db78C252382E4bCdf62692fAD453035a';
 const TESTNET_CORE='0xdc2dcE427379a048280Bb43AeC5E7A302B732650';
 const TESTNET_VAULT='0x43AfFA20eAC55aAFFD8aB7B90729413d6aDCBc3A';

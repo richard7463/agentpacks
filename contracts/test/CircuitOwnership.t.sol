@@ -19,8 +19,8 @@ contract CircuitOwnershipTest is Test {
 
     function setUp() public {
         reg = new MockAgentIdRegistry();
-        proc = new MockTapeProcessor();
-        core = new CoreHarness(address(reg), prize, address(proc));
+        proc = new MockTapeProcessor(address(0));
+        core = new CoreHarness(address(reg), prize, address(proc), address(0));
         reg.give(alice);
         reg.give(bob);
         vm.deal(alice, 10 ether);
