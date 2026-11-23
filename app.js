@@ -181,8 +181,30 @@ async function shareCard(c){
   if(navigator.canShare&&navigator.canShare({text:t})){
     try{await navigator.share({text:t});shareBonus();return}catch(e){}
   }
-  window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(t),'_blank');
+  const w=window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(t),'_blank');
+  if(!w){ // webview/拦截器全兜底：页内面板，文案+链接一键复制
+    showShareFallback(t);
+    return
+  }
   shareBonus();
+}
+function showShareFallback(t){
+  let m=$('#shareFallback');
+  if(!m){m=document.createElement('div');m.id='shareFallback';document.body.appendChild(m)}
+  m.innerHTML=`<div class="sm-box">
+    <button class="ovl-x" id="fbClose" aria-label="关闭">✕</button>
+    <b class="sm-t">复制这条发到 X</b>
+    <p class="sm-p mono" style="word-break:break-all;text-align:left;background:rgba(0,0,0,.3);padding:12px;border-radius:10px">${t}</p>
+    <div class="row">
+      <button class="btn primary cut" id="fbCopy">复制文案</button>
+      <a class="btn ghost" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text=${encodeURIComponent(t)}">手动打开 X</a>
+    </div>
+    <p class="sm-p" style="margin-top:10px">发出去后，X 会自动把链接渲染成名人大卡图。</p>
+  </div>`;
+  m.classList.add('on');
+  $('#fbClose').onclick=()=>m.classList.remove('on');
+  $('#fbCopy').onclick=()=>{navigator.clipboard?navigator.clipboard.writeText(t):0;
+    toast('已复制，去 X 粘贴发推');m.classList.remove('on');shareBonus()};
 }
 function showShareModal(c,imgUrl){
   let m=$('#shareModal');
