@@ -937,3 +937,5 @@ kbd{display:inline-block;min-width:22px;padding:0 6px;border-radius:6px;border:1
 }
 
 #ovl,.pack-wrap,.pack3d,.slot,.story,.cg,.tab,.btn{-webkit-user-select:none;user-select:none}
+.ver-badge{position:fixed;right:10px;bottom:8px;z-index:90;font-family:var(--f-mono);font-size:10px;
+  color:var(--mist2);background:rgba(15,12,36,.8);border:1px solid var(--line2);border-radius:99px;padding:2px 10px;pointer-events:none}
