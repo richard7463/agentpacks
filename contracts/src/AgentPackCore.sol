@@ -103,6 +103,7 @@ contract AgentPackCore {
     error NotCircuitCard();    // 只有电路卡可以流片
     error AlreadyTaped();      // 这张卡已流片
     error NotTaped();          // 电路卡未流片，不能装备真身规则
+    error NotCircuitOwner();   // 电路 NFT 已被转走，卡主失去规则使用权
     error DailyBuyCap();       // 每身份每日购买上限
     error GenesisSoldOut();    // 创世百连售罄，永久绝版
 
@@ -452,7 +453,12 @@ contract AgentPackCore {
     function equip(uint256 cardId) external onlyAgent {
         if (_owners[cardId] != msg.sender) revert NotCardOwner();
         CardInfo memory c = cardInfo[cardId];
-        if (c.kind == 0 && cardCircuit[cardId] == 0) revert NotTaped();
+        if (c.kind == 0) {
+            uint256 cid = cardCircuit[cardId];
+            if (cid == 0) revert NotTaped();
+            // 电路 NFT 可转售：转走后原卡主不再拥有这条规则的使用权
+            if (ITapeOutProcessor(tapeProcessor).ownerOf(cid) != msg.sender) revert NotCircuitOwner();
+        }
         activeCircuit[msg.sender] = cardId;
         emit Equipped(msg.sender, cardId);
     }
@@ -545,6 +551,10 @@ contract AgentPackCore {
             return (false, "not the designated payee");
         }
         if (circuitId == 0) revert NotTaped(); // 真身判定需要已流片
+        // 电路 NFT 被转售后，判定立即失效（fail-closed），不能被原主人继续引用
+        if (ITapeOutProcessor(tapeProcessor).ownerOf(circuitId) != ownerOf(cardId)) {
+            return (false, "circuit not owned by card owner");
+        }
 
         PayCtx memory c = PayCtx(amountCents, payee, spentTodayCents, txCountToday, lastPaymentAt, humanApproved, approvals, trippedToday);
         uint256 word = _packInputs(t, p1, p2, c);

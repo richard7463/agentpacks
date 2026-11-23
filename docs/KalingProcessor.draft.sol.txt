@@ -1,0 +1,145 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+/// @title KalingProcessor — 卡灵战争自己的 TapeOut 处理器 + NAND 晶体管
+/// @notice 兼容 AgentPackCore 的 ITapeOutProcessor / ITransistors 接口。
+///         与 TapeOut 官方共享 processor 的关键区别：
+///         1) transistors() 指向本合约 —— 用户买的 NAND 钱进我们的 treasury；
+///         2) 所有费用在构造时固化，没有 setter、没有 owner、没有提款路径；
+///         3) 收款即时转发到 immutable treasury，合约自身永不留存资金；
+///         4) eval() 真逐门求值（NAND 7 字节/门），与 tools/netlists12.json 完全一致。
+contract KalingProcessor {
+    error BadFee();
+    error BadNetlist();
+    error BadPins();
+    error BadValue();
+    error NotOwner();
+    error NotApproved();
+    error NoCircuit();
+    error ShortInputs();
+    error FutureSignal();
+    error TransferFailed();
+
+    event TapeOut(uint256 indexed id, address indexed owner, bytes netlist, uint32 nIn, uint32 nOut);
+    event Transfer(address indexed from, address indexed to, uint256 indexed id);
+
+    /// @notice 每门 NAND 售价（wei）—— 这是我们卖 NAND 的收入，上主网前定死
+    uint256 public immutable MINT_PRICE;
+    /// @notice 每次流片的协议费（我们收）
+    uint256 public immutable PROTOCOL_FEE;
+    /// @notice 每次 tapeout 的费用（我们收）
+    uint256 public immutable TAPE_FEE;
+    /// @notice 收款地址（构造时固化，无 setter）
+    address public immutable TREASURY;
+
+    uint256 public nextId;
+    mapping(uint256 => address) public ownerOf;
+    mapping(uint256 => bytes) public netlistOf;
+    mapping(uint256 => uint32) public nInOf;
+    mapping(uint256 => uint32) public nOutOf;
+    mapping(uint256 => address) public approvals;
+
+    constructor(uint256 mintPrice_, uint256 protocolFee_, uint256 tapeoutFee_, address treasury_) {
+        if (mintPrice_ == 0 || treasury_ == address(0)) revert BadFee();
+        MINT_PRICE = mintPrice_;
+        PROTOCOL_FEE = protocolFee_;
+        TAPE_FEE = tapeoutFee_;
+        TREASURY = treasury_;
+    }
+
+    /*──────── AgentPackCore 依赖的接口 ────────*/
+
+    function transistors() external view returns (address) { return address(this); }
+    function TAPEOUT_FEE() external view returns (uint256) { return TAPE_FEE; }
+
+    /// @notice 买 NAND（token 0）= 门数 × MINT_PRICE + PROTOCOL_FEE，钱直接进 treasury
+    function mint(uint256, uint256 amount) external payable {
+        if (msg.value != amount * MINT_PRICE + PROTOCOL_FEE) revert BadValue();
+        _pay();
+    }
+
+    /// @notice 流片：网表 → circuit NFT 铸给调用者（AgentPackCore），钱直接进 treasury
+    function tapeout(bytes calldata nl, uint32 nIn, uint32 nOut) external payable returns (uint256 id) {
+        if (msg.value != TAPE_FEE) revert BadValue();
+        _validateNetlist(nl, nIn, nOut);
+        id = ++nextId;
+        ownerOf[id] = msg.sender;
+        netlistOf[id] = nl;
+        nInOf[id] = nIn;
+        nOutOf[id] = nOut;
+        emit TapeOut(id, msg.sender, nl, nIn, nOut);
+        _pay();
+    }
+
+    /// @notice 免费复算：把输入位打包成字节喂给电路，返回 nOut 位打包的 verdict 字节
+    function eval(uint256 id, bytes calldata inputs) external view returns (bytes memory) {
+        if (ownerOf[id] == address(0)) revert NoCircuit();
+        bytes memory nl = netlistOf[id];
+        uint256 nIn = nInOf[id];
+        uint256 gates = nl.length / 7;
+        if (inputs.length * 8 < nIn) revert ShortInputs();
+
+        uint256[] memory sig = new uint256[](2 + nIn + gates);
+        sig[1] = 1; // 常量 1；sig[0] 常量 0 默认
+        for (uint256 i = 0; i < nIn; i++) {
+            sig[2 + i] = (uint8(inputs[i / 8]) >> (i % 8)) & 1;
+        }
+        for (uint256 g = 0; g < gates; g++) {
+            uint256 a = _u24(nl, g * 7 + 1);
+            uint256 b = _u24(nl, g * 7 + 4);
+            if (a >= 2 + nIn + g || b >= 2 + nIn + g) revert FutureSignal();
+            sig[2 + nIn + g] = (sig[a] & sig[b]) == 1 ? 0 : 1; // NAND
+        }
+
+        uint256 nOut = nOutOf[id];
+        uint8 out = 0;
+        for (uint256 o = 0; o < nOut && o < 8; o++) {
+            out |= uint8(sig[2 + nIn + gates - nOut + o]) << o;
+        }
+        return abi.encodePacked(out);
+    }
+
+    /*──────── ERC-721 最小语义（circuit NFT 可转售） ────────*/
+
+    function approve(address to, uint256 id) external {
+        if (ownerOf[id] != msg.sender) revert NotOwner();
+        approvals[id] = to;
+    }
+
+    function transferFrom(address from, address to, uint256 id) public {
+        if (ownerOf[id] != from) revert NotOwner();
+        if (msg.sender != from && approvals[id] != msg.sender) revert NotApproved();
+        delete approvals[id];
+        ownerOf[id] = to;
+        emit Transfer(from, to, id);
+    }
+
+    function name() external pure returns (string memory) { return "Kaling Circuit"; }
+    function symbol() external pure returns (string memory) { return "KALC"; }
+
+    /*──────── 内部 ────────*/
+
+    function _validateNetlist(bytes calldata nl, uint32 nIn, uint32 nOut) internal pure {
+        if (nl.length == 0 || nl.length % 7 != 0) revert BadNetlist();
+        if (nIn == 0 || nIn > 24) revert BadPins();
+        uint256 gates = nl.length / 7;
+        if (nOut == 0 || nOut > gates || nOut > 8) revert BadPins();
+        // 逐门校验引用不能指向未来信号（与 eval 同一约束）
+        for (uint256 g = 0; g < gates; g++) {
+            if (uint8(nl[g * 7]) != 0) revert BadNetlist(); // 只支持 NAND
+            uint256 a = _u24(nl, g * 7 + 1);
+            uint256 b = _u24(nl, g * 7 + 4);
+            if (a >= 2 + nIn + g || b >= 2 + nIn + g) revert BadPins();
+        }
+    }
+
+    function _u24(bytes calldata d, uint256 off) internal pure returns (uint256) {
+        return (uint256(uint8(d[off])) << 16) | (uint256(uint8(d[off + 1])) << 8) | uint256(uint8(d[off + 2]));
+    }
+
+    /// @dev 即时转发，合约自身不留钱 —— 因此没有 owner / withdraw
+    function _pay() internal {
+        (bool ok, ) = TREASURY.call{value: msg.value}("");
+        if (!ok) revert TransferFailed();
+    }
+}
