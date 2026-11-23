@@ -1246,6 +1246,11 @@ function netName(){return netId()==='61'?'BNB 测试网 97':'BNB 主网 56'}
 function chainScan(){return netId()==='61'?'https://testnet.bscscan.com':'https://bscscan.com'}
 function savePending(){localStorage.setItem('ap_pending',chainPending?JSON.stringify(chainPending):'')}
 async function chainProvider(){return new ethers.providers.Web3Provider(window.ethereum)}
+function readProvider(){
+  if(window.ethereum)return new ethers.providers.Web3Provider(window.ethereum);
+  const rpc=netId()==='61'?'https://data-seed-prebsc-1-s1.binance.org:8545':'https://bsc-dataseed.bnbchain.org';
+  return new ethers.providers.JsonRpcProvider(rpc);
+}
 async function getSigner(){const p=await chainProvider();await p.send('eth_requestAccounts',[]);return p.getSigner()}
 async function ensureChain(){
   const id='0x'+netId();
@@ -1427,7 +1432,7 @@ let pubQuote=null;
 $('#bPubQuote')&&($('#bPubQuote').onclick=async()=>{
   try{
     const rule=Number($('#pubRule').value);
-    const [bemCost,bnbCost,gates,nIn]=await (new ethers.Contract(pubAddr(),PUB_ABI,await chainProvider())).quote(rule);
+    const [bemCost,bnbCost,gates,nIn]=await (new ethers.Contract(pubAddr(),PUB_ABI,readProvider())).quote(rule);
     pubQuote={bemCost,bnbCost,gates,nIn};
     $('#pubOut').innerHTML='规则 t'+rule+' · '+gates.toString()+' 门 · '+nIn.toString()+' 输入 → NAND <b style="color:var(--gold)">'
       +ethers.utils.formatUnits(bemCost,8)+' BEM</b> + tapeout <b style="color:var(--gold)">'
