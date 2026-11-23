@@ -5,6 +5,7 @@ import {Script} from "forge-std/Script.sol";
 import {MockTapeProcessor} from "../test/mocks/MockTapeProcessor.sol";
 import {AgentPackCore} from "../src/AgentPackCore.sol";
 import {GuardVault} from "../src/GuardVault.sol";
+import {PublicTapeOut} from "../src/PublicTapeOut.sol";
 import {MockAgentIdRegistry} from "../test/AgentPackCore.t.sol";
 
 /// @notice 本地 Anvil / BSC 测试网：先部署 Mock 注册表，再部署主合约 + 金库
@@ -58,6 +59,19 @@ contract DeployMainnet is Script {
         vm.startBroadcast();
         core = new AgentPackCore(registry, prize, proc, 0x5ce033B2bFCa3Af30b3e8C8457DeaF776A8b695a);
         vault = new GuardVault(address(core));
+        vm.stopBroadcast();
+    }
+}
+
+/// @notice 公开流片入口：任何钱包可直接把 12 条官方规则之一流片成 circuit NFT
+contract DeployPublicTapeOut is Script {
+    address constant CORE = 0xEE7928436a480af5F93c3558a8ef27588C511d7b;
+    address constant PROC = 0xAdfDB520db78C252382E4bCdf62692fAD453035a;
+    address constant BEM  = 0x5ce033B2bFCa3Af30b3e8C8457DeaF776A8b695a;
+
+    function run() external returns (PublicTapeOut p) {
+        vm.startBroadcast(vm.envUint("DEPLOY_PK"));
+        p = new PublicTapeOut(CORE, PROC, BEM);
         vm.stopBroadcast();
     }
 }

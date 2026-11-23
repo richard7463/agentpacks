@@ -326,6 +326,25 @@
   </div>
 
   <div class="block">
+    <div class="panel-head"><h3>⑤ 公开流片：不要卡，直接把规则刻成 NFT</h3><span class="chip">任何钱包</span></div>
+    <p class="sub">未流片的卡只是本地数据。这里选一条官方 NAND 规则，付 BEM 买 NAND + 一点 BNB 付流片费，circuit NFT 直接进你的钱包。<b>不需要 .ai，也不需要持有卡。</b></p>
+    <div class="claim-row">
+      <label class="sr-only" for="pubRule">规则</label>
+      <select class="inp" id="pubRule">
+        <option value="0">t0 止损 · 36 门</option><option value="1">t1 梭哈 · 22 门</option>
+        <option value="2">t2 白名单 · 4 门</option><option value="3">t3 加仓 · 39 门</option>
+        <option value="4">t4 清仓 · 22 门</option><option value="5">t5 抄底 · 20 门</option>
+        <option value="6">t6 杠杆 · 125 门</option><option value="7">t7 钻石手 · 31 门</option>
+        <option value="8">t8 封控 · 15 门</option><option value="9">t9 双签 · 189 门</option>
+        <option value="10">t10 会签 · 90 门</option><option value="11">t11 委托 · 4 门</option>
+      </select>
+      <button class="btn ghost" id="bPubQuote">查报价</button>
+      <button class="btn primary" id="bPubTape" disabled>直接流片</button>
+    </div>
+    <div class="banner" id="pubOut">链上实时报价：NAND 按 BEM 计（我们收），tapeout 按 BNB 计。</div>
+  </div>
+
+  <div class="block">
     <div class="panel-head"><h3>④ 用卡付款：卡灵的闸门（GuardVault）</h3><span class="chip">真拦截</span></div>
     <p class="sub">把 BNB 存进金库，付款必须先过卡：规则不通过就 <span class="mono">revert</span>。AI 热钱包只能发起，超额要你本人点头。<b>卡从"建议"变成"法律"。</b></p>
     <div class="claim-row">

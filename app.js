@@ -1416,6 +1416,45 @@ $('#bTogChain').onclick=()=>{
   renderChain();toast('切换到 '+netName());
 };
 
+/* ══════════ 公开流片：任何钱包直接把官方网表流片成 NFT ══════════ */
+const PUB_ABI=[
+ "function quote(uint8) view returns (uint256,uint256,uint256,uint32)",
+ "function tapeoutRaw(uint8) payable returns (uint256)"
+];
+const PUB_MAINNET='0xfbe8c8535bfa3602a4ab24f4a247a4cedc719f62';
+function pubAddr(){return PUB_MAINNET}
+let pubQuote=null;
+$('#bPubQuote')&&($('#bPubQuote').onclick=async()=>{
+  try{
+    const rule=Number($('#pubRule').value);
+    const [bemCost,bnbCost,gates,nIn]=await (new ethers.Contract(pubAddr(),PUB_ABI,await chainProvider())).quote(rule);
+    pubQuote={bemCost,bnbCost,gates,nIn};
+    $('#pubOut').innerHTML='规则 t'+rule+' · '+gates.toString()+' 门 · '+nIn.toString()+' 输入 → NAND <b style="color:var(--gold)">'
+      +ethers.utils.formatUnits(bemCost,8)+' BEM</b> + tapeout <b style="color:var(--gold)">'
+      +ethers.utils.formatEther(bnbCost)+' BNB</b>。先授权 BEM，再签名流片。';
+    $('#bPubTape').disabled=false;
+  }catch(e){$('#pubOut').textContent='报价失败：'+(e.reason||e.message||e)}
+});
+$('#bPubTape')&&($('#bPubTape').onclick=async()=>{
+  try{
+    if(!pubQuote)return toast('先查报价');
+    const sg=await vaultSigner();await ensureChain();
+    const me=await sg.getAddress();
+    const bem=new ethers.Contract(bemAddr(),BEM_ABI,sg);
+    const allowance=await bem.allowance(me,pubAddr());
+    if(allowance.lt(pubQuote.bemCost)){
+      $('#pubOut').textContent='授权 '+ethers.utils.formatUnits(pubQuote.bemCost,8)+' BEM…';
+      const a=await bem.approve(pubAddr(),pubQuote.bemCost);await a.wait();
+    }
+    const tx=await new ethers.Contract(pubAddr(),PUB_ABI,sg).tapeoutRaw(Number($('#pubRule').value),{value:pubQuote.bnbCost});
+    $('#pubOut').textContent='流片交易 '+tx.hash.slice(0,12)+'… 等待确认';
+    const rc=await tx.wait();
+    let cid='?';try{const ev=rc.events&&rc.events[0];cid=ev&&ev.args&&ev.args[2]}catch(e){}
+    $('#pubOut').innerHTML='✅ 流片成功 · circuit #'+cid+' · <a href="'+chainScan()+'/token/'+processorAddr()+'?a='+cid+'" target="_blank" style="color:var(--gold)">BscScan ↗</a> · NFT 已进你的钱包。';
+    beep(880,.12);toast('真身 circuit NFT 已进钱包');
+  }catch(e){$('#pubOut').textContent='⛔ '+(e.reason||e.message||e)}
+});
+
 /* ══════════ GuardVault：卡灵的闸门 ══════════ */
 const VAULT_ABI=[
  "function deposit() payable",
