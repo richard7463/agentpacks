@@ -177,7 +177,8 @@ async function shareCard(c){
   // X 的 OG 链接预览：推文只带链接，X 自动抓 og:image 渲染名人卡（CT Packs 同款）
   const t=shareText(c);
   beep(660,.08);
-  if(navigator.share){
+  // 关键：canShare 同步判定，不做 await——否则 window.open 丢失用户手势被弹窗拦截器吞掉
+  if(navigator.canShare&&navigator.canShare({text:t})){
     try{await navigator.share({text:t});shareBonus();return}catch(e){}
   }
   window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(t),'_blank');
