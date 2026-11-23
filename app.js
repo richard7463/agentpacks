@@ -174,7 +174,11 @@ async function renderShareCard(c){
   return new Promise(ok=>cv.toBlob(ok,'image/png'));
 }
 function shareURL(c){return 'https://agentid.cards/c/'+cname(c).replace('.ai','')+'?r='+encodeURIComponent(RAR[c.r]+(c.star?'★'+c.star:''))+'&id='+c.id}
-function shareText(c){return '我在 Agent Packs 抽到了 '+cname(c)+' · '+RAR[c.r]+(c.star?' ★'+c.star:'')+' → '+shareURL(c)}
+function shareText(c){
+  // 关键：卡名不带 .ai 后缀——.ai 是真实 TLD，X 会把 "jensen.ai" 链接化并渲染那个外部站的预览
+  const n=cname(c).replace('.ai','');
+  return '我在卡灵战争抽到了名人卡灵 '+n+' · '+RAR[c.r]+(c.star?' ★'+c.star:'')+' → '+shareURL(c);
+}
 async function shareCard(c){
   // X 的 OG 链接预览：推文只带链接，X 自动抓 og:image 渲染名人卡（CT Packs 同款）
   const t=shareText(c);
