@@ -50,13 +50,7 @@ const FACES={
   'heyi.ai':    {mono:'Y',tag:'BNB 大管家', c:'#F2C14E',photo:'faces/heyi.jpg'},
   'justin.ai':  {mono:'S',tag:'波场教主',   c:'#FF8AD8',photo:'faces/justin.jpg'},
   'vitalik.ai': {mono:'V',tag:'以太架构师', c:'#8AF0FF',photo:'faces/vitalik.jpg'},
-  'satoshi.ai': {mono:'S',tag:'创世传奇',   c:'#B79BFF',photo:'faces/satoshi.jpg'},
-  'arthur.ai':  {mono:'A',tag:'衍生品之王', c:'#8AF0FF',photo:'faces/arthur.jpg'},
-  'brian.ai':   {mono:'B',tag:'Coinbase 长官',c:'#D4FF8A',photo:'faces/brian.jpg'},
-  'michael.ai': {mono:'M',tag:'囤币狂人',   c:'#F2C14E',photo:'faces/michael.jpg'},
-  'cathie.ai':  {mono:'C',tag:'方舟女舰长', c:'#B79BFF',photo:'faces/cathie.jpg'},
-  'chris.ai':   {mono:'R',tag:'瑞波船长',   c:'#8AF0FF',photo:'faces/chris.jpg'},
-  // tech
+  'satoshi.ai': {mono:'S',tag:'创世传奇',   c:'#B79BFF',photo:'faces/satoshi.jpg'},  'michael.ai': {mono:'M',tag:'囤币狂人',   c:'#F2C14E',photo:'faces/michael.jpg'},  // tech
   'musk.ai':    {mono:'M',tag:'火星船长',   c:'#D4FF8A',photo:'faces/musk.jpg'},
   'zuck.ai':    {mono:'Z',tag:'元宇宙房东', c:'#8AF0FF',photo:'faces/zuck.jpg'},
   'jensen.ai':  {mono:'J',tag:'算力教父',   c:'#D4FF8A',photo:'faces/jensen.jpg'},
@@ -76,12 +70,7 @@ const FACES={
   'drake.ai':   {mono:'D',tag:'公鸭',       c:'#B79BFF',photo:'faces/drake.jpg'},
   // 网红
   'mrbeast.ai':{mono:'M',tag:'YouTube 顶流', c:'#D4FF8A',photo:'faces/mrbeast.jpg'},
-  'speed.ai':  {mono:'A',tag:'甲亢哥',      c:'#FF8AD8',photo:'faces/speed.jpg'},
-  'khaby.ai':  {mono:'K',tag:'无声吐槽王', c:'#F2EFFF',photo:'faces/khaby.jpg'},
-  'ninja.ai':  {mono:'N',tag:'蓝发主播',   c:'#8AF0FF',photo:'faces/ninja.jpg'},
-  'ksi.ai':    {mono:'K',tag:'英伦炸子鸡', c:'#FF8AD8',photo:'faces/ksi.jpg'},
-  'liziqi.ai': {mono:'李',tag:'田园仙女',   c:'#D4FF8A',photo:'faces/liziqi.jpg'},
-  // finance
+  'speed.ai':  {mono:'A',tag:'甲亢哥',      c:'#FF8AD8',photo:'faces/speed.jpg'},  'ninja.ai':  {mono:'N',tag:'蓝发主播',   c:'#8AF0FF',photo:'faces/ninja.jpg'},  // finance
   'warren.ai':  {mono:'W',tag:'奥马哈股神', c:'#F2C14E',photo:'faces/warren.jpg'},
   'jamie.ai':   {mono:'J',tag:'摩根船长',   c:'#8AF0FF',photo:'faces/jamie.jpg'},
   'jerome.ai':  {mono:'J',tag:'加息之手',   c:'#F2EFFF',photo:'faces/jerome.jpg'},
@@ -182,18 +171,17 @@ async function renderShareCard(c){
   x.strokeStyle='rgba(242,193,78,.55)';x.lineWidth=3;x.strokeRect(6,6,588,828);
   return new Promise(ok=>cv.toBlob(ok,'image/png'));
 }
-function shareText(c){return '我在 Agent Packs 抽到了 '+cname(c)+' · '+RAR[c.r]+(c.star?' ★'+c.star:'')+' → https://agentid.cards'}
+function shareURL(c){return 'https://agentid.cards/c/'+cname(c).replace('.ai','')}
+function shareText(c){return '我在 Agent Packs 抽到了 '+cname(c)+' · '+RAR[c.r]+(c.star?' ★'+c.star:'')+' → '+shareURL(c)}
 async function shareCard(c){
-  const blob=await renderShareCard(c);
-  // 首选：系统分享面板（手机/Safari——照片直接进 X，所见即所发）
-  try{
-    const file=new File([blob],'agentpacks-'+cname(c)+'.png',{type:'image/png'});
-    if(navigator.canShare&&navigator.canShare({files:[file]})){
-      await navigator.share({files:[file],text:shareText(c)});shareBonus();return
-    }
-  }catch(e){}
-  // 桌面：页内分享面板——大图预览，直接拖进 X 发推框即可带图
-  showShareModal(c,URL.createObjectURL(blob));
+  // X 的 OG 链接预览：推文只带链接，X 自动抓 og:image 渲染名人卡（CT Packs 同款）
+  const t=shareText(c);
+  beep(660,.08);
+  if(navigator.share){
+    try{await navigator.share({text:t});shareBonus();return}catch(e){}
+  }
+  window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(t),'_blank');
+  shareBonus();
 }
 function showShareModal(c,imgUrl){
   let m=$('#shareModal');
