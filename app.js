@@ -1232,6 +1232,32 @@ async function chainRead(fn,args){
   const core=new ethers.Contract(coreAddr(),CHAIN_ABI,p);
   return await core[fn](...(args||[]));
 }
+/* ── WalletConnect：普通手机浏览器也能连钱包（projectId 由用户填，免费申请） ── */
+function wcPanelHTML(){
+  const pid=localStorage.getItem('ap_wc_project')||'';
+  return '<div class="chain-actions"><input class="inp" id="wcPid" placeholder="WalletConnect projectId" value="'
+    +pid.replace(/"/g,'&quot;')+'"><button class="btn ghost" id="bWC">手机钱包连接</button></div>';
+}
+function bindWc(){
+  const b=$('#bWC');if(!b)return;
+  b.onclick=async()=>{
+    const pid=($('#wcPid')||{}).value?.trim()||'';
+    if(!/^[0-9a-fA-F]{32}$/.test(pid))return toast('请填 32 位 WalletConnect projectId（cloud.reown.com 免费申请）');
+    localStorage.setItem('ap_wc_project',pid);
+    b.textContent='连接中…';b.disabled=true;
+    try{
+      const mod=await import('https://esm.sh/@walletconnect/ethereum-provider@2.17.1');
+      const WC=mod.default||mod;
+      const provider=await WC.init({projectId:pid,chains:[56],showQrModal:true});
+      await provider.enable();
+      window.ethereum=provider;
+      chainAcc=(await provider.request({method:'eth_requestAccounts'}))[0];
+      toast('手机钱包已连接：'+chainAcc.slice(0,8)+'…');
+      renderChain();
+    }catch(e){toast('WalletConnect 失败：'+(e.message||e))}
+    finally{b.textContent='手机钱包连接';b.disabled=false}
+  };
+}
 function renderChain(){
   const box=$('#chainBox');if(!box)return;
   if($('#vAddr'))$('#vAddr').value=vaultAddr();
@@ -1242,13 +1268,14 @@ function renderChain(){
     return;
   }
   if(typeof ethers==='undefined'){box.innerHTML='<div class="chain-status bad">● ethers 库加载失败（离线环境），联网后刷新。</div>';return}
-  if(!window.ethereum){box.innerHTML='<div class="chain-status bad">● 未检测到浏览器钱包 —— 请用 Binance Wallet / MetaMask 内置浏览器打开。</div>';return}
+  if(!window.ethereum){box.innerHTML='<div class="chain-status bad">● 未检测到注入钱包 —— 填 WalletConnect projectId 可用手机钱包连接，或用 Binance Wallet 内置浏览器打开。</div>'+wcPanelHTML();bindWc();return}
   box.innerHTML=`<div class="chain-status ok">● 合约 <span class="mono">${coreAddr().slice(0,10)}…${coreAddr().slice(-6)}</span> · ${netName()}</div>
     <div class="chain-actions">
       <button class="btn primary" id="bCC">连接钱包</button>
       <button class="btn primary" id="bCClaim">领包 + 承诺</button>
       <button class="btn" id="bCReveal" ${chainPending?'':'disabled'}>揭示 ${chainPending?'#'+chainPending.pid:''}</button>
     </div>
+    ${wcPanelHTML()}
     <div class="chain-sep"></div>
     <div class="chain-actions">
       <button class="btn" id="bCBuy">买单包 0.002 BNB</button>
@@ -1261,6 +1288,7 @@ function renderChain(){
       <button class="btn ghost" id="bCPts">查积分 packPoints</button>
     </div>
     <div class="chain-status" id="cStatus" style="margin-top:12px">● 等待连接</div>`;
+  bindWc();
   const st=(t,cls)=>{const el=$('#cStatus');el.className='chain-status '+(cls||'');el.innerHTML=t};
   if(chainAcc)st('● 已连接 <span class="mono">'+chainAcc+'</span>','ok');
   $('#bCC').onclick=async()=>{

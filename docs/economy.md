@@ -49,7 +49,14 @@
   → 现成 processor `0xb1024b89886b9a34aa4ff5f31c411d708b20a14c`
 - **收入归属核查（重要）**：该 processor 的 `transistors()` = `0xCC42ba5…8087`（TapeOut 共享 NAND 代币），
   `mintPrice=5e14`（≈$0.28/门）。用户流片的钱 100% 进 TapeOut，**我们赚 0**。
-- **要做赚钱的版本**：部署 `KalingProcessor`（草案见 `docs/KalingProcessor.draft.sol.txt`）——
+- **TapeFly 现成做法（照抄这个）**：
+  - 流程代码：`/Users/yanqing/Documents/fashion-trending-services/output/TapeFly-source-20261121-v1/app/tapeout/processor/ProcessorClient.tsx`
+  - Factory ABI：`同目录 sim/onchain.ts:54-59`
+  - ABI：`createCPU(string name,string symbol,string story,uint256 transistorSupply,uint256 mintPrice) payable returns (address transistors,address circuits)`
+  - BNB 工厂 `0x68224F668083c29e9800Be2a646d42d18cedF7e2`：`deployFee()=1e7`（0.1 BEM，8 位小数），BEM=`0x5ce033B2bFCa3Af30b3e8C8457DeaF776A8b695a`，需先 `approve(factory,1e7)`
+  - `mintPrice` 上限约 `1e12` raw（1e13 报 `price too high`）；TapeFly 用 `1e6` = 0.01 BEM/门
+  - 旧 processor `0xb1024b...` 的 transistor **minted=1e6 / cap=1e6 已卖空**，不能再用
+- **要做赚钱的版本**：部署自己的 processor（草案见 `docs/KalingProcessor.draft.sol.txt`）——
   自带 transistor，费用 immutable、即时转我们的 treasury、无 owner/提款路径。
   门价自定：1e13 → 189 门卡 ≈ $1.08；5e13 → ≈ $5.31；对比现状 $53 且归他人。
 - guard 层**直接抄 TapeID** `apps/signer/src/guard.ts`：
