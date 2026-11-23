@@ -1205,11 +1205,14 @@ const CHAIN_ABI=[
 const PROC_ABI=["function eval(uint256,bytes) view returns (bytes)"];
 let chainAcc=null,chainPending=null;
 try{chainPending=JSON.parse(localStorage.getItem('ap_pending')||'null')}catch(e){}
+const MAINNET_CORE='0xdc2dcE427379a048280Bb43AeC5E7A302B732650';
+const MAINNET_VAULT='0x43AfFA20eAC55aAFFD8aB7B90729413d6aDCBc3A';
+const MAINNET_PROC='0xAdfDB520db78C252382E4bCdf62692fAD453035a';
 const TESTNET_CORE='0xdc2dcE427379a048280Bb43AeC5E7A302B732650';
 const TESTNET_VAULT='0x43AfFA20eAC55aAFFD8aB7B90729413d6aDCBc3A';
-function coreAddr(){return localStorage.getItem('ap_core')||(netId()==='61'?TESTNET_CORE:'')}
-/* 链 ID 以十六进制存：0x38 = 56（主网），0x61 = 97（测试网）。默认测试网（主网尚未部署） */
-function netId(){const v=localStorage.getItem('ap_chain');return v==='38'||v==='56'?'38':'61'}
+function coreAddr(){return localStorage.getItem('ap_core')||(netId()==='61'?TESTNET_CORE:MAINNET_CORE)}
+/* 链 ID 以十六进制存：0x38 = 56（主网），0x61 = 97（测试网）。默认主网（已部署） */
+function netId(){const v=localStorage.getItem('ap_chain');return v==='61'||v==='97'?'61':'38'}
 function netName(){return netId()==='61'?'BNB 测试网 97':'BNB 主网 56'}
 function chainScan(){return netId()==='61'?'https://testnet.bscscan.com':'https://bscscan.com'}
 function savePending(){localStorage.setItem('ap_pending',chainPending?JSON.stringify(chainPending):'')}
@@ -1389,9 +1392,9 @@ const VAULT_ABI=[
  "function balanceOf(address) view returns (uint256)",
  "function rateWeiPerCent(address) view returns (uint256)"
 ];
-function vaultAddr(){return localStorage.getItem('ap_vault')||(netId()==='61'?TESTNET_VAULT:'')}
+function vaultAddr(){return localStorage.getItem('ap_vault')||(netId()==='61'?TESTNET_VAULT:MAINNET_VAULT)}
 const TESTNET_PROC='0x36b5b5b0b8a8ee405d4db1c53dac591c1f5e8ac9';
-function processorAddr(){return localStorage.getItem('ap_processor')||(netId()==='61'?TESTNET_PROC:'')}
+function processorAddr(){return localStorage.getItem('ap_processor')||(netId()==='61'?TESTNET_PROC:MAINNET_PROC)}
 function vaultContract(signer){return new ethers.Contract(vaultAddr(),VAULT_ABI,signer)}
 function vaultSay(t,cls){const o=$('#vaultOut');o.className='banner'+(cls?' '+cls:'');o.innerHTML=t}
 async function vaultSigner(){const p=await chainProvider();await p.send('eth_requestAccounts',[]);return p.getSigner()}
