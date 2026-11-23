@@ -553,6 +553,27 @@ contract AgentPackCoreTest is Test {
         assertTrue(ok);
     }
 
+    /// eval 读不到答案 → fail-closed：宁可拒签，不猜
+    function test_CheckPayment_EvalDown_FailClosed() public {
+        _equipNew(alice, 0, 0, 0, 0);
+        proc.setFailEval(true);
+        (bool ok, string memory why) = core.checkPayment(alice, 100, bob, 0, 0, 0, false, 0, false);
+        assertFalse(ok);
+        assertEq(why, "eval failed: fail-closed");
+        proc.setFailEval(false);
+        (ok,) = core.checkPayment(alice, 100, bob, 0, 0, 0, false, 0, false);
+        assertTrue(ok);
+    }
+
+    /// 电路判定与分档阈值在边界上完全一致（不是近似）
+    function testFuzz_CheckPayment_DailyCapBoundary(uint256 amount, uint256 spent) public {
+        _equipNew(alice, 0, 0, 0, 0); // $20/day
+        amount = bound(amount, 0, 5000);
+        spent = bound(spent, 0, 5000);
+        (bool ok,) = core.checkPayment(alice, amount, bob, spent, 0, 0, false, 0, false);
+        assertEq(ok, amount + spent <= 2000);
+    }
+
     function test_CheckPayment_IdentityCardNamedPayee() public {
         vm.prank(bob);
         core.claimIntoPool(); // pool[0] = bob

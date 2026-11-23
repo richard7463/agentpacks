@@ -37,6 +37,7 @@ pragma solidity ^0.8.24;
 /// @dev TapeOut 生态处理器接口（processor 由 CPU Factory 自部署，费用参数归本项目）
 interface ITapeOutProcessor {
     function tapeout(bytes calldata nl, uint32 nIn, uint32 nOut) external payable returns (uint256 id);
+    function eval(uint256 id, bytes calldata inputs) external view returns (bytes memory);
     function transistors() external view returns (address);
     function TAPEOUT_FEE() external view returns (uint256);
     function ownerOf(uint256 tokenId) external view returns (address);
@@ -517,8 +518,11 @@ contract AgentPackCore {
     }
 
     /// @notice 复算一笔支付是否守约（view，不改变任何状态）
-    /// @dev 调用方提供当日已花、笔数、上一笔时间、已批准人数、当日是否已被骗——
-    ///      任何人可用钱包流水复算。approvals 服务双签/会签；trippedToday 服务封控。
+    /// @dev v3：判定改由真 NAND 电路产生——本函数把运行时事实打包成输入字，
+    ///      staticcall 处理器 eval() 读出 (allow, ask)；eval 异常 = fail-closed。
+    ///      事实打包：金额按档位上限量化（超限走事实位），收款方身份查注册表，
+    ///      审批数/封控态由调用方提供。多因子组合（人工救援、会签、ask/allow）
+    ///      全部在电路里完成。参数语义见 docs/four-circuit-families.md。
     function checkPayment(
         address agent,
         uint256 amountCents,
@@ -532,70 +536,137 @@ contract AgentPackCore {
     ) external view returns (bool ok, string memory reason) {
         uint256 cardId = activeCircuit[agent];
         if (cardId == 0) return (false, "no rule equipped");
-
+        uint256 circuitId = cardCircuit[cardId];
         (uint8 t, uint256 p1, uint256 p2) = ruleOf(cardId);
 
-        if (t == RULE_DAILY_CAP) {
-            if (spentTodayCents + amountCents <= p1) return (true, "within daily cap");
-            if (humanApproved) return (true, "over cap, human approved");
-            return (false, "daily cap exceeded");
-        }
-        if (t == RULE_SINGLE_MAX) {
-            if (amountCents <= p1) return (true, "within single max");
-            return (false, "single payment too large");
-        }
-        if (t == RULE_AGENT_ONLY) {
-            if (isAgentIdHolder(payee)) return (true, "payee holds Agent ID");
-            return (false, "payee has no Agent ID");
-        }
-        if (t == RULE_GROWTH) {
-            uint256 cap = p1 * (100 + uint256(txCountToday) * p2) / 100;
-            if (spentTodayCents + amountCents <= cap) return (true, "within growing cap");
-            if (humanApproved) return (true, "over cap, human approved");
-            return (false, "growing cap exceeded");
-        }
-        if (t == RULE_DAILY_COUNT) {
-            if (txCountToday < p1) return (true, "within daily count");
-            return (false, "daily tx count reached");
-        }
-        if (t == RULE_MICRO_PASS) {
-            if (amountCents <= p1) return (true, "micro payment, no approval");
-            if (humanApproved) return (true, "human approved");
-            return (false, "needs human approval");
-        }
-        if (t == RULE_HIGH_LIMIT) {
-            if (amountCents > p1) return (false, "over high limit");
-            if (amountCents * 2 > p1 && !humanApproved) return (false, "over half limit, needs human");
-            return (true, "within high limit");
-        }
-        if (t == RULE_COOLDOWN) {
-            if (lastPaymentAt == 0 || block.timestamp >= uint256(lastPaymentAt) + p1) {
-                return (true, "cooldown satisfied");
-            }
-            return (false, "cooldown not elapsed");
-        }
+        // 身份卡：注册表规则，不在 NAND 命名空间里，无需流片
         if (t == RULE_NAMED_PAYEE) {
             if (uint256(uint160(payee)) == p1) return (true, "designated payee");
             return (false, "not the designated payee");
         }
-        if (t == RULE_LOCKDOWN) {
-            if (trippedToday) return (false, "lockdown active");
-            return (true, "not locked");
+        if (circuitId == 0) revert NotTaped(); // 真身判定需要已流片
+
+        PayCtx memory c = PayCtx(amountCents, payee, spentTodayCents, txCountToday, lastPaymentAt, humanApproved, approvals, trippedToday);
+        uint256 word = _packInputs(t, p1, p2, c);
+        (bool good, bytes memory ret) = tapeProcessor.staticcall(
+            abi.encodeWithSelector(ITapeOutProcessor.eval.selector, circuitId, _wordBytes(word, HOUSE_NIN[t]))
+        );
+        if (!good || ret.length < 64) return (false, "eval failed: fail-closed"); // 宁拒不猜
+        bytes memory verdictBytes = abi.decode(ret, (bytes));
+        if (verdictBytes.length < 1) return (false, "eval empty: fail-closed");
+        uint8 verdict = uint8(verdictBytes[0]);
+        bool allow = (verdict & 1) == 1;
+        bool ask = (verdict >> 1) & 1 == 1;
+        return _verdict(t, p1, amountCents, spentTodayCents, lastPaymentAt, txCountToday, allow, ask);
+    }
+
+    struct PayCtx {
+        uint256 amount; address payee; uint256 spent; uint256 count;
+        uint256 last; bool human; uint8 appr; bool tripped;
+    }
+
+    /// @dev uint256 → 输入字节串（低位在前，与 TapeOut eval 的 input[i/8] 位序一致）
+    function _wordBytes(uint256 w, uint256 nIn) internal pure returns (bytes memory b) {
+        uint256 n = (nIn + 7) / 8;
+        b = new bytes(n);
+        for (uint256 i = 0; i < n; i++) b[i] = bytes1(uint8(w >> (8 * i)));
+    }
+
+    /// @dev 打包输入字（低位在前，字段顺序与 tools/mint12.mjs 的 spec 一致）
+    ///      金额→电路是"事实翻译"：Solidity 先算 cents 是否越界，再把它写成
+    ///      比较位的取值——被比较量固定为 2，阈值位"满足=2 / 违反=1"，
+    ///      于是电路里的 a<=b 恰好等价于事实成立。多因子组合（人工救援 /
+    ///      半闸 / 双签 / 会签 / 封锁窗口）仍只能由 NAND 网表给出。
+    function _packInputs(uint8 t, uint256 p1, uint256 p2, PayCtx memory c)
+        internal view returns (uint256 w)
+    {
+        uint256 amount = c.amount; uint256 spent = c.spent;
+        uint256 count = c.count; uint256 last = c.last; bool human = c.human;
+        uint8 appr = c.appr; bool tripped = c.tripped;
+        bool payeeOk = isAgentIdHolder(c.payee);
+        // 事实位：满足=2，违反=1；电路里 a<=b 因此精确等于事实成立
+        uint256 ok2 = 2;
+
+        if (t == RULE_DAILY_CAP) {          // amount3 left3 human
+            bool within = amount + spent <= p1;
+            w = ok2 | ((within ? ok2 : 1) << 3) | (uint256(human ? 1 : 0) << 6);
+        } else if (t == RULE_SINGLE_MAX) {  // amount3 cap3
+            bool within = amount <= p1;
+            w = ok2 | ((within ? ok2 : 1) << 3);
+        } else if (t == RULE_AGENT_ONLY) {  // payee1
+            w = payeeOk ? 1 : 0;
+        } else if (t == RULE_GROWTH) {      // amount4 grown3 human
+            uint256 grown = p1 * (100 + count * 2) / 100;
+            bool within = amount <= grown;
+            w = ok2 | ((within ? ok2 : 1) << 4) | (uint256(human ? 1 : 0) << 7);
+        } else if (t == RULE_DAILY_COUNT) { // paid3 limit3 (paid < limit)
+            w = ok2 | ((count < p1 ? 3 : 1) << 3);
+        } else if (t == RULE_MICRO_PASS) {  // amount2 micro2 human
+            bool within = amount <= p1;
+            w = ok2 | ((within ? ok2 : 1) << 2) | (uint256(human ? 1 : 0) << 4);
+        } else if (t == RULE_HIGH_LIMIT) {  // amount3 half3 cap3 human
+            bool withinCap = amount <= p1;
+            bool withinHalf = amount * 2 <= p1;
+            w = ok2 | ((withinHalf ? ok2 : 1) << 3) | ((withinCap ? ok2 : 1) << 6) | (uint256(human ? 1 : 0) << 9);
+        } else if (t == RULE_COOLDOWN) {    // elapsed4 cool4 (elapsed >= cool)
+            bool enough = last == 0 || block.timestamp >= last + p1;
+            w = uint256(1) | ((enough ? 1 : 2) << 4);
+        } else if (t == RULE_LOCKDOWN) {    // tripped1 elapsed2 lock2
+            bool enough = last != 0 && block.timestamp >= last + p1;
+            w = (tripped ? 1 : 0) | (uint256(1) << 1) | ((enough ? 1 : 2) << 3);
+        } else if (t == RULE_DUAL_SIGN) {   // amount4 half4 cap4 appr1
+            bool withinCap = amount <= p1;
+            bool withinHalf = amount * 2 <= p1;
+            w = ok2 | ((withinHalf ? ok2 : 1) << 4) | ((withinCap ? ok2 : 1) << 8) | (uint256(appr >= 2 ? 1 : 0) << 12);
+        } else if (t == RULE_MULTISIG) {    // amount4 cap4 appr2 need2
+            bool withinCap = amount <= p1;
+            w = ok2 | ((withinCap ? ok2 : 1) << 4) | (uint256(appr > 3 ? 3 : appr) << 8) | (uint256(p2 > 3 ? 3 : p2) << 10);
+        } else {                            // RULE_DELEGATION window1 payee1
+            bool window = last != 0 && block.timestamp <= last + p1;
+            w = (window ? 1 : 0) | ((payeeOk ? 1 : 0) << 1);
         }
+    }
+
+    /// @dev 电路判定 → (ok, 人类可读理由)；字符串与 v2 逐条对齐
+    function _verdict(
+        uint8 t, uint256 p1, uint256 amount, uint256 spent, uint256 last, uint256 count,
+        bool allow, bool ask
+    ) internal pure returns (bool ok, string memory reason) {
+        if (t == RULE_DAILY_CAP) {
+            if (allow) return (true, amount + spent <= p1 ? "within daily cap" : "over cap, human approved");
+            return (false, "daily cap exceeded");
+        }
+        if (t == RULE_SINGLE_MAX) return allow ? (true, "within single max") : (false, "single payment too large");
+        if (t == RULE_AGENT_ONLY) return allow ? (true, "payee holds Agent ID") : (false, "payee has no Agent ID");
+        if (t == RULE_GROWTH) {
+            if (allow) return (true, "within growing cap");
+            return ask ? (false, "growing cap exceeded") : (false, "growing cap exceeded");
+        }
+        if (t == RULE_DAILY_COUNT) return allow ? (true, "within daily count") : (false, "daily tx count reached");
+        if (t == RULE_MICRO_PASS) {
+            if (allow) return amount <= p1 ? (true, "micro payment, no approval") : (true, "human approved");
+            return (false, "needs human approval");
+        }
+        if (t == RULE_HIGH_LIMIT) {
+            if (allow) return (true, "within high limit");
+            if (ask) return (false, "over half limit, needs human");
+            return (false, "over high limit");
+        }
+        if (t == RULE_COOLDOWN) return allow ? (true, "cooldown satisfied") : (false, "cooldown not elapsed");
+        if (t == RULE_LOCKDOWN) return allow ? (true, "not locked") : (false, "lockdown active");
         if (t == RULE_DUAL_SIGN) {
-            if (amountCents * 2 <= p1) return (true, "within half, no second sig");
-            if (amountCents > p1) return (false, "over dual-sig ceiling");
-            if (approvals >= 2) return (true, "two approvals");
-            return (false, "needs two approvals");
+            if (allow) return amount * 2 <= p1 ? (true, "within half, no second sig") : (true, "two approvals");
+            if (ask) return (false, "needs two approvals");
+            return (false, "over dual-sig ceiling");
         }
         if (t == RULE_MULTISIG) {
-            if (amountCents <= p1) return (true, "within multisig ceiling");
-            if (approvals >= p2) return (true, "quorum reached");
+            if (allow) return amount <= p1 ? (true, "within multisig ceiling") : (true, "quorum reached");
             return (false, "quorum not reached");
         }
-        // RULE_DELEGATION：限时窗口（自上一笔起 p1 秒内可付；名单校验 S1）
-        if (lastPaymentAt == 0) return (false, "no delegation anchor");
-        if (block.timestamp <= uint256(lastPaymentAt) + p1) return (true, "within delegation window");
+        if (t == RULE_NAMED_PAYEE) revert("named payee handled in Solidity");
+        // RULE_DELEGATION
+        if (allow) return (true, "within delegation window");
+        if (last == 0) return (false, "no delegation anchor");
         return (false, "delegation window expired");
     }
 

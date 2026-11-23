@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {Script} from "forge-std/Script.sol";
+import {MockTapeProcessor} from "../test/mocks/MockTapeProcessor.sol";
 import {AgentPackCore} from "../src/AgentPackCore.sol";
 import {MockAgentIdRegistry} from "../test/AgentPackCore.t.sol";
 
