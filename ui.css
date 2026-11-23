@@ -956,3 +956,4 @@ kbd{display:inline-block;min-width:22px;padding:0 6px;border-radius:6px;border:1
 .hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
   filter:saturate(1.08)}
 .cg:hover .hero-img{filter:saturate(1.2) brightness(1.08)}
+.tabs a.tab{text-decoration:none}
