@@ -21,7 +21,7 @@ Binance Agent ID Hackathon · Season 0：
 ## 快速验证
 
 ```bash
-# 合约测试 58/58
+# 合约测试 61/61
 cd contracts && forge test
 
 # 本地 anvil 全旅程：领包 → 开包 → 流片 → 穿卡 → 入池 → 买包 → 邀请
@@ -50,3 +50,8 @@ faces/ · heroes/ · og/ · c/            ← 名人照片 / 英雄立绘 / OG �
 
 红线自查：无 token 发行 / 无赌场模式 / 无 owner 提款路径 / 概率与价格无 setter /
 卡池仅收自愿认领者 / 不按名字查钱包。
+
+## Demo
+
+- 提交视频：`demo/kaling-demo-90s.mp4`（70 秒，PIL 片头 + 产品实录 + 片尾）
+- 重生成：`python3 tools/record_demo.py && python3 tools/make_demo.py`
