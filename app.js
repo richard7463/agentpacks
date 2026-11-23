@@ -486,7 +486,7 @@ function switchTab(v){
   window.scrollTo({top:0,behavior:'instant'});
   if(G&&v!=='gate'){cancelAnimationFrame(G.raf);G=null;$('#gatePlay').hidden=true;$('#gateEnd').hidden=true;$('#gateSetup').hidden=false}
   renderAll();
-  if(v==='chain')renderChain();
+  if(v==='chain'||v==='gate')renderChain();
   if(v==='gate')renderGate();
 }
 function renderAll(){regenFree();
