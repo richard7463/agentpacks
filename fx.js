@@ -190,22 +190,6 @@ qa('.tab').forEach(t=>t.onclick=()=>switchTab(t.dataset.v));
 
 /* ───────────── 6 · 情境指针 + 磁吸主按钮 ───────────── */
 if(FINE&&!CALM){
-  const cur=document.createElement('div');cur.className='cursor';cur.innerHTML='<span></span>';document.body.appendChild(cur);
-  let x=innerWidth/2,y=innerHeight/2,cx=x,cy=y;
-  cur.style.opacity=0; // 首次移动前不可见：避免静止在屏幕中央的幽灵圈
-  addEventListener('pointermove',()=>{if(cur.style.opacity==='0')cur.style.opacity=1},{passive:true,once:true});
-  const sense=t=>{
-    const lab=t&&t.closest('.tear-zone')?'划开':t&&t.closest('#heroPackWrap,#bp')?'撕开':t&&t.closest('.slot:not(.done)')?'翻开':t&&t.closest('#cGrid .cg')?'查看':'';
-    cur.classList.toggle('label',!!lab);cur.querySelector('span').textContent=lab;
-    cur.classList.toggle('hover',!lab&&!!(t&&t.closest('button,a,.cg,.tpick,.packchip,.ch,.gslot')));
-  };
-  addEventListener('pointermove',e=>{x=e.clientX;y=e.clientY;sense(e.target.closest?e.target:null)},{passive:true});
-  addEventListener('scroll',()=>sense(document.elementFromPoint(x,y)),{passive:true});
-  addEventListener('pointerdown',()=>cur.classList.add('down'));
-  addEventListener('pointerup',()=>cur.classList.remove('down'));
-  document.addEventListener('pointerleave',()=>cur.style.opacity=0);
-  document.addEventListener('pointerenter',()=>cur.style.opacity=1);
-  const tick=()=>{cx+=(x-cx)*.2;cy+=(y-cy)*.2;cur.style.transform=`translate(${cx}px,${cy}px)`;requestAnimationFrame(tick)};tick();
 
   qa('.btn.primary.xl').forEach(b=>{
     b.addEventListener('pointermove',e=>{const r=b.getBoundingClientRect();

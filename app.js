@@ -182,19 +182,37 @@ async function renderShareCard(c){
   x.strokeStyle='rgba(242,193,78,.55)';x.lineWidth=3;x.strokeRect(6,6,588,828);
   return new Promise(ok=>cv.toBlob(ok,'image/png'));
 }
+function shareText(c){return '我在 Agent Packs 抽到了 '+cname(c)+' · '+RAR[c.r]+(c.star?' ★'+c.star:'')+' → https://agentid.cards'}
 async function shareCard(c){
-  const text='我在 Agent Packs 抽到了 '+cname(c)+' · '+RAR[c.r]+(c.star?' ★'+c.star:'')+' → https://agentid.cards';
+  const blob=await renderShareCard(c);
+  // 首选：系统分享面板（手机/Safari——照片直接进 X，所见即所发）
   try{
-    const blob=await renderShareCard(c);
     const file=new File([blob],'agentpacks-'+cname(c)+'.png',{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){
-      await navigator.share({files:[file],text});shareBonus();return
+      await navigator.share({files:[file],text:shareText(c)});shareBonus();return
     }
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-    a.download='agentpacks-'+cname(c)+'.png';a.click();  // 桌面：先存图
   }catch(e){}
-  window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(text),'_blank');
-  shareBonus();
+  // 桌面：页内分享面板——大图预览，直接拖进 X 发推框即可带图
+  showShareModal(c,URL.createObjectURL(blob));
+}
+function showShareModal(c,imgUrl){
+  let m=$('#shareModal');
+  if(!m){m=document.createElement('div');m.id='shareModal';document.body.appendChild(m)}
+  m.innerHTML=`<div class="sm-box">
+    <button class="ovl-x" id="smClose" aria-label="关闭">✕</button>
+    <b class="sm-t">晒到 X</b>
+    <img src="${imgUrl}" alt="${cname(c)} 分享卡">
+    <p class="sm-p">把这张图<b>直接拖进</b> X 的发推框，或先保存再上传——图会跟着推文一起发。</p>
+    <div class="row">
+      <a class="btn primary cut" target="_blank" rel="noopener"
+         href="https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText(c))}">打开 X</a>
+      <a class="btn ghost" href="${imgUrl}" download="agentpacks-${cname(c)}.png">保存图片</a>
+      <button class="btn ghost" id="smDone">发完了 · 领 +1 包</button>
+    </div>
+  </div>`;
+  m.classList.add('on');
+  $('#smClose').onclick=()=>m.classList.remove('on');
+  $('#smDone').onclick=()=>{m.classList.remove('on');shareBonus()};
 }
 function shareBonus(){ // 分享得包：每天 1 次（主网叙事=邀请链接，演示档即时到账）
   const t=today();
