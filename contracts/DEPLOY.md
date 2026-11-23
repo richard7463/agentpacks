@@ -6,7 +6,20 @@
 
 ---
 
-## 0. 已部署测试网（2026-11-23 · BSC Testnet 97）
+## 0. 已部署主网（2026-11-23 · BNB Smart Chain 56）
+
+| 合约 | 地址 | 说明 |
+|---|---|---|
+| 自建 Processor (circuits) | `0xAdfDB520db78C252382E4bCdf62692fAD453035a` | CPU Factory 创建，processor number **1496** |
+| Transistors (NAND token 0) | `0x250cF36a4A0a09948318B74f69bba51e0d317094` | creator = 部署钱包，NAND 收入归我们 |
+| AgentPackCore | `0xdc2dcE427379a048280Bb43AeC5E7A302B732650` | 构造已固化 `TAPE_PROCESSOR` |
+| GuardVault | `0x43AfFA20eAC55aAFFD8aB7B90729413d6aDCBc3A` | |
+
+定价：`mintPrice = 1,734,000` raw BEM = 0.01734 BEM/门 ≈ $0.167/门 → **平均 60 门 ≈ $10**；protocolFee 1e6 raw、TAPEOUT_FEE 2e14 wei、supplyCap 1e6。
+
+**主网实测**：`approve(0.1 BEM)` → `createCPU` → `mint(0,4)`（买 4 门 NAND）→ `processor.tapeout(t2网表,1,2)`（付 2e14 wei）→ `ownerOf(1)` = 部署钱包 → `eval(1,0x00)=0x00`；`minted` 从 0 变 4。说明官方工厂 processor 与 Core 的接口完全兼容。
+
+## 0b. 已部署测试网（2026-11-23 · BSC Testnet 97）
 
 | 合约 | 地址 | 说明 |
 |---|---|---|

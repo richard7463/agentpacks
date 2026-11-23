@@ -22,7 +22,7 @@
 |---|---|
 | 项目名称 | **卡灵战争（Agent Packs）** |
 | 官网 | https://agentid.cards |
-| 合约 | Core（测试网）：`0xdc2dcE427379a048280Bb43AeC5E7A302B732650`<br>Vault（测试网）：`0x43AfFA20eAC55aAFFD8aB7B90729413d6aDCBc3A`<br>主网：`[部署后回填]` |
+| 合约 | 主网 Core：`0xdc2dcE427379a048280Bb43AeC5E7A302B732650`<br>主网 Vault：`0x43AfFA20eAC55aAFFD8aB7B90729413d6aDCBc3A`<br>自建 Processor：`0xAdfDB520db78C252382E4bCdf62692fAD453035a`（#1496） |
 | 链 | BNB Smart Chain 56（测试网 97） |
 | 开源 | MIT，BscScan 已验证源码 |
 
@@ -110,7 +110,8 @@ forge script script/Deploy.s.sol:DeployMainnet \
 ## 6. 提交前 48 小时
 
 - [x] 测试网部署（Core/Vault/Mock registry+processor）+ 链上全流程实测
-- [ ] 主网部署 + BscScan 验证
+- [x] 主网部署（官方工厂自建 processor + Core + Vault）+ NAND 购买/流片/eval 实测
+- [ ] BscScan 源码验证（需 API key）
 - [ ] 处理器 `createCPU` + 12 条网表流片
 - [ ] 主网三笔实测（领包 / 买包 / GuardVault 付款）
 - [ ] 前端默认合约地址硬编码 + `?v=59`
