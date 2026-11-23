@@ -376,8 +376,9 @@ function cname(c){return c.kind===1?S.pool[c.ref].name:HOUSE[c.ref%12].n}
 function faceHTML(c){
   const n=cname(c);
   const f=FACES[n]||{mono:(n[0]||'?').toUpperCase(),tag:'.ai 身份',c:'#B79BFF',photo:''};
+  // <img> + onerror 自删：加载失败时首字母徽章自然兜底，绝不出现空黑卡
   return `<div class="art face-art">
-    <div class="face-photo" style="background-image:url('${f.photo}')"></div>
+    <img class="face-img" src="${f.photo}" alt="${n}" loading="lazy" onerror="this.remove()">
     <div class="face-mono" style="--fc:${f.c}">${f.mono}</div>
     <span class="face-tag">${f.tag}</span>
   </div>`;

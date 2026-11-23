@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent Packs · 诊断</title>
+<style>
+body{font:14px/1.8 ui-monospace,monospace;background:#0F0C24;color:#F2EFFF;padding:24px;max-width:640px;margin:0 auto}
+h1{font-size:18px}h2{font-size:14px;color:#F2C14E;margin-top:24px}
+.ok{color:#6CF2D6}.bad{color:#FF5C7A}
+img{width:72px;height:96px;object-fit:cover;margin:4px;display:inline-block;border:1px solid #333}
+img.dead{border:1px solid #FF5C7A}
+pre{background:#18143B;padding:10px;overflow:auto;font-size:12px}
+</style>
+</head>
+<body>
+<h1>Agent Packs 诊断</h1>
+<div id="sum">检测中…</div>
+<h2>1 · 脚本与卡池</h2>
+<pre id="s1"></pre>
+<h2>2 · 名人照片直连测试（你的浏览器 → 服务器）</h2>
+<div id="ph"></div>
+<pre id="s2"></pre>
+<h2>3 · 结论</h2>
+<pre id="s3"></pre>
+<script>
+const q=s=>document.querySelector(s);
+fetch('app.js?v=42').then(r=>r.text()).then(t=>{
+  q('#s1').textContent=
+    'app.js 大小: '+t.length+' 字节\n'+
+    'DEMO_NAMES 数量: '+(t.match(/DEMO_NAMES/g)||[]).length+' 处引用\n'+
+    '含 speed.ai(甲亢哥): '+(t.includes("'speed.ai'")?'是':'否')+'\n'+
+    '含 shareCard(晒卡): '+(t.includes('shareCard')?'是':'否');
+  q('#s1').className=t.includes("'speed.ai'")?'ok':'bad';
+}).catch(e=>q('#s1').textContent='app.js 拉取失败:'+e);
+
+const names=['cz','heyi','justin','musk','speed','taylor','jay'];
+let done=0,okN=0,t0=performance.now(),times=[];
+names.forEach(n=>{
+  const i=new Image(),d=document.createElement('div');
+  i.className='probing';const el=document.createElement('img');el.alt=n;
+  q('#ph').appendChild(el);
+  const st=performance.now();
+  i.onload=()=>{okN++;times.push(Math.round(performance.now()-st));el.src='faces/'+n+'.jpg';fin()};
+  i.onerror=()=>{el.classList.add('dead');fin()};
+  i.src='faces/'+n+'.jpg';
+});
+function fin(){done++;if(done<names.length)return;
+  q('#s2').textContent=names.length+' 张照片：成功 '+okN+' 张'+(times.length?('，耗时 '+times.join('/')+'ms'):'');
+  q('#s2').className=okN===names.length?'ok':'bad';
+  const v=okN===names.length?'照片链路正常——如果你游戏里还是看不到，那就是浏览器缓存：关掉标签页重开或无痕窗口。'
+    :'照片加载失败（'+(names.length-okN)+' 张）——你的网络到服务器 43.133.140.70 的图片传输有问题。\n根治：Cloudflare 面板 → agentid.cards → DNS → 把 A 记录的灰色云朵点成【橙色云朵】（开启代理/CDN），保存后 1 分钟再试。';
+  q('#s3').textContent=v;q('#s3').className=okN===names.length?'ok':'bad';
+  q('#sum').textContent=okN===names.length?'✅ 一切正常':'⚠ 照片链路有问题（见结论）';
+}
+</script>
+</body>
+</html>
