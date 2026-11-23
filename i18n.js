@@ -150,7 +150,7 @@
       const p = n.parentElement;
       if (!p || /^(SCRIPT|STYLE|NOSCRIPT)$/.test(p.tagName)) continue;
       const raw = n.nodeValue || '';
-      if (!/[\u4e00-\u9fff]/.test(raw)) continue;
+      if (lang === 'en' && !/[\u4e00-\u9fff]/.test(raw)) continue;
       if (lang === 'en') {
         if (!originals.has(n)) originals.set(n, raw);
         const out = tx(raw);
