@@ -834,43 +834,35 @@ function detail(id){
   let quote=null;
   async function autoCardQuote(){
     try{
-      if(!coreAddr())return cto.textContent='先在「实验室」保存 AgentPackCore 地址。';
-      let onchain=true;
-      try{await chainRead('ownerOf',[c.id])}catch(e){onchain=false}
-      if(!onchain){
-        cto.innerHTML='<b style="color:var(--red)">这是一张演示卡，链上不存在（#'+c.id+'）。</b><br>用「实验室 → ⑤ 公开流片」可直接流片，不需要卡。';
-        cc.disabled=true;return;
-      }
-      const [bemCost,gates]=await chainRead('tapeNandCost',[c.id]);
-      const [bnbCost]=await chainRead('tapeCost',[c.id]);
-      quote={bemCost,bnbCost,gates};
+      // 卡只是本地数据；价格永远按这张卡的规则走公开流片报价，不依赖卡是否上链
+      const rule=Number(ruleDerived(c).t);
+      const [bemCost,bnbCost,gates]=await (new ethers.Contract(pubAddr(),PUB_ABI,readProvider())).quote(rule);
+      quote={bemCost,bnbCost,gates,rule};
       const usd=(Number(bemCost)/1e8*9.61)+(Number(bnbCost)/1e18*560.67);
       const mp=$('#mTapePrice');if(mp)mp.textContent='≈ $'+usd.toFixed(2);
       cto.innerHTML='<b style="color:var(--gold)">≈ $'+usd.toFixed(2)+'</b> · '
         +ethers.utils.formatUnits(bemCost,8)+' BEM (NAND) + '
-        +ethers.utils.formatEther(bnbCost)+' BNB (tapeout) · '+gates.toString()+' 门';
+        +ethers.utils.formatEther(bnbCost)+' BNB (tapeout) · '+gates.toString()+' 门 · 规则 t'+rule+'（不需要卡）';
       cc.disabled=false;
     }catch(e){cto.textContent='价格读取失败：'+(e.reason||e.message||e)}
   }
   autoCardQuote();
   if(cc)cc.onclick=async()=>{
     try{
-      if(!quote)return toast('先查报价');
-      try{await chainRead('ownerOf',[c.id])}catch(e){return cto.innerHTML='<b style="color:var(--red)">这张卡链上不存在，请先买包揭示拿到链上卡。</b>'}
+      if(!quote)return toast('价格还没加载好');
       const sg=await vaultSigner();await ensureChain();
       const me=await sg.getAddress();
       const bem=new ethers.Contract(bemAddr(),BEM_ABI,sg);
-      const allowance=await bem.allowance(me,coreAddr());
+      const allowance=await bem.allowance(me,pubAddr());
       if(allowance.lt(quote.bemCost)){
-        cto.textContent='授权 '+ethers.utils.formatUnits(quote.bemCost,8)+' BEM 给 Core…';
-        const a=await bem.approve(coreAddr(),quote.bemCost);
-        await a.wait();
+        cto.textContent='授权 '+ethers.utils.formatUnits(quote.bemCost,8)+' BEM…';
+        const a=await bem.approve(pubAddr(),quote.bemCost);await a.wait();
       }
-      const tx=await new ethers.Contract(coreAddr(),CHAIN_ABI,sg).tapeOut(c.id,{value:quote.bnbCost});
-      cto.textContent='流片交易已发出 '+tx.hash.slice(0,12)+'… 等待确认';
-      await tx.wait();
-      const cid=await chainRead('cardCircuit',[c.id]);
-      cto.innerHTML='✅ 流片成功 · <a href="'+chainScan()+'/token/'+processorAddr()+'?a='+cid.toString()+'" target="_blank" style="color:var(--gold)">circuit #'+cid.toString()+' ↗</a> · 电路 NFT 可转售。';
+      const tx=await new ethers.Contract(pubAddr(),PUB_ABI,sg).tapeoutRaw(quote.rule,{value:quote.bnbCost});
+      cto.textContent='流片交易 '+tx.hash.slice(0,12)+'… 等待确认';
+      const rc=await tx.wait();
+      let cid='?';try{const ev=rc.events&&rc.events[0];cid=ev&&ev.args&&ev.args[2]}catch(e){}
+      cto.innerHTML='✅ 流片成功 · <a href="'+chainScan()+'/token/'+processorAddr()+'?a='+cid+'" target="_blank" style="color:var(--gold)">circuit #'+cid+' ↗</a> · NFT 已进钱包。';
       beep(880,.12);toast('真身 circuit NFT 已进钱包');
     }catch(e){cto.textContent='⛔ '+(e.reason||e.message||e)}
   };
