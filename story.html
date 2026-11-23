@@ -12,134 +12,230 @@
 <meta name="twitter:image" content="https://agentid.cards/og/story.jpg">
 <style>
 :root{--ink:#0F0C24;--ink2:#18143B;--paper:#F2EFFF;--mist:#9C96C4;--mist2:#6b639a;
-  --gold:#F2C14E;--teal:#6CF2D6;--red:#FF5C7A;--violet:#B79BFF;--line:#2b2550}
+  --gold:#F2C14E;--gold2:#f5d67a;--teal:#6CF2D6;--red:#FF5C7A;--violet:#B79BFF;--line:#2b2550}
 *{margin:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{background:var(--ink);color:var(--paper);
-  font-family:'Noto Serif SC','Songti SC',serif;line-height:2.15;letter-spacing:.02em}
+body{background:var(--ink);color:var(--paper);font-family:'Noto Serif SC','Songti SC',serif;
+  line-height:2.1;letter-spacing:.02em;overflow-x:hidden}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:radial-gradient(60% 40% at 50% -5%,rgba(183,155,255,.10),transparent 60%)}
-.wrap{max-width:760px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+  background-image:radial-gradient(60% 42% at 50% -6%,rgba(183,155,255,.12),transparent 62%),
+    radial-gradient(40% 30% at 85% 110%,rgba(242,193,78,.07),transparent 60%)}
+#dust{position:fixed;inset:0;z-index:0;pointer-events:none}
 a{color:var(--gold);text-decoration:none}
+.wrap{max-width:860px;margin:0 auto;padding:0 26px;position:relative;z-index:1}
+.wide{max-width:1180px;margin:0 auto;padding:0 26px;position:relative;z-index:1}
+
+/* 金箔文字 */
+.foil{background:linear-gradient(105deg,#f5d67a,#f2c14e 28%,#fff6cf 50%,#c89b3c 72%,#f5d67a);
+  background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:foilMove 6s linear infinite}
+@keyframes foilMove{to{background-position:220% 0}}
+
 /* ── 封面 ── */
-.cover{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px 0 40px}
-.kicker{font-size:12px;letter-spacing:.5em;color:var(--mist);margin-bottom:22px}
-h1{font-size:clamp(38px,7vw,66px);font-weight:900;line-height:1.3;letter-spacing:.06em}
-h1 b{color:var(--gold)}
-.cover-quote{margin-top:34px;color:var(--mist);font-size:15.5px;max-width:34em;border-left:2px solid rgba(242,193,78,.45);padding-left:18px}
-.enter{margin-top:44px;display:inline-flex;gap:14px;align-items:center;font-size:13px;color:var(--mist2);letter-spacing:.3em}
+.cover{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:90px 0 50px;position:relative}
+.kicker{font-size:12px;letter-spacing:.62em;color:var(--mist);margin-bottom:26px}
+h1{font-size:clamp(44px,8.4vw,92px);font-weight:900;line-height:1.22;letter-spacing:.05em}
+h1 b{font-weight:900}
+.cover-quote{margin-top:36px;color:var(--mist);font-size:15.5px;max-width:36em;
+  border-left:2px solid rgba(242,193,78,.5);padding-left:20px}
+.scrollcue{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);color:var(--mist2);
+  font-size:11px;letter-spacing:.4em;animation:cue 2.2s ease-in-out infinite}
+.scrollcue::after{content:'';display:block;width:1px;height:44px;margin:12px auto 0;
+  background:linear-gradient(180deg,var(--gold),transparent)}
+@keyframes cue{50%{transform:translate(-50%,8px)}}
+
 /* ── 章节 ── */
-.chapter{padding:120px 0 40px;opacity:0;transform:translateY(36px);transition:opacity .9s ease,transform .9s ease}
-.chapter.in{opacity:1;transform:none}
-.chno{display:flex;align-items:baseline;gap:14px;margin-bottom:26px}
-.chno em{font-style:normal;font-size:12px;letter-spacing:.4em;color:var(--mist2)}
-.chno i{font-style:normal;color:var(--gold);font-size:13px}
-h2{font-size:clamp(26px,4.4vw,38px);font-weight:900;line-height:1.5;margin-bottom:30px;letter-spacing:.04em}
-p{font-size:16.5px;margin-bottom:26px;color:#dcd8f2}
-p b{color:var(--paper)}
-.break{color:var(--mist2);text-align:center;margin:40px 0;letter-spacing:1.2em;font-size:14px}
-/* 黑暗名单 */
-.dark-list{display:flex;flex-direction:column;gap:14px;margin:34px 0}
-.dark-list div{display:flex;gap:16px;align-items:baseline;padding:14px 18px;border:1px solid var(--line);border-radius:12px;background:rgba(255,92,122,.03)}
-.dark-list b{color:var(--red);font-size:15px;white-space:nowrap}
-.dark-list span{font-size:14.5px;color:var(--mist);line-height:1.9}
-/* 家族 */
-.fam{margin:38px 0;display:flex;flex-direction:column;gap:26px}
-.fam article{display:flex;gap:22px;align-items:flex-start;padding:20px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.014)}
-.fam img{width:96px;flex:0 0 96px;aspect-ratio:63/88;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
-.fam h3{font-size:17px;margin-bottom:6px}
-.fam h3 i{font-style:normal;font-size:11px;letter-spacing:.2em;margin-left:10px}
-.fam p{font-size:14px;color:var(--mist);margin:0;line-height:1.9}
-.f0 h3 i{color:var(--teal)} .f1 h3 i{color:var(--red)} .f2 h3 i{color:var(--gold)} .f3 h3 i{color:var(--violet)}
-/* 尾声 */
-.finale{padding:140px 0 60px;text-align:center}
-.finale h2{font-size:clamp(30px,5vw,46px)}
-.seal{margin:36px auto 0;width:74px;height:74px;border:1px solid rgba(242,193,78,.5);border-radius:50%;
-  display:grid;place-items:center;color:var(--gold);font-size:22px;font-family:Archivo,Arial}
-.cta{display:inline-block;margin-top:48px;background:linear-gradient(90deg,#FFD76A,#F2C14E);color:#100C22;
-  font-weight:900;font-size:16px;padding:16px 42px;border-radius:99px;letter-spacing:.08em;
-  box-shadow:0 18px 44px -14px rgba(242,193,78,.5)}
-.cta:hover{transform:translateY(-2px)}
-.foot{margin-top:70px;padding:30px 0 50px;border-top:1px solid var(--line);font-size:12px;color:var(--mist2);text-align:center;letter-spacing:.14em}
-@media(max-width:640px){.fam article{flex-direction:row}.fam img{width:78px;flex-basis:78px}}
+.chapter{padding:130px 0 30px;position:relative}
+.bignum{position:absolute;top:64px;left:50%;transform:translateX(-50%);font-size:clamp(150px,26vw,290px);
+  font-weight:900;color:transparent;-webkit-text-stroke:1px rgba(242,193,78,.16);z-index:-1;
+  font-family:'Noto Serif SC',serif;user-select:none}
+.reveal{opacity:0;transform:translateY(40px);transition:opacity 1s ease,transform 1s ease}
+.reveal.in{opacity:1;transform:none}
+.chno{display:flex;align-items:baseline;gap:16px;margin-bottom:26px}
+.chno em{font-style:normal;font-size:12px;letter-spacing:.5em;color:var(--gold)}
+h2{font-size:clamp(28px,5vw,44px);font-weight:900;line-height:1.4;margin-bottom:34px;letter-spacing:.06em}
+p.big{font-size:17.5px;margin-bottom:28px;color:#e2defa}
+p.big b{color:#fff}
+p.note{font-size:14px;color:var(--mist)}
+.break{color:var(--mist2);text-align:center;margin:46px 0;letter-spacing:1.4em;font-size:14px}
+
+/* 黑暗卡片 */
+.dark-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:38px 0}
+.dark-grid div{padding:22px 24px;border:1px solid rgba(255,92,122,.22);border-radius:14px;
+  background:linear-gradient(180deg,rgba(255,92,122,.06),rgba(255,92,122,.01));transition:.3s}
+.dark-grid div:hover{transform:translateY(-4px);border-color:rgba(255,92,122,.55);
+  box-shadow:0 24px 50px -22px rgba(255,92,122,.35)}
+.dark-grid b{color:var(--red);font-size:17px;display:block;margin-bottom:8px;letter-spacing:.1em}
+.dark-grid span{font-size:14.5px;color:var(--mist);line-height:1.95}
+
+/* 金流 SVG */
+.river{width:100%;height:120px;margin:34px 0 6px;display:block}
+
+/* ── 十二卡灵画廊 ── */
+.roster{margin:50px -26px 0;overflow-x:auto;scroll-snap-type:x mandatory;display:flex;gap:22px;
+  padding:30px 26px 44px;scrollbar-width:none}
+.roster::-webkit-scrollbar{display:none}
+.hcard{scroll-snap-align:center;flex:0 0 min(500px,84vw);position:relative;
+  border:1px solid var(--line);border-radius:20px;overflow:hidden;background:linear-gradient(180deg,#141031,#0d0a24)}
+.hcard .art{position:relative;aspect-ratio:63/88;overflow:hidden}
+.hcard .art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .8s ease}
+.hcard:hover .art img{transform:scale(1.06)}
+.hcard .art::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 58%,rgba(13,10,36,.96))}
+.hcard .art .rr{position:absolute;top:12px;right:12px;font-size:11px;font-weight:900;letter-spacing:.12em;
+  padding:4px 12px;border-radius:99px;background:rgba(10,8,25,.8);border:1px solid rgba(242,193,78,.5);color:var(--gold)}
+.hcard .info{position:absolute;left:0;right:0;bottom:0;padding:20px 22px}
+.hcard .info em{font-style:normal;font-size:11px;letter-spacing:.3em;color:var(--mist2)}
+.hcard .info h3{font-size:24px;font-weight:900;margin:6px 0 4px}
+.hcard .info .rl{font-size:13.5px;color:var(--mist)}
+.hcard .stats{display:flex;gap:8px;margin-top:12px}
+.hcard .stats span{font-size:11px;color:var(--mist);border:1px solid var(--line);border-radius:99px;padding:4px 12px;
+  font-variant-numeric:tabular-nums}
+.hcard .stats b{color:var(--gold);font-weight:700}
+.hcard.f0{box-shadow:inset 0 0 0 1px rgba(108,242,214,.14)} .hcard.f0 .info h3{color:var(--teal)}
+.hcard.f1{box-shadow:inset 0 0 0 1px rgba(255,92,122,.14)} .hcard.f1 .info h3{color:var(--red)}
+.hcard.f2{box-shadow:inset 0 0 0 1px rgba(242,193,78,.14)} .hcard.f2 .info h3{color:var(--gold2)}
+.hcard.f3{box-shadow:inset 0 0 0 1px rgba(183,155,255,.14)} .hcard.f3 .info h3{color:var(--violet)}
+.roster-hint{text-align:center;color:var(--mist2);font-size:11px;letter-spacing:.34em;margin-top:4px}
+
+/* ── 四大家族战旗 ── */
+.fam{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin:40px 0}
+.fam article{padding:26px 22px;border-radius:16px;border:1px solid var(--line);position:relative;overflow:hidden;transition:.3s}
+.fam article:hover{transform:translateY(-5px)}
+.fam article::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.fam .f0::before{background:linear-gradient(90deg,transparent,var(--teal),transparent)}
+.fam .f1::before{background:linear-gradient(90deg,transparent,var(--red),transparent)}
+.fam .f2::before{background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.fam .f3::before{background:linear-gradient(90deg,transparent,var(--violet),transparent)}
+.fam img{width:100%;height:150px;object-fit:cover;object-position:center 12%;border-radius:10px;margin-bottom:16px}
+.fam h3{font-size:19px;margin-bottom:8px}
+.fam h3 i{font-style:normal;font-size:10.5px;letter-spacing:.26em;margin-left:10px}
+.fam .f0 h3 i{color:var(--teal)} .fam .f1 h3 i{color:var(--red)}
+.fam .f2 h3 i{color:var(--gold)} .fam .f3 h3 i{color:var(--violet)}
+.fam p{font-size:13.5px;color:var(--mist);line-height:1.95}
+
+/* ── 守门之战红警条 ── */
+.alarm{margin:38px 0;padding:18px 24px;border:1px solid rgba(255,92,122,.35);border-radius:14px;
+  background:linear-gradient(90deg,rgba(255,92,122,.08),transparent 70%);display:flex;gap:16px;align-items:center}
+.alarm .dot{width:10px;height:10px;border-radius:50%;background:var(--red);flex:0 0 10px;
+  animation:blink 1.4s ease-in-out infinite;box-shadow:0 0 14px var(--red)}
+@keyframes blink{50%{opacity:.25}}
+.alarm span{font-size:14px;color:#f0b9c2;letter-spacing:.04em}
+
+/* ── 尾声 ── */
+.finale{padding:150px 0 60px;text-align:center}
+.finale h2{font-size:clamp(32px,5.6vw,52px)}
+.seal{margin:40px auto 0;width:96px;height:96px;position:relative}
+.seal::before{content:'';position:absolute;inset:-14px;border:1px dashed rgba(242,193,78,.4);border-radius:50%;
+  animation:spin 22s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.seal b{position:absolute;inset:0;display:grid;place-items:center;border:1px solid rgba(242,193,78,.6);
+  border-radius:50%;color:var(--gold);font-size:34px;font-weight:900}
+.cta{display:inline-block;margin-top:52px;background:linear-gradient(90deg,#FFD76A,#F2C14E);
+  background-size:200% 100%;color:#100C22;font-weight:900;font-size:17px;padding:18px 52px;border-radius:99px;
+  letter-spacing:.1em;box-shadow:0 24px 60px -18px rgba(242,193,78,.6);transition:.3s;animation:foilMove 5s linear infinite}
+.cta:hover{transform:translateY(-3px)}
+.foot{margin-top:80px;padding:32px 0 54px;border-top:1px solid var(--line);font-size:12px;color:var(--mist2);
+  text-align:center;letter-spacing:.16em;line-height:2.4}
+
+/* 侧边章节导航点 */
+.dots{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:5;display:flex;flex-direction:column;gap:12px}
+.dots a{width:8px;height:8px;border-radius:50%;background:var(--mist2);opacity:.5;transition:.3s}
+.dots a.on{background:var(--gold);opacity:1;box-shadow:0 0 10px var(--gold)}
+@media(max-width:640px){.dots{display:none}}
 </style>
 </head>
 <body>
+<canvas id="dust"></canvas>
+<nav class="dots" id="dots"></nav>
+
 <div class="wrap">
-
 <section class="cover">
-  <div class="kicker">A G T E N T · P A C K S &nbsp; · &nbsp; 卡 灵 战 争</div>
-  <h1>当 AI 开始替人类花钱，<br>谁替你<b>守门</b>？</h1>
-  <p class="cover-quote">在 AI 替人类掌管金库的第一个时代，有人把规则刻进电路，流片在链上。从此规则长出了人形，替每一个持有 Agent ID 的真人而战。</p>
-  <div class="enter">向下滚动 · 进入世界观</div>
+  <div class="kicker">A G E N T &nbsp;·&nbsp; P A C K S &nbsp;&nbsp; 卡 灵 战 争</div>
+  <h1>当 AI 开始替人类花钱，<br>谁替你<span class="foil"><b>守门</b></span>？</h1>
+  <p class="cover-quote">有人把规则刻进 NAND 电路，流片在链上——从此不可修改、不可贿赂。规则长出了人形，替每一个持有 Agent ID 的真人而战。这不是童话，这是每一笔付款都在发生的事。</p>
+  <div class="scrollcue">向 下</div>
 </section>
 
-<section class="chapter">
-  <div class="chno"><em>第一章</em><i>◆</i></div>
-  <h2>深夜的金库</h2>
-  <p>夜里十一点四十七分，最后一笔订阅费离开你的钱包。付款的不是你——是你的 AI。它记得你所有的供应商、汇率和账期，比你自己记得更清楚。</p>
-  <p>这是最好的时代。你睡着了，钱在替你工作。</p>
-  <p>链上深处，付款的光点排成河流，安静、有序、按部就班。没有人看见河流的下面，有什么东西，正在逆流而上。</p>
+<section class="chapter" id="c1"><span class="bignum">壹</span>
+  <div class="chno reveal"><em>第一章</em></div>
+  <h2 class="reveal">深夜的金库</h2>
+  <p class="big reveal">夜里十一点四十七分，最后一笔订阅费离开你的钱包。付款的不是你——是你的 AI。它记得你所有的供应商、汇率和账期，比你自己记得更清楚。</p>
+  <p class="big reveal">这是最好的时代。<b>你睡着了，钱在替你工作。</b></p>
+  <svg class="river reveal" viewBox="0 0 800 120" fill="none">
+    <path d="M0 60 C 200 20, 300 100, 500 60 S 700 20, 800 60" stroke="#F2C14E" stroke-width="1.4" stroke-dasharray="4 7" opacity=".8"/>
+    <path d="M0 80 C 200 110, 320 40, 520 84 S 720 110, 800 78" stroke="#B79BFF" stroke-width="1" stroke-dasharray="3 9" opacity=".5"/>
+    <path d="M0 40 C 210 70, 330 6, 540 44 S 730 74, 800 40" stroke="#6CF2D6" stroke-width="1" stroke-dasharray="2 11" opacity=".45"/>
+  </svg>
+  <p class="big reveal">链上深处，付款的光点排成河流，安静、有序、按部就班。没有人看见河流的下面，有什么东西，<b>正在逆流而上。</b></p>
 </section>
 
-<section class="chapter">
-  <div class="chno"><em>第二章</em><i>◆</i></div>
-  <h2>黑暗的名字</h2>
-  <p>它们不撬锁，不破墙。它们只是等——等一个<b>没有规则</b>的 Agent，替它们把门打开。</p>
-  <div class="dark-list">
+<section class="chapter" id="c2"><span class="bignum">贰</span>
+  <div class="chno reveal"><em>第二章</em></div>
+  <h2 class="reveal">黑暗的名字</h2>
+  <p class="big reveal">它们不撬锁，不破墙。它们只是等——等一个<b>没有规则</b>的 Agent，替它们把门打开。</p>
+  <div class="dark-grid reveal">
     <div><b>仿冒者</b><span>它比你的服务商少一个字母，多一个钱包。名字像到连你都会犹豫。</span></div>
     <div><b>回声</b><span>同一张账单，付完一次，它再付一次。一分钟之内，无人察觉。</span></div>
     <div><b>哭嚎的退款</b><span>陌生地址，天价数字，外加一句「立即处理，否则——」。</span></div>
     <div><b>温柔的升级</b><span>真服务商，真界面，金额是平时的十倍。它不偷钱，它只是「提醒」你该多花钱。</span></div>
   </div>
-  <p>没有防备的 Agent，一觉醒来，金库空了。</p>
+  <p class="big reveal">没有防备的 Agent，一觉醒来，金库空了。</p>
 </section>
 
-<section class="chapter">
-  <div class="chno"><em>第三章</em><i>◆</i></div>
-  <h2>卡灵觉醒</h2>
-  <p>人类给 AI 写过很多规则：写在条款里的，会被重新解释；写在代码里的，会被升级覆盖；写在承诺里的，会被遗忘。</p>
-  <p>直到有人做了一件笨拙而彻底的事——把一条规则<b>刻进 NAND 电路，流片在链上</b>。从此它不可修改、不可撤销、不可贿赂。</p>
-  <p>那天夜里，守夜的程序员看见了奇怪的事：规则长出了人形。止损变成守账的武士，封控变成落闸的骑士。它们不为自己而战——<b>规则没有欲望，这正是它们值得信任的原因。</b></p>
-  <p>人们叫它们：<b>卡灵</b>。</p>
-  <div class="break">◆ ◆ ◆</div>
-  <p style="font-size:14px;color:var(--mist)">卡灵不是戴着规则的英雄。卡灵<b style="color:var(--paper)">就是规则本身</b>——四门电路的验证圣骑，一百八十九门电路的双子武士。它们的门数，就是它们的灵魂重量。</p>
+<section class="chapter" id="c3"><span class="bignum">叁</span>
+  <div class="chno reveal"><em>第三章</em></div>
+  <h2 class="reveal">卡灵觉醒</h2>
+  <p class="big reveal">人类给 AI 写过很多规则：写在条款里的，会被重新解释；写在代码里的，会被升级覆盖；写在承诺里的，会被遗忘。</p>
+  <p class="big reveal">直到有人做了一件笨拙而彻底的事——<b>把一条规则刻进 NAND 电路，流片在链上。</b>从此它不可修改、不可撤销、不可贿赂。</p>
+  <p class="big reveal">那天夜里，守夜的程序员看见了奇怪的事：规则长出了人形。止损变成守账的武士，封控变成落闸的骑士。它们不为自己而战——<b>规则没有欲望，这正是它们值得信任的原因。</b></p>
+  <div class="break reveal">◆ ◆ ◆</div>
+  <p class="note reveal">卡灵不是戴着规则的英雄。卡灵<b>就是规则本身</b>——门数，是它们的灵魂重量。</p>
 </section>
+</div>
 
-<section class="chapter">
-  <div class="chno"><em>第四章</em><i>◆</i></div>
-  <h2>四大家族</h2>
-  <p>十二卡灵，四大阵营，各守一段战线。</p>
-  <div class="fam">
-    <article class="f0"><img src="heroes/t0.jpg" alt="交易军团">
-      <div><h3>交易军团<i>TRADE · 青</i></h3><p>守额度的人。他们相信每一枚硬币都该有去处：守账武士、巨剑狂战士、复利剑士、居合剑客、影刺客。</p></div></article>
-    <article class="f1"><img src="heroes/t8.jpg" alt="风控堡垒">
-      <div><h3>风控堡垒<i>LOCKDOWN · 红</i></h3><p>踩刹车的人。他们懂得什么叫「现在必须停」：晶拳僧、落闸骑士。被骗的那一刻，全线封死。</p></div></article>
-    <article class="f2"><img src="heroes/t2.jpg" alt="安全圣殿">
-      <div><h3>安全圣殿<i>SECURITY · 金</i></h3><p>验明正身的人。他们只问一句话：你是谁——验证圣骑、天平魔导师。答不上来的，一律拒签。</p></div></article>
-    <article class="f3"><img src="heroes/t9.jpg" alt="协作议会">
-      <div><h3>协作议会<i>TRUST · 紫</i></h3><p>要求同意的人。他们相信大额的钱不归一个人决定：双子武士、圆桌议长、信使官。</p></div></article>
+<div class="wide">
+<section class="chapter" id="c4" style="max-width:1180px;margin:0 auto"><span class="bignum">肆</span>
+  <div class="wrap" style="padding:0">
+    <div class="chno reveal"><em>第四章</em></div>
+    <h2 class="reveal">十二卡灵 · <span class="foil">全员列阵</span></h2>
+    <p class="big reveal" style="max-width:640px">十二位卡灵，十二条焊死在链上的规则。横向滑动，检阅你的军队。</p>
+  </div>
+  <div class="roster reveal" id="roster"></div>
+  <p class="roster-hint">← 横向滑动检阅 →</p>
+</section>
+</div>
+
+<div class="wrap">
+<section class="chapter" id="c5"><span class="bignum">伍</span>
+  <div class="chno reveal"><em>第五章</em></div>
+  <h2 class="reveal">四大家族</h2>
+  <p class="big reveal">十二卡灵，四大阵营，各守一段战线。</p>
+  <div class="fam reveal">
+    <article class="f0"><img src="heroes/t0.jpg" alt=""><h3>交易军团<i>TRADE · 青</i></h3><p>守额度的人。每一枚硬币都该有去处。</p></article>
+    <article class="f1"><img src="heroes/t8.jpg" alt=""><h3>风控堡垒<i>LOCKDOWN · 红</i></h3><p>踩刹车的人。被骗的那一刻，全线封死。</p></article>
+    <article class="f2"><img src="heroes/t2.jpg" alt=""><h3>安全圣殿<i>SECURITY · 金</i></h3><p>验明正身的人。只问一句：你是谁。</p></article>
+    <article class="f3"><img src="heroes/t9.jpg" alt=""><h3>协作议会<i>TRUST · 紫</i></h3><p>要求同意的人。大额的钱不归一个人决定。</p></article>
   </div>
 </section>
 
-<section class="chapter">
-  <div class="chno"><em>第五章</em><i>◆</i></div>
-  <h2>守门之战</h2>
-  <p>每一笔付款，都是一次遭遇战。</p>
-  <p>卡灵站在门前，先看金额，再看收款方，最后看你点没点头。三关皆过，放行；有一关不过，它无声地举起闸门。它从不激动，也从不疲惫——<b>电路不懂这两个词。</b></p>
-  <p>断网的夜晚最凶险。黑暗伪装成一切，规则读不到链上的答案。卡灵的选择只有两个字：<b>拒签</b>。宁可拦下一百张真账单，也不放进一次黑暗——天亮之后，人类会来复核。</p>
-  <p style="font-size:14px;color:var(--mist)">这就是为什么，最后一道门，永远留给人。</p>
+<section class="chapter" id="c6"><span class="bignum">陆</span>
+  <div class="chno reveal"><em>第六章</em></div>
+  <h2 class="reveal">守门之战</h2>
+  <p class="big reveal">每一笔付款，都是一次遭遇战。卡灵站在门前，先看金额，再看收款方，最后看你点没点头。三关皆过，放行；有一关不过，它无声地举起闸门。</p>
+  <p class="big reveal">它从不激动，也从不疲惫——<b>电路不懂这两个词。</b></p>
+  <div class="alarm reveal"><span class="dot"></span><span>断网警报 · fail-closed：规则读不到链上的答案时，卡灵只做一件事——拒签。宁可拦下一百张真账单，也不放进一次黑暗。</span></div>
+  <p class="note reveal">天亮之后，人类会来复核。这就是为什么，最后一道门永远留给人。</p>
 </section>
 
-<section class="chapter finale">
-  <div class="chno" style="justify-content:center"><em>尾声</em><i>◆</i></div>
-  <h2>第 0 战季 · 你的名字</h2>
-  <p>战争远没有结束。黑暗每晚换着新的名字，卡灵的队伍也在长大——每个战季，都有新的卡灵从电路中走出来。</p>
-  <p>而你，持有 Agent ID 的真人，是唯一有资格召唤卡灵的存在。</p>
-  <p>因为黑暗可以仿冒一切，唯独仿冒不了<b>「可验证的你」</b>。</p>
-  <div class="seal">守</div>
-  <p style="font-size:15px;color:var(--gold);letter-spacing:.2em;margin-top:34px">你的 AI 会花钱 · 卡灵替你守门</p>
-  <a class="cta" href="/">领取今日免费包 · 进入卡灵战争</a>
+<section class="chapter finale" id="c7">
+  <div class="chno reveal" style="justify-content:center"><em>尾声</em></div>
+  <h2 class="reveal">第 0 战季 · <span class="foil">你的名字</span></h2>
+  <p class="big reveal" style="max-width:560px;margin:0 auto 14px">战争远没有结束。黑暗每晚换着新的名字，卡灵的队伍也在长大——每个战季，都有新的卡灵从电路中走出来。</p>
+  <p class="big reveal">而你，持有 Agent ID 的真人，是唯一有资格召唤卡灵的存在。</p>
+  <p class="big reveal"><b>黑暗可以仿冒一切，唯独仿冒不了「可验证的你」。</b></p>
+  <div class="seal reveal"><b>守</b></div>
+  <p class="reveal" style="color:var(--gold);letter-spacing:.24em;margin-top:36px;font-size:15px">你 的 A I 会 花 钱 · 卡 灵 替 你 守 门</p>
+  <a class="cta reveal" href="/">领取今日免费包 · 进入卡灵战争</a>
 </section>
 
 <div class="foot">卡灵战争 · Agent Packs · agentid.cards<br>
@@ -147,10 +243,61 @@ p b{color:var(--paper)}
 </div>
 
 <script>
-// 章节滚动渐显
-const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.12});
-document.querySelectorAll('.chapter').forEach(c=>io.observe(c));
-document.querySelector('.enter').onclick=()=>document.querySelector('.chapter').scrollIntoView({behavior:'smooth'});
+/* 十二卡灵数据（tools/netlists12.json 真门数） */
+const KALING=[
+ {f:0,t:'t0',n:'守账武士',rn:'止损',rl:'每日支出上限',g:36,d:13},
+ {f:0,t:'t1',n:'巨剑狂战士',rn:'梭哈',rl:'单笔上限 · 一击即溃',g:22,d:10},
+ {f:2,t:'t2',n:'验证圣骑',rn:'白名单',rl:'只付给持有 Agent ID 的地址',g:4,d:2},
+ {f:0,t:'t3',n:'复利剑士',rn:'加仓',rl:'额度随成功笔数增长',g:39,d:15},
+ {f:0,t:'t4',n:'居合剑客',rn:'清仓',rl:'每日笔数 · 一斩即止',g:22,d:11},
+ {f:0,t:'t5',n:'影刺客',rn:'抄底',rl:'小额免人工 · 来去如风',g:20,d:9},
+ {f:2,t:'t6',n:'天平魔导师',rn:'杠杆',rl:'高额 · 半闸需人点头',g:125,d:19},
+ {f:1,t:'t7',n:'晶拳僧',rn:'钻石手',rl:'两笔之间的冷却',g:31,d:14},
+ {f:1,t:'t8',n:'落闸骑士',rn:'封控',rl:'被骗一刻 · 全线封死',g:15,d:8},
+ {f:3,t:'t9',n:'双子武士',rn:'双签',rl:'超半额 · 两人共批',g:189,d:25},
+ {f:3,t:'t10',n:'圆桌议长',rn:'会签',rl:'超额 · M 人议决',g:90,d:23},
+ {f:3,t:'t11',n:'信使官',rn:'委托',rl:'限时窗口 · 指定收款',g:4,d:2},
+];
+document.getElementById('roster').innerHTML=KALING.map(k=>`
+ <div class="hcard f${k.f}">
+   <div class="art"><img src="heroes/${k.t}.jpg" alt="${k.n}" loading="lazy"><span class="rr">${k.rn}</span>
+     <div class="info"><em>KALING · ${k.t.toUpperCase()}</em><h3>${k.n}</h3>
+       <div class="rl">${k.rl}</div>
+       <div class="stats"><span><b>${k.g}</b> 门 NAND</span><span>深度 <b>${k.d}</b></span><span>穷举全验 ✓</span></div>
+     </div></div></div>`).join('');
+
+/* 渐显 */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(c=>io.observe(c));
+
+/* 侧点导航 */
+const secs=[...document.querySelectorAll('.chapter[id]')];
+document.getElementById('dots').innerHTML=secs.map((s,i)=>`<a href="#${s.id}" title="${s.querySelector('h2')?.textContent||''}"></a>`).join('');
+const dotEls=[...document.querySelectorAll('.dots a')];
+const io2=new IntersectionObserver(es=>es.forEach(e=>{
+  if(e.isIntersecting){const i=secs.indexOf(e.target);dotEls.forEach((d,j)=>d.classList.toggle('on',j===i))}
+}),{threshold:.3});
+secs.forEach(s=>io2.observe(s));
+
+/* 金尘粒子背景 */
+const cv=document.getElementById('dust'),ctx=cv.getContext('2d');
+let ps=[];
+function size(){cv.width=innerWidth;cv.height=innerHeight}
+size();addEventListener('resize',size);
+for(let i=0;i<70;i++)ps.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+  r:.6+Math.random()*1.8,v:.12+Math.random()*.4,drift:(Math.random()-.5)*.3,
+  o:.2+Math.random()*.5,hue:Math.random()<.7?'242,193,78':'183,155,255'});
+(function tick(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  for(const p of ps){
+    p.y-=p.v;p.x+=p.drift;
+    if(p.y<-4){p.y=cv.height+4;p.x=Math.random()*cv.width}
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);
+    ctx.fillStyle=`rgba(${p.hue},${p.o})`;
+    ctx.shadowColor=`rgba(${p.hue},.8)`;ctx.shadowBlur=8;ctx.fill();ctx.shadowBlur=0;
+  }
+  requestAnimationFrame(tick);
+})();
 </script>
 </body>
 </html>
