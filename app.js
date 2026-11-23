@@ -173,7 +173,19 @@ async function renderShareCard(c){
   x.strokeStyle='rgba(242,193,78,.55)';x.lineWidth=3;x.strokeRect(6,6,588,828);
   return new Promise(ok=>cv.toBlob(ok,'image/png'));
 }
-function shareURL(c){return 'https://agentid.cards/c/'+cname(c).replace('.ai','')+'?r='+encodeURIComponent(RAR[c.r]+(c.star?'★'+c.star:''))+'&id='+c.id}
+/* ────────── 邀请（链上）：分享链接带 ?ref=0x… ，受邀人连钱包后写进合约 ────────── */
+function saveRef(){
+  const r=new URLSearchParams(location.search).get('ref');
+  if(/^0x[0-9a-fA-F]{40}$/.test(r||'')){localStorage.setItem('ap_ref',r);return r}
+  return localStorage.getItem('ap_ref')||'';
+}
+let refAddr=saveRef();
+let chainHeld=false;
+function shareURL(c){
+  let u='https://agentid.cards/c/'+cname(c).replace('.ai','')+'?r='+encodeURIComponent(RAR[c.r]+(c.star?'★'+c.star:''))+'&id='+c.id;
+  if(chainAcc&&/^0x[0-9a-fA-F]{40}$/.test(chainAcc))u+='&ref='+chainAcc; // 受邀人开满 15 包 → 双方各得 1 包（链上）
+  return u;
+}
 const RAR_CN=['普通','进阶','稀有','超稀有','史诗','传说','神话'];
 function shareText(c){
   // 关键：卡名不带 .ai 后缀（.ai 是真实 TLD，X 会链接化）；稀有度用中文（UC 看不懂）
@@ -234,10 +246,12 @@ function showShareModal(c,imgUrl){
   $('#smClose').onclick=()=>m.classList.remove('on');
   $('#smDone').onclick=()=>{m.classList.remove('on');shareBonus()};
 }
-function shareBonus(){ // 分享得包：每天 1 次（主网叙事=邀请链接，演示档即时到账）
+function shareBonus(){ // 分享得包：演示档每天 1 次（本地，不可上链）；真实奖励走链上 invite()
   const t=today();
-  if(S.shareDay===t){toast('今天的分享奖励已领过啦');return}
-  S.shareDay=t;S.packs.push(1);save();beep(660,.1);toast('分享得包 +1（每天一次）');renderAll();
+  if(S.shareDay===t){toast('今天的演示分享包已领过啦');return}
+  S.shareDay=t;S.packs.push(1);save();beep(660,.1);
+  toast(chainHeld?'演示包 +1（本地）· 邀请关系已写入链上，对方开满 15 包双方各得 1 包':'演示包 +1（本地）· 持 .ai 连钱包分享可拿链上邀请奖励');
+  renderAll();
 }
 $('#bShareX')&&($('#bShareX').onclick=null);
 
@@ -1181,7 +1195,17 @@ function renderChain(){
     try{chainAcc=(await window.ethereum.request({method:'eth_requestAccounts'}))[0];
       await ensureChain();
       const held=await chainRead('isAgentIdHolder',[chainAcc]);
+      chainHeld=held;
       st('● 已连接 <span class="mono">'+chainAcc+'</span><br>Agent ID 持有：<b style="color:'+(held?'var(--teal)':'var(--red)')+'">'+(held?'✓ 持有 .ai':'✗ 未持有')+'</b>'+(held?'':' —— 请先在 Binance App 领取 Agent ID'),held?'ok':'bad');
+      // 持 .ai 的受邀人：把邀请关系写进合约，开满 15 包后双方各得 1 包（链上，不依赖 localStorage）
+      if(held&&refAddr&&refAddr.toLowerCase()!==chainAcc.toLowerCase()&&localStorage.getItem('ap_refdone')!=='1'){
+        try{
+          st('● 检测到邀请人 '+refAddr.slice(0,10)+'… · 正在写入链上 invite()…');
+          const rc=await chainSend('invite',[refAddr]);
+          localStorage.setItem('ap_refdone','1');
+          st('● 邀请关系已上链 '+txLink(rc.transactionHash)+'<br>你开满 15 包后，双方各得 1 奖励包（下次 claimDailyPack 免冷却领取）。','ok');
+        }catch(err){st('● 邀请写入跳过：'+(err.reason||err.message||err),'bad')}
+      }
     }catch(e){toast('连接失败：'+(e.message||e))}};
   $('#bCClaim').onclick=async()=>{
     try{st('● 发送 claimDailyPack…');

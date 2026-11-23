@@ -69,5 +69,7 @@ const q=new URLSearchParams(location.search);
 const r=q.get('r')||'SR+';document.getElementById('rr').textContent=r;
 document.getElementById('rr2').textContent=r;
 if(q.get('id'))document.getElementById('cid').textContent='#'+q.get('id');
+// 转发全部参数（含邀请人 ref）到主站，受邀人连钱包后写入链上 invite()
+const cta=document.querySelector('.cta');if(cta)cta.href='/?'+location.search.slice(1);
 </script>
 </body></html>
