@@ -100,10 +100,12 @@ const MS_DEF=[
 /* ────────── 存档 ────────── */
 const SKEY='apacks_v5';
 let S=null;
-function fresh(){return{v:5,name:null,pts:0,packs:[],freeCap:12,lastRegen:Date.now(),
+const DEMO_DAILY_CAP=20; // 游客演示档每天最多 20 包（=100 张卡）；所有演示发放走 grantPacks()
+function fresh(){return{v:5,name:null,pts:0,packs:[],freeCap:20,lastRegen:Date.now(),
   cards:[],nextId:1,equipped:0,firstPack:false,sinceSR:0,
   pool:[],myInPool:false,sort:'r',w:0,l:0,team:[],chCleared:{},
-  day:null,mis:{},claimed:{},streak:1,lastDay:Date.now(),followed:false};}
+  day:null,mis:{},claimed:{},streak:1,lastDay:Date.now(),followed:false,
+  demoDay:null,demoToday:0};}
 function save(){localStorage.setItem(SKEY,JSON.stringify(S))}
 function load(){try{S=JSON.parse(localStorage.getItem(SKEY))}catch(e){}if(!S||S.v!==5)S=fresh()}
 load();
@@ -112,12 +114,25 @@ if(S.day!==today()){
   const gap=S.lastDay?Math.floor((Date.now()-S.lastDay)/864e5):99;
   S.streak=(gap===1)?S.streak+1:1;S.lastDay=Date.now();
   S.day=today();S.mis={open5:0,open15:0,open50:0,sr:0,ssr:0,equip:0,star:0,sell:0,join:0,gate:0,battle:0,clear:0,redeem:0};
-  S.mis.streak=1;S.claimed={};save();
+  S.mis.streak=1;S.claimed={};
+  S.demoDay=today();S.demoToday=0; // 演示档每日额度按自然日重置
+  save();
 }
 
-/* ────────── 工具 ────────── */
+/* ────────── 演示档每日限额 ────────── */
 const $=q=>document.querySelector(q), $$=q=>document.querySelectorAll(q);
 function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),1900)}
+function demoQuota(){
+  if(S.demoDay!==today()){S.demoDay=today();S.demoToday=0}
+  return Math.max(0,DEMO_DAILY_CAP-(S.demoToday||0));
+}
+function grantPacks(n,tag,silent){
+  const room=Math.min(demoQuota(),Math.max(0,(S.freeCap||20)-S.packs.length));
+  const add=Math.max(0,Math.min(n,room));
+  if(add>0){for(let i=0;i<add;i++)S.packs.push(1);S.demoToday=(S.demoToday||0)+add;save()}
+  if(add<n&&!silent)toast('演示档每天最多 '+DEMO_DAILY_CAP+' 包，今日已领满'+(tag?'（'+tag+'）':''));
+  return add;
+}
 function fmtN(n){return n&&n.length>16?n.slice(0,15)+'…':(n||'')}
 let AC=null;
 function beep(f,d,t='square',g=.06){try{
@@ -249,7 +264,7 @@ function showShareModal(c,imgUrl){
 function shareBonus(){ // 分享得包：演示档每天 1 次（本地，不可上链）；真实奖励走链上 invite()
   const t=today();
   if(S.shareDay===t){toast('今天的演示分享包已领过啦');return}
-  S.shareDay=t;S.packs.push(1);save();beep(660,.1);
+  S.shareDay=t;grantPacks(1,'分享');beep(660,.1);
   toast(chainHeld?'演示包 +1（本地）· 邀请关系已写入链上，对方开满 15 包双方各得 1 包':'演示包 +1（本地）· 持 .ai 连钱包分享可拿链上邀请奖励');
   renderAll();
 }
@@ -487,16 +502,17 @@ function cardHTML(c){
 
 /* ────────── 头部刷新 ────────── */
 function regenFree(){
+  demoQuota(); // 跨日重置演示额度
   const now=Date.now(),g=Math.floor((now-S.lastRegen)/20000);
-  if(g>0){const cur=S.packs.length;const add=Math.max(0,Math.min(g,S.freeCap-cur));
-    for(let i=0;i<add;i++)S.packs.push(1);S.lastRegen=now;save();}
-  const cur=S.packs.length,full=cur>=S.freeCap;
+  if(g>0){grantPacks(g,'每日恢复',true);S.lastRegen=now;save()}
+  const cur=S.packs.length,full=cur>=S.freeCap,quota=demoQuota();
   $('#chPacks').textContent=cur+'/'+S.freeCap;
-  $('#chRf').textContent=full?'已满':Math.max(0,20-Math.floor((Date.now()-S.lastRegen)/1000))+' 秒后 +1';
+  $('#chRf').textContent=quota===0?'今日 '+DEMO_DAILY_CAP+'/'+DEMO_DAILY_CAP:full?'包已满':Math.max(0,20-Math.floor((now-S.lastRegen)/1000))+' 秒后 +1';
   $('#pmCount').textContent=cur;
   $('#pmFill').style.width=Math.min(100,cur/S.freeCap*100)+'%';
-  $('#regen').textContent=full?'已经存满，开掉才会继续回':'正在回包，每 20 秒 +1';
-  $('#landN').textContent=S.freeCap;
+  $('#regen').textContent=quota===0?'今日演示包已领满（'+DEMO_DAILY_CAP+'/'+DEMO_DAILY_CAP+'），明天 00:00 重置':
+    full?'已经存满，开掉才会继续回':'正在回包，每 20 秒 +1 · 今日 '+S.demoToday+'/'+DEMO_DAILY_CAP;
+  $('#landN').textContent=quota?DEMO_DAILY_CAP:0;
 }
 function switchTab(v){
   $('#mmodal').classList.remove('on');
@@ -961,7 +977,7 @@ function simBattle(){
     B.log.push('','× 全军覆没——升星或换技能再来');drawBattle();save();renderAll();return}
   if(B.boss){B.over=true;S.w++;S.mis.battle++;S.mis.clear=1;
     const first=!S.chCleared[B.ch.id];S.chCleared[B.ch.id]=true;
-    if(first){S.pts+=30;S.packs.push(1,1);toast('首通 '+B.ch.t+'：+30 分 +2 包')}
+    if(first){S.pts+=30;const g=grantPacks(2,'首通');toast('首通 '+B.ch.t+'：+30 分 +'+g+' 包'+(g<2?'（今日额度不足）':''))}
     else{S.pts+=15;toast('通关：+15 分')}
     B.log.push('','★ 通关 '+B.ch.t+'！'+(first?'首通奖励 +30 分 +2 包':''));
     [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.25,'triangle',.09),i*110));
@@ -1017,7 +1033,7 @@ function renderMis(){
       <div class="tbar"><i style="width:${Math.round(v/m.g*100)}%"></i></div>`;
     if(done&&!cl)row.querySelector('button').onclick=()=>{
       S.claimed[m.k]=true;
-      if(m.t==='包'){for(let i=0;i<m.rw;i++)S.packs.push(1)}else S.pts+=m.rw;
+      if(m.t==='包'){grantPacks(m.rw,'任务')}else S.pts+=m.rw;
       beep(660,.12);toast('任务奖励：'+m.rw+' '+m.t);save();renderAll()};
     b.appendChild(row);
   });
@@ -1034,7 +1050,7 @@ function renderMis(){
     <span class="fp">${claimedN} / ${total}</span>
     <button class="btn sm ${allDone&&!S.claimed.__all?'primary':'ghost'}" id="bAllMis" ${allDone&&!S.claimed.__all?'':'disabled'}>${S.claimed.__all?'已领取':'领取 SSR 包'}</button>`;
   const am=$('#bAllMis');
-  if(am&&allDone&&!S.claimed.__all)am.onclick=()=>{S.claimed.__all=true;S.packs.push(1);S.ssrNext=true;
+  if(am&&allDone&&!S.claimed.__all)am.onclick=()=>{S.claimed.__all=true;grantPacks(1,'全任务');S.ssrNext=true;
     beep(784,.2,'triangle',.08);toast('全清奖励：1 个 SSR 保底包');save();renderAll()};
 }
 
@@ -1089,20 +1105,20 @@ $('#bReset').onclick=()=>{
 /* ══════════ 补给 ══════════ */
 $$('[data-buy]').forEach(b=>b.onclick=()=>{
   const t=+b.dataset.buy;const n=[1,10,100][t];
-  for(let i=0;i<n;i++)S.packs.push(1);
-  beep(523,.12);toast('已到账 '+n+' 包（演示档）');save();renderAll();
+  const g=grantPacks(n,'补给');
+  beep(523,.12);toast(g?'已到账 '+g+' 包（演示档，今日额度 '+S.demoToday+'/'+DEMO_DAILY_CAP+'）':'今日演示额度已用完');renderAll();
 });
 $('#bFollow').onclick=()=>{
   if(S.followed)return toast('已领取过');
-  S.followed=true;for(let i=0;i<10;i++)S.packs.push(1);
-  toast('关注奖励 +10 包（演示）');save();renderAll();
+  S.followed=true;const g=grantPacks(10,'关注');
+  toast('关注奖励 +'+g+' 包（演示，今日额度 '+S.demoToday+'/'+DEMO_DAILY_CAP+'）');renderAll();
 };
 
 /* ══════════ 落地 & 开包按钮 ══════════ */
 $('#bOpen1').onclick=()=>{if(!S.packs.length)return toast('包空了，等待恢复或去补给');S.packs.pop();save();startOpen()};
 $('#bOpen5').onclick=()=>{if(S.packs.length<5)return toast('至少要 5 个包（去补给领取）');
   S.packs.splice(0,5);save();startOpen()};
-$('#bLandOpen').onclick=()=>{if(!S.packs.length)S.packs.push(1);switchTab('open');S.packs.pop();save();startOpen()};
+$('#bLandOpen').onclick=()=>{if(!S.packs.length&&!grantPacks(1,'落地页'))return toast('今日演示额度已用完，明天再来');switchTab('open');S.packs.pop();save();startOpen()};
 $('#bLandPool').onclick=()=>switchTab('verify');
 $$('.tab').forEach(t=>t.onclick=()=>switchTab(t.dataset.v));
 $('#heroPackWrap').onclick=()=>$('#bLandOpen').click();
@@ -1624,7 +1640,7 @@ function gateEnd(){
     :{A:'没被骗，误杀在 2 笔以内',B:'守得太严：真账单被拦了 '+G.miss+' 笔',C:'全是误杀，正常账单全停'}[g];
   const packs={S:3,A:2,B:1,C:0}[g];
   S.mis.gate=(S.mis.gate||0)+1;
-  for(let i=0;i<packs;i++)S.packs.push(1);
+  const gotPacks=grantPacks(packs,'守门');
   S.pts+=G.right*2;
   const rank={S:4,A:3,B:2,C:1};
   if(!S.gateBest||rank[g]>rank[S.gateBest.g]||(rank[g]===rank[S.gateBest.g]&&G.lost<S.gateBest.lost))S.gateBest={g,saved:G.saved,lost:G.lost};

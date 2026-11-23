@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="ui.css?v=59">
+<link rel="stylesheet" href="ui.css?v=60">
 </head>
 <body>
 <a class="skip" href="#main">跳到内容</a>
@@ -434,7 +434,7 @@
   </div>
   <p class="sub shop-note">三档单包价统一 <span class="mono">0.002 BNB</span>，十连/百连只是数量（合约 <span class="mono">TIER_QTY = [1,10,100]</span>）。演示档免费发放，不扣钱。</p>
   <p class="sub shop-note">演示档里三档都免费发放，不会扣任何钱。</p>
-  <p class="sub shop-note"><b>游客 = 演示档</b>：包与分享奖励只存在本机（localStorage），不可流片、不可上链，清缓存即重置。<b>持 Binance Agent ID 的地址</b>才能调用 <span class="mono">claimDailyPack()</span>（1 包 / 24h）和 <span class="mono">buyPack()</span>（≤120 包 / 天）；分享链接带邀请参数，受邀 .ai 地址开满 15 包后，双方各得 1 包链上奖励。</p>
+  <p class="sub shop-note"><b>游客 = 演示档</b>：每天最多 <span class="mono">20 包</span>（含恢复 / 分享 / 任务 / 补给全部演示发放），只存在本机（localStorage），不可流片、不可上链，清缓存即重置。<b>持 Binance Agent ID 的地址</b>才能调用 <span class="mono">claimDailyPack()</span>（1 包 / 24h）和 <span class="mono">buyPack()</span>（≤120 包 / 天）；分享链接带邀请参数，受邀 .ai 地址开满 15 包后，双方各得 1 包链上奖励。</p>
   <div class="row"><button class="btn ghost sm" id="bFollow">关注 @agentpacks，领 10 包（演示）</button></div>
 </section>
 
@@ -505,8 +505,8 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js" defer></script>
-<script src="app.js?v=59" defer></script>
-<script src="fx.js?v=59" defer></script>
-<div class="ver-badge">v59</div>
+<script src="app.js?v=60" defer></script>
+<script src="fx.js?v=60" defer></script>
+<div class="ver-badge">v60</div>
 </body>
 </html>
