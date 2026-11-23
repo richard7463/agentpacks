@@ -135,7 +135,8 @@
     '没有钱包': 'No wallet found', '请先连接钱包': 'Connect a wallet first',
   };
   const ATTRS = ['placeholder', 'title', 'aria-label'];
-  let lang = localStorage.getItem('ap_lang') || 'zh';
+  localStorage.removeItem('ap_lang');
+  let lang = 'zh';
   const originals = new WeakMap();
   let obs = null;
 
@@ -178,7 +179,6 @@
   window.applyI18n = apply;
   window.toggleLang = function () {
     lang = lang === 'en' ? 'zh' : 'en';
-    localStorage.setItem('ap_lang', lang);
     apply();
     return lang;
   };
