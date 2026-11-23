@@ -784,8 +784,8 @@ function detail(id){
           <span class="eyebrow" style="margin:0 0 8px">链上流片 · TAPE OUT</span>
           <div class="rb-out" id="chainTapeOut">读 tapeNandCost()/tapeCost() 拿真实 NAND（BEM）+ tapeout（BNB）报价；先授权 BEM 再流片，电路 NFT 归你。</div>
           <div class="row" style="margin-top:8px;flex-wrap:wrap">
-            <button class="btn sm ghost" id="mTapeQuote">查报价</button>
-            <button class="btn sm primary" id="mTapeChain" disabled>确认流片（钱包签名）</button>
+            <span class="chip" id="mTapePrice">价格加载中…</span>
+            <button class="btn sm primary" id="mTapeChain" disabled>直接流片</button>
           </div>
           <div class="row" style="margin-top:8px;flex-wrap:wrap">
             <input class="inp mono" id="evalIn" placeholder="eval 输入字节 0x…（低位在前）">
@@ -829,29 +829,29 @@ function detail(id){
     detail(id);
   };
   /* ── 链上流片面板：BEM 买 NAND + BNB 付 tapeout + 真 eval ── */
-  const cto=$('#chainTapeOut'),cq=$('#mTapeQuote'),cc=$('#mTapeChain');
+  const cto=$('#chainTapeOut'),cc=$('#mTapeChain');
   let quote=null;
-  if(cq)cq.onclick=async()=>{
+  async function autoCardQuote(){
     try{
       if(!coreAddr())return cto.textContent='先在「实验室」保存 AgentPackCore 地址。';
-      if(!window.ethereum)return cto.textContent='没有检测到钱包，请用 Binance Wallet / MetaMask 打开。';
       let onchain=true;
       try{await chainRead('ownerOf',[c.id])}catch(e){onchain=false}
       if(!onchain){
-        cto.innerHTML='<b style="color:var(--red)">这是一张演示卡，链上不存在（#${c.id}）。</b><br>先在「实验室」用钱包买一包并揭示，拿到链上卡后再来流片。';
+        cto.innerHTML='<b style="color:var(--red)">这是一张演示卡，链上不存在（#'+c.id+'）。</b><br>用「实验室 → ⑤ 公开流片」可直接流片，不需要卡。';
         cc.disabled=true;return;
       }
       const [bemCost,gates]=await chainRead('tapeNandCost',[c.id]);
       const [bnbCost]=await chainRead('tapeCost',[c.id]);
       quote={bemCost,bnbCost,gates};
-      const sg=await vaultSigner();
-      const bal=await new ethers.Contract(bemAddr(),BEM_ABI,await chainProvider()).balanceOf(await sg.getAddress());
-      cto.innerHTML='NAND <b style="color:var(--gold)">'+ethers.utils.formatUnits(bemCost,8)+' BEM</b>'
-        +' + tapeout <b style="color:var(--gold)">'+ethers.utils.formatEther(bnbCost)+' BNB</b>'
-        +' · '+gates.toString()+' 门 · 你持有 '+ethers.utils.formatUnits(bal,8)+' BEM。';
+      const usd=(Number(bemCost)/1e8*9.61)+(Number(bnbCost)/1e18*560.67);
+      const mp=$('#mTapePrice');if(mp)mp.textContent='≈ $'+usd.toFixed(2);
+      cto.innerHTML='<b style="color:var(--gold)">≈ $'+usd.toFixed(2)+'</b> · '
+        +ethers.utils.formatUnits(bemCost,8)+' BEM (NAND) + '
+        +ethers.utils.formatEther(bnbCost)+' BNB (tapeout) · '+gates.toString()+' 门';
       cc.disabled=false;
-    }catch(e){cto.textContent='报价失败：'+(e.reason||e.message||e)}
-  };
+    }catch(e){cto.textContent='价格读取失败：'+(e.reason||e.message||e)}
+  }
+  autoCardQuote();
   if(cc)cc.onclick=async()=>{
     try{
       if(!quote)return toast('先查报价');
