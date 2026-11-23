@@ -431,13 +431,10 @@ contract AgentPackCoreTest is Test {
     }
 
     /*──── 10 · 规则电路：卡的实际作用 ────*/
-    /// 流片一张 1 门占位网表的价钱（mock 价）
-    function _tapeCost() internal view returns (uint256) {
-        return proc.mintPrice() + proc.protocolFee() + proc.TAPEOUT_FEE();
-    }
-
+    /// 流片价钱：从合约 tapeCost 视图按卡取（真网表 4~189 门，价格随门数）
     function _tape(address who, uint256 cardId) internal {
-        uint256 cost = _tapeCost(); // 先报价：vm.prank 只管下一笔外部调用
+        (uint256 cost, uint256 gates) = core.tapeCost(cardId);
+        assertGt(gates, 1, "real netlists have >1 gates");
         vm.prank(who);
         core.tapeOut{value: cost}(cardId);
     }
@@ -588,7 +585,9 @@ contract AgentPackCoreTest is Test {
         uint256 aliceBefore = alice.balance;
 
         (uint256 cost, uint256 gates) = core.tapeCost(cardId);
-        assertEq(gates, 1, "placeholder netlist = 1 gate");
+        (, , , uint32 ref) = core.cardInfo(cardId);
+        uint256 expectGates = core.HOUSE_NETLIST(ref % 12).length / 7;
+        assertEq(gates, expectGates, "gates match the real netlist");
 
         _tape(alice, cardId);
 
@@ -597,7 +596,7 @@ contract AgentPackCoreTest is Test {
         assertEq(proc.ownerOf(circuitId), alice, "circuit NFT in owner wallet");
         assertEq(alice.balance, aliceBefore - cost, "exact cost charged");
         assertEq(address(proc).balance, cost, "NAND + fees went to processor");
-        assertEq(proc.netlistOf(circuitId), core.HOUSE_NETLIST(0), "bytes match");
+        assertEq(proc.netlistOf(circuitId), core.HOUSE_NETLIST(ref % 12), "bytes match the card type netlist");
 
         // 重复流片拒绝
         vm.prank(alice);
@@ -609,7 +608,7 @@ contract AgentPackCoreTest is Test {
         uint256[5] memory ids = _openBought(alice, 22);
         uint256 cardId = ids[0];
 
-        uint256 cost = _tapeCost();
+        (uint256 cost,) = core.tapeCost(cardId);
         vm.prank(bob);
         vm.expectRevert(AgentPackCore.NotCardOwner.selector);
         core.tapeOut{value: cost}(cardId);

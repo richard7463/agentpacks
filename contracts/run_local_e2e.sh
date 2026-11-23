@@ -63,11 +63,8 @@ echo "  card#1 owner: $OWNER"
 
 echo "── 5/8 alice 流片 card#1 → 穿卡 → 入池"
 strip() { sed 's/ *\[.*//'; }
-MP=$(cast call $PROC "mintPrice()(uint256)" --rpc-url $RPC | strip)
-PF=$(cast call $PROC "protocolFee()(uint256)" --rpc-url $RPC | strip)
-TF=$(cast call $PROC "TAPEOUT_FEE()(uint256)" --rpc-url $RPC | strip)
-COST=$((MP + PF + TF)) # 占位网表 = 1 门
-echo "  tapeCost(card#1) = $COST wei (= $MP NAND + $PF 协议费 + $TF tapeout)"
+COST=$(cast call $CORE "tapeCost(uint256)(uint256,uint256)" 1 --rpc-url $RPC | head -1 | strip)
+echo "  tapeCost(card#1) = $COST wei（真网表门数 × NAND + 费用，合约视图报价）"
 cast send $CORE "tapeOut(uint256)" 1 --value $COST --rpc-url $RPC --private-key $ALICE_PK > /dev/null
 CIRCUIT=$(cast call $CORE "cardCircuit(uint256)(uint256)" 1 --rpc-url $RPC)
 echo "  circuit NFT id = $CIRCUIT (processor 上的真身，owner=alice)"

@@ -44,6 +44,8 @@ const DEMO_NAMES=[
   'kestrel.ai',
 ];
 /// 名人卡面（faces/ 槽位：丢入 <name>.jpg 即自动上卡；无照片时显示首字母徽章兜底）
+/* 12 条真网表元数据（TapeForge 铸造 · 全输入穷举验证，tools/mint12.mjs）*/
+const NETLIST_META={"0":{"g":36,"d":13,"cases":128},"1":{"g":22,"d":10,"cases":64},"2":{"g":4,"d":2,"cases":2},"3":{"g":39,"d":15,"cases":256},"4":{"g":22,"d":11,"cases":64},"5":{"g":20,"d":9,"cases":32},"6":{"g":125,"d":19,"cases":1024},"7":{"g":31,"d":14,"cases":256},"8":{"g":15,"d":8,"cases":32},"9":{"g":189,"d":25,"cases":8192},"10":{"g":90,"d":23,"cases":4096},"11":{"g":4,"d":2,"cases":4}};
 const FACES={
   // crypto
   'cz.ai':      {mono:'C',tag:'币安掌门',   c:'#F2C14E',photo:'faces/cz.jpg'},
@@ -717,7 +719,7 @@ function detail(id){
           <div class="s4 ${c.taped?'on':''}">
             <span class="s4-n">1 芯</span><b>电路</b>
             <span class="s4-v">${c.taped?'circuit #'+c.taped.id+' · '+c.taped.gates+' 门 NAND · 可转售'
-              :(c.kind===1?'身份卡走注册表，无需流片':'未流片 · tapeOut() 后成真身')}</span>
+              :(c.kind===1?'身份卡走注册表，无需流片':'未流片 · tapeOut() 铸成真身 · '+(NETLIST_META[ruleDerived(c).t]?NETLIST_META[ruleDerived(c).t].g+' 门 NAND':''))}</span>
             ${(!c.taped&&c.kind===0)?'<button class="s4-btn" id="mTape">流片</button>':''}
           </div>
           <div class="s4 ${c.ovr!=null?'on':''}">
@@ -774,7 +776,7 @@ function detail(id){
   const mT=$('#mTape');
   if(mT)mT.onclick=()=>{
     S.tapeSeq=(S.tapeSeq||0)+1;
-    c.taped={id:S.tapeSeq,gates:11};save();
+    c.taped={id:S.tapeSeq,gates:NETLIST_META[ruleDerived(c).t]?NETLIST_META[ruleDerived(c).t].g:11};save();
     beep(880,.12);beep(1320,.2,'triangle',.06);
     toast('流片完成 · circuit #'+S.tapeSeq+'（演示标记，主网 = tapeOut(cardId) 真实买 NAND）');
     detail(id);
