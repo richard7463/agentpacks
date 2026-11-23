@@ -46,6 +46,32 @@ const DEMO_NAMES=[
 /// 名人卡面（faces/ 槽位：丢入 <name>.jpg 即自动上卡；无照片时显示首字母徽章兜底）
 /* 12 条真网表元数据（TapeForge 铸造 · 全输入穷举验证，tools/mint12.mjs）*/
 const NETLIST_META={"0":{"g":36,"d":13,"cases":128},"1":{"g":22,"d":10,"cases":64},"2":{"g":4,"d":2,"cases":2},"3":{"g":39,"d":15,"cases":256},"4":{"g":22,"d":11,"cases":64},"5":{"g":20,"d":9,"cases":32},"6":{"g":125,"d":19,"cases":1024},"7":{"g":31,"d":14,"cases":256},"8":{"g":15,"d":8,"cases":32},"9":{"g":189,"d":25,"cases":8192},"10":{"g":90,"d":23,"cases":4096},"11":{"g":4,"d":2,"cases":4}};
+
+function ruleUSD(t){const g=(NETLIST_META[t]||{}).g||36;return ((g*0.01734+0.01)*9.61)+(0.0002*560.67)}
+async function doPublicTape(rule,say){
+  try{
+    const sg=await vaultSigner();await ensureChain();
+    const me=await sg.getAddress();
+    const [bemCost,bnbCost]=await (new ethers.Contract(pubAddr(),PUB_ABI,readProvider())).quote(rule);
+    const bem=new ethers.Contract(bemAddr(),BEM_ABI,sg);
+    const allowance=await bem.allowance(me,pubAddr());
+    if(allowance.lt(bemCost)){
+      say&&say('授权 '+ethers.utils.formatUnits(bemCost,8)+' BEM…');
+      const a=await bem.approve(pubAddr(),bemCost);await a.wait();
+    }
+    say&&say('流片签名中…');
+    const tx=await new ethers.Contract(pubAddr(),PUB_ABI,sg).tapeoutRaw(rule,{value:bnbCost});
+    const rc=await tx.wait();
+    let cid='?';try{const ev=rc.events&&rc.events[0];cid=ev&&ev.args&&ev.args[2]}catch(e){}
+    say&&say('✅ 已流片 circuit #'+cid);
+    beep(880,.12);return cid;
+  }catch(e){const m=e.reason||e.message||String(e);say&&say('⛔ '+m);throw e}
+}
+window.__pkt=async(rule,btn)=>{
+  btn.disabled=true;const old=btn.textContent;btn.textContent='签名中…';
+  try{await doPublicTape(rule,t=>{btn.textContent=t.length>20?'流片中…':t;toast(t)});btn.textContent='✓ 已流片'}
+  catch(e){btn.textContent='重试流片';setTimeout(()=>btn.textContent=old,2200)}
+};
 const FACES={
   // crypto
   'cz.ai':      {mono:'C',tag:'币安掌门',   c:'#F2C14E',photo:'faces/cz.jpg'},
@@ -651,9 +677,13 @@ function dealCards(){
             ${c.kind===1?`<div class="fi">身份卡 · ${fmtN(S.pool[c.ref].name)}</div>`:''}
             <div class="fst">ATK ${st.atk} · DEF ${st.def} · RAT ${st.rat}</div>
           </div>
+          ${c.kind===0?`<button class="pkt" data-rule="${c.ref%12}" onclick="event.stopPropagation();window.__pkt(${c.ref%12},this)" style="position:absolute;top:8px;right:8px;z-index:8;padding:5px 10px;border-radius:99px;border:1px solid rgba(242,193,78,.75);background:rgba(10,8,25,.9);color:#F2C14E;font-size:10.5px;font-weight:800">⚡ 流片 ≈ $${ruleUSD(c.ref%12).toFixed(2)}</button>`:''}
         </div>
       </div>`;
-      d.onclick=()=>flip(d,c);
+      d.onclick=()=>{
+        if(!d.querySelector('.fcard').classList.contains('flip')){flip(d,c);return}
+        $('#ovl').classList.remove('on');opening=null;detail(c.id);
+      };
       $('#slots').appendChild(d);
     });
     $('#bAll').style.display='';
