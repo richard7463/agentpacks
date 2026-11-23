@@ -677,13 +677,15 @@ function dealCards(){
             ${c.kind===1?`<div class="fi">身份卡 · ${fmtN(S.pool[c.ref].name)}</div>`:''}
             <div class="fst">ATK ${st.atk} · DEF ${st.def} · RAT ${st.rat}</div>
           </div>
-          ${c.kind===0?`<button class="pkt" data-rule="${c.ref%12}" onclick="event.stopPropagation();window.__pkt(${c.ref%12},this)" style="position:absolute;top:8px;right:8px;z-index:8;padding:5px 10px;border-radius:99px;border:1px solid rgba(242,193,78,.75);background:rgba(10,8,25,.9);color:#F2C14E;font-size:10.5px;font-weight:800">⚡ 流片 ≈ $${ruleUSD(c.ref%12).toFixed(2)}</button>`:''}
+          ${c.kind===0?`<button class="pkt" data-rule="${c.ref%12}" style="position:absolute;top:8px;right:8px;z-index:8;padding:5px 10px;border-radius:99px;border:1px solid rgba(242,193,78,.75);background:rgba(10,8,25,.9);color:#F2C14E;font-size:10.5px;font-weight:800">⚡ 流片 ≈ $${ruleUSD(c.ref%12).toFixed(2)}</button>`:''}
         </div>
       </div>`;
       d.onclick=()=>{
         if(!d.querySelector('.fcard').classList.contains('flip')){flip(d,c);return}
         $('#ovl').classList.remove('on');opening=null;detail(c.id);
       };
+      const pb=d.querySelector('.pkt');
+      if(pb)pb.onclick=ev=>{ev.stopPropagation();window.__pkt(Number(pb.dataset.rule),pb)};
       $('#slots').appendChild(d);
     });
     $('#bAll').style.display='';
