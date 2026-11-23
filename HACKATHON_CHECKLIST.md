@@ -125,7 +125,7 @@ forge script script/Deploy.s.sol:DeployMainnet \
 
 | 缺口 | 影响 | 计划 |
 |---|---|---|
-| WalletConnect | 普通手机浏览器 | ✅ 已接线：填 projectId 即可用（cloud.reown.com 免费申请） |
+| 普通手机浏览器钱包 | 手机端连接 | ✅ 改用 **Privy**（X / 邮箱登录 → BNB Chain 嵌入式钱包），已打包 `privy-widget.js`；⚠ 需在 Privy 后台把 `agentid.cards` 加进 Allowed domains |
 | 游戏内英文 | 主界面 | ✅ 已上线中/EN 切换（`i18n.js`，主要 UI 全覆盖） |
 | 主网未部署 | 无法展示真实 tx | 等凭据 |
 | demo 终版未合成 | 只有 44s 产品实录 | 等 AI《守门之夜》片段，合成 60–90s |
