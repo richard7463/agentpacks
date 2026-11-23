@@ -401,6 +401,12 @@ function makeCard(r){
   return{id:S.nextId++,r,star:0,kind,ref};
 }
 function cname(c){return c.kind===1?S.pool[c.ref].name:HOUSE[c.ref%12].n}
+/// 电路卡英雄徽章：每种规则一个形象（heroes/t0..t11），电路纹 artSVG 垫底兜底
+function heroHTML(c,size){
+  const t=ruleDerived(c).t;
+  return `<div class="art">${size?artSVG(c,size,size):artSVG(c)}</div>
+    <img class="hero-img" src="heroes/t${t}.jpg" alt="${ruleName(c)}" loading="lazy" onerror="this.remove()">`;
+}
 /// 名人卡面：faces/<name>.jpg 存在即直上卡面；不存在显示首字母徽章（照片槽位，随时补图）
 function faceHTML(c){
   const n=cname(c);
@@ -442,7 +448,7 @@ function cardHTML(c){
   const st=statsOf(c);
   const eq=S.equipped===c.id;
   return `<div class="cg r${c.r}${c.r>=5?' holo':''}${eq?' equipped':''}">
-    ${c.kind===1?faceHTML(c):`<div class="art">${artSVG(c)}</div>`}
+    ${c.kind===1?faceHTML(c):heroHTML(c)}
     <div class="scrim"></div>
     <div class="frame"></div>
     <div class="top"><span class="rar">${RAR[c.r]}</span>${c.star?`<span class="stars">${'★'.repeat(c.star)}</span>`:''}</div>
@@ -597,7 +603,7 @@ function dealCards(){
       d.innerHTML=`<div class="fcard">
         <div class="face back"><span class="bk-r">${RAR[c.r]}</span><span class="bt">Agent Packs</span></div>
         <div class="face front">
-          ${c.kind===1?faceHTML(c):`<div class="art">${artSVG(c,220,314)}</div>`}
+          ${c.kind===1?faceHTML(c):heroHTML(c,220)}
           <div class="scrim"></div>
           <div class="fbody">
             <div class="fr">${RAR[c.r]}</div>
