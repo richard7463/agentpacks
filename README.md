@@ -1,8 +1,9 @@
-# Agent Packs — agentid.cards
+# 卡灵战争 · Agent Packs — agentid.cards
 
 > 开包开出的不是图片，是一个有名字的 AI。
 > 每张卡 = 一条链上可读、可复算的 Agent 支出规则。
 
+**中文名**：卡灵战争（每个卡灵就是一条链上规则的化身）
 **线上试玩**：https://agentid.cards （HTTPS · 雅加达直连）
 
 Binance Agent ID Hackathon · Season 0 MVP：
