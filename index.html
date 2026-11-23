@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="ui.css?v=49">
+<link rel="stylesheet" href="ui.css?v=50">
 </head>
 <body>
 <a class="skip" href="#main">跳到内容</a>
@@ -34,7 +34,6 @@
       <button class="tab" data-v="open">开包</button>
       <button class="tab" data-v="cards">收藏</button>
       <button class="tab" data-v="gate">守门人<span class="tab-new">新</span></button>
-      <button class="tab" data-v="theater">剧场</button>
       <button class="tab" data-v="shop">补给</button>
       <button class="tab" data-v="tasks">任务</button>
       <button class="tab" data-v="verify">卡池</button>
@@ -226,10 +225,32 @@
 <!-- ══════════ 守门人 ══════════ -->
 <section class="view" id="v-gate">
   <div class="page-head">
-    <div><h2>守门人</h2><p class="ph-sub">10 笔付款请求冲向你的 Agent。规则电路先判，你可以人工推翻。</p></div>
-    <span class="call">checkPayment()</span>
+    <div><h2>守门人</h2><p class="ph-sub">上半：拨动输入，看规则电路怎么回答。下半：10 笔真实付款冲向你的 Agent，规则先判、你可人工推翻。</p></div>
+    <span class="call">eval() · checkPayment()</span>
   </div>
 
+  <div class="block">
+    <div class="panel-head"><h3>① 电路剧场 · 风控电路 11 门 NAND</h3><span class="chip gold">allow / ask 双输出</span></div>
+<p class="sub">规则只有一句：<b>金额没超剩余额度、或有人工批准 → 放行；否则，收款方在白名单 → 转人工；其余 → 拒签</b>。这就是 guard 在钱包签名前问电路的那句话（抄自 tapeid <span class="mono">apps/signer/src/guard.ts</span>：allow / ask / deny，网络异常 fail-closed 不签名）。</p>
+
+    <div class="th-layout">
+      <div class="th-in" id="thIn"></div>
+      <div class="th-stage" id="thStage" aria-hidden="true"></div>
+      <div class="th-out"><div class="th-verdict" id="thVerdict"><span class="tv-k">GUARD</span><b class="tv-v">—</b><span class="tv-sub">拨动输入后运行</span></div></div>
+    </div>
+
+    <div class="row">
+      <button class="btn primary xl" id="thRun">运行 eval()</button>
+      <button class="btn ghost" id="thRand">随机一笔付款</button>
+      <button class="btn ghost" id="thFail">模拟断网 · fail-closed</button>
+    </div>
+    <div class="banner" id="thMsg">输入拨杆在左边，输出灯在右边。网表字节与 TapeOut 处理器同格式（每门 7 字节）；部署后此处展示的就是合约里同一段字节。</div>
+  </div>
+  </div>
+
+  <div class="block">
+    <div class="panel-head"><h3>② 实战守门 · 10 笔付款请求</h3><span class="chip">评级 S 奖 3 包</span></div>
+    <p class="sub">把上面剧场里的规则叠成规则栈，去接 10 笔真实付款——骗局混在里面，规则先判，你 6 秒内可推翻。</p>
   <div id="gateSetup">
     <div class="gate-intro">
       <div>
@@ -274,6 +295,7 @@
   </div>
 
   <div id="gateEnd" hidden></div>
+
 </section>
 
 <!-- ══════════ 自走棋 ══════════ -->
@@ -408,30 +430,7 @@
 </section>
 
 <!-- ══════════ 电路剧场 ══════════ -->
-<section class="view" id="v-theater">
-  <div class="page-head">
-    <div><h2>电路剧场</h2><p class="ph-sub">一条真的 NAND 规则电路放在你面前。拨动输入，看它在链上怎么回答。</p></div>
-    <span class="call">eval(circuitId, inputs)</span>
-  </div>
 
-  <div class="block">
-    <div class="panel-head"><h3>风控电路 · 11 门 NAND</h3><span class="chip gold">allow / ask 双输出</span></div>
-    <p class="sub">规则只有一句：<b>金额没超剩余额度、或有人工批准 → 放行；否则，收款方在白名单 → 转人工；其余 → 拒签</b>。这就是 guard 在钱包签名前问电路的那句话（抄自 tapeid <span class="mono">apps/signer/src/guard.ts</span>：allow / ask / deny，网络异常 fail-closed 不签名）。</p>
-
-    <div class="th-layout">
-      <div class="th-in" id="thIn"></div>
-      <div class="th-stage" id="thStage" aria-hidden="true"></div>
-      <div class="th-out"><div class="th-verdict" id="thVerdict"><span class="tv-k">GUARD</span><b class="tv-v">—</b><span class="tv-sub">拨动输入后运行</span></div></div>
-    </div>
-
-    <div class="row">
-      <button class="btn primary xl" id="thRun">运行 eval()</button>
-      <button class="btn ghost" id="thRand">随机一笔付款</button>
-      <button class="btn ghost" id="thFail">模拟断网 · fail-closed</button>
-    </div>
-    <div class="banner" id="thMsg">输入拨杆在左边，输出灯在右边。网表字节与 TapeOut 处理器同格式（每门 7 字节）；部署后此处展示的就是合约里同一段字节。</div>
-  </div>
-</section>
 
 <!-- ══════════ 链上 ══════════ -->
 <section class="view" id="v-chain">
@@ -483,8 +482,8 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js" defer></script>
-<script src="app.js?v=49" defer></script>
-<script src="fx.js?v=49" defer></script>
-<div class="ver-badge">v49</div>
+<script src="app.js?v=50" defer></script>
+<script src="fx.js?v=50" defer></script>
+<div class="ver-badge">v50</div>
 </body>
 </html>

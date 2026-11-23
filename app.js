@@ -780,7 +780,7 @@ function detail(id){
     detail(id);
   };
   const mt=$('#mTheater');
-  if(mt)mt.onclick=()=>{$('#mmodal').classList.remove('on');switchTab('theater')};
+  if(mt)mt.onclick=()=>{$('#mmodal').classList.remove('on');switchTab('gate');setTimeout(()=>{const t=document.querySelector('#thStage');t&&t.scrollIntoView({behavior:'smooth',block:'center'})},80)};
   const ck=$('#chkBtn');
   if(ck)ck.onclick=()=>{
     const amt=Math.round((parseFloat($('#chkAmt').value)||0)*100);
