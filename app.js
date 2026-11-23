@@ -752,11 +752,9 @@ function detail(id){
         <div class="rb-name">${ruleName(c)}</div>
         <p class="rb-desc">${ruleLong(c)}</p>
         <div class="stack4">
-          <div class="s4 ${c.taped?'on':''}">
+          <div class="s4">
             <span class="s4-n">1 芯</span><b>电路</b>
-            <span class="s4-v">${c.taped?'circuit #'+c.taped.id+' · '+c.taped.gates+' 门 NAND · 可转售'
-              :(c.kind===1?'身份卡走注册表，无需流片':'未流片 · tapeOut() 铸成真身 · '+(NETLIST_META[ruleDerived(c).t]?NETLIST_META[ruleDerived(c).t].g+' 门 NAND':''))}</span>
-            ${(!c.taped&&c.kind===0)?'<button class="s4-btn" id="mTape">流片</button>':''}
+            <span class="s4-v">${c.kind===1?'身份卡走注册表，无需流片':'本地数据 · 未流片 · 用下方「链上流片」把规则铸成 NFT'+(NETLIST_META[ruleDerived(c).t]?' · '+NETLIST_META[ruleDerived(c).t].g+' 门 NAND':'')}</span>
           </div>
           <div class="s4 ${c.ovr!=null?'on':''}">
             <span class="s4-n">2 魂</span><b>参数</b>
@@ -821,14 +819,6 @@ function detail(id){
   $('#mmodal').classList.add('on');
   const mS=$('#mShare');
   if(mS)mS.onclick=()=>shareCard(c);
-  const mT=$('#mTape');
-  if(mT)mT.onclick=()=>{
-    S.tapeSeq=(S.tapeSeq||0)+1;
-    c.taped={id:S.tapeSeq,gates:NETLIST_META[ruleDerived(c).t]?NETLIST_META[ruleDerived(c).t].g:11};save();
-    beep(880,.12);beep(1320,.2,'triangle',.06);
-    toast('流片完成 · circuit #'+S.tapeSeq+'（演示标记，主网 = tapeOut(cardId) 真实买 NAND）');
-    detail(id);
-  };
   /* ── 链上流片面板：BEM 买 NAND + BNB 付 tapeout + 真 eval ── */
   const cto=$('#chainTapeOut'),cc=$('#mTapeChain');
   let quote=null;
