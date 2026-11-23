@@ -87,9 +87,7 @@ contract AgentPackCoreTest is Test {
         vm.expectRevert(AgentPackCore.NoAgentId.selector);
         core.claimDailyPack();
 
-        vm.prank(carol);
-        vm.expectRevert(AgentPackCore.NoAgentId.selector);
-        core.buyPack{value: 0.002 ether}(0);
+        // buyPack 对所有人开放，不再 reverts
 
         vm.prank(carol);
         vm.expectRevert(AgentPackCore.NoAgentId.selector);
@@ -748,4 +746,17 @@ contract AgentPackCoreTest is Test {
         (ok, why) = core.checkPayment(alice, 1, bob, 0, 0, uint64(block.timestamp - 13 hours), false, 0, false);
         assertFalse(ok); assertEq(why, "delegation window expired");
     }
+
+    function test_NoAgentId_CanBuyPackAndTapeOut() public {
+        vm.deal(carol, 10 ether);
+        uint256[5] memory ids = _openBought(carol, 777);
+        uint256 cardId = ids[0];
+        (uint256 cost, ) = core.tapeCost(cardId);
+        vm.prank(carol);
+        core.tapeOut{value: cost}(cardId);
+        uint256 cid = core.cardCircuit(cardId);
+        assertGt(cid, 0, "any wallet can tape out");
+        assertEq(proc.ownerOf(cid), carol, "circuit NFT belongs to any wallet");
+    }
+
 }

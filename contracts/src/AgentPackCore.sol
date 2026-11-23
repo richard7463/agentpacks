@@ -282,7 +282,9 @@ contract AgentPackCore {
     ///      0.002 / 0.02 / 0.2 正好是 数量 × 单包价。第一个包当场铸造，
     ///      其余记入 pendingBonusPacks（claimDailyPack 逐包领取、无冷却），
     ///      避免百连铸造 100 个包 ID 的 gas 尖峰。
-    function buyPack(uint8 tier) external payable onlyAgent returns (uint256 packId) {
+    /// @dev 付费包对所有人开放（任何钱包都能买包→开包→拿卡→流片）；
+    ///      免费包 claimDailyPack 仍是 .ai 专属，作为 Agent ID 的链上使用证据。
+    function buyPack(uint8 tier) external payable returns (uint256 packId) {
         if (tier >= 3) revert BadTier();
         uint256 price = TIER_PRICE[tier];
         if (msg.value != price) revert BadValue();

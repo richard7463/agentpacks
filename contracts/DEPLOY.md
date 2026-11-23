@@ -12,8 +12,8 @@
 |---|---|---|
 | 自建 Processor (circuits) | `0xAdfDB520db78C252382E4bCdf62692fAD453035a` | CPU Factory 创建，processor number **1496** |
 | Transistors (NAND token 0) | `0x250cF36a4A0a09948318B74f69bba51e0d317094` | creator = 部署钱包，NAND 收入归我们 |
-| AgentPackCore | `0xcCfb372Ad7864DbD68415427c41B69caDEdD9f5e` | 构造固化 `TAPE_PROCESSOR` + `BEM`，BEM 路径已实测 |
-| GuardVault | `0x2d2EeC85839f6a3eD3Dd32745EDd72a64aEd1e76` | 指向上面的新 Core |
+| AgentPackCore | `0xEe7928436A480AF5f93C3558a8Ef27588c511d7b` | 构造固化 `TAPE_PROCESSOR` + `BEM`；`buyPack` 对所有人开放 |
+| GuardVault | `0xA0fb1D7F76D4b1Bc55A8060CDbcf773C1D8D8d3D` | 指向上面的新 Core |
 
 定价：`mintPrice = 1,734,000` raw BEM = 0.01734 BEM/门 ≈ $0.167/门 → **平均 60 门 ≈ $10**；protocolFee 1e6 raw、TAPEOUT_FEE 2e14 wei、supplyCap 1e6。
 
@@ -28,7 +28,7 @@ tapeCost(cardId)     → (tapeoutFeeWei, gates) // BNB 部分
      Core 内部 transferFrom BEM → approve transistor → mint() → tapeout() → NFT 进钱包
 ```
 
-`forge test` **64/64**（新增 3 个 BEM 路径测试）。旧主网 Core `0xdc2d…2650` 已作废，不要再用。
+`forge test` **64/64**（新增 3 个 BEM 路径测试）。旧主网 Core `0xdc2d…2650`、`0xcCfb…9f5e` 均已作废，不要再用。
 
 ## 0b. 已部署测试网（2026-11-23 · BSC Testnet 97）
 
@@ -37,7 +37,7 @@ tapeCost(cardId)     → (tapeoutFeeWei, gates) // BNB 部分
 | MockAgentIdRegistry | `0x087cca8DB0B6D1c17Ba837e2629127A2C3D3d0cF` | 已给测试地址与部署者发 .ai |
 | MockTapeProcessor | `0x36b5b5b0b8a8ee405d4db1c53dac591c1f5e8ac9` | 真 NAND `eval()`，测试网先用它 |
 | AgentPackCore | `0xdc2dcE427379a048280Bb43AeC5E7A302B732650` | BscScan testnet 可查 |
-| GuardVault | `0x2d2EeC85839f6a3eD3Dd32745EDd72a64aEd1e76` | 指向上面的新 Core |
+| GuardVault | `0xA0fb1D7F76D4b1Bc55A8060CDbcf773C1D8D8d3D` | 指向上面的新 Core |
 
 前端已把 Core / Vault 地址预置为测试网默认值（`netId()` 默认 61）。测试地址 `0x3f665386…0108` 同时作为 PRIZE_POOL。
 

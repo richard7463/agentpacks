@@ -1226,8 +1226,8 @@ function bemAddr(){return BEM_MAINNET}
 const PROC_ABI=["function eval(uint256,bytes) view returns (bytes)"];
 let chainAcc=null,chainPending=null;
 try{chainPending=JSON.parse(localStorage.getItem('ap_pending')||'null')}catch(e){}
-const MAINNET_CORE='0xccfb372ad7864dbd68415427c41b69cadedd9f5e';
-const MAINNET_VAULT='0x2d2eec85839f6a3ed3dd32745edd72a64aed1e76';
+const MAINNET_CORE='0xee7928436a480af5f93c3558a8ef27588c511d7b';
+const MAINNET_VAULT='0xa0fb1d7f76d4b1bc55a8060cdbcf773c1d8d8d3d';
 const MAINNET_PROC='0xAdfDB520db78C252382E4bCdf62692fAD453035a';
 const TESTNET_CORE='0xdc2dcE427379a048280Bb43AeC5E7A302B732650';
 const TESTNET_VAULT='0x43AfFA20eAC55aAFFD8aB7B90729413d6aDCBc3A';

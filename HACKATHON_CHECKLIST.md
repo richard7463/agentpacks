@@ -22,7 +22,7 @@
 |---|---|
 | 项目名称 | **卡灵战争（Agent Packs）** |
 | 官网 | https://agentid.cards |
-| 合约 | 主网 Core：`0xcCfb372Ad7864DbD68415427c41B69caDEdD9f5e`<br>主网 Vault：`0x2d2EeC85839f6a3eD3Dd32745EDd72a64aEd1e76`<br>自建 Processor：`0xAdfDB520db78C252382E4bCdf62692fAD453035a`（#1496） |
+| 合约 | 主网 Core：`0xEe7928436A480AF5f93C3558a8Ef27588c511d7b`<br>主网 Vault：`0xA0fb1D7F76D4b1Bc55A8060CDbcf773C1D8D8d3D`<br>自建 Processor：`0xAdfDB520db78C252382E4bCdf62692fAD453035a`（#1496） |
 | 链 | BNB Smart Chain 56（测试网 97） |
 | 开源 | MIT，BscScan 已验证源码 |
 
