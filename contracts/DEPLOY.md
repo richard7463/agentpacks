@@ -6,6 +6,27 @@
 
 ---
 
+## 0. 已部署测试网（2026-11-23 · BSC Testnet 97）
+
+| 合约 | 地址 | 说明 |
+|---|---|---|
+| MockAgentIdRegistry | `0x087cca8DB0B6D1c17Ba837e2629127A2C3D3d0cF` | 已给测试地址与部署者发 .ai |
+| MockTapeProcessor | `0x36b5b5b0b8a8ee405d4db1c53dac591c1f5e8ac9` | 真 NAND `eval()`，测试网先用它 |
+| AgentPackCore | `0xdc2dcE427379a048280Bb43AeC5E7A302B732650` | BscScan testnet 可查 |
+| GuardVault | `0x43AfFA20eAC55aAFFD8aB7B90729413d6aDCBc3A` | |
+
+前端已把 Core / Vault 地址预置为测试网默认值（`netId()` 默认 61）。测试地址 `0x3f665386…0108` 同时作为 PRIZE_POOL。
+
+**链上实测记录**：`claimDailyPack → packCommit → packReveal`（开出 5 张）→ `tapeOut(#1)`（2.9e15 wei / 22 门）→ `equip(#1)` → `GuardVault.setRate(1e14) / deposit(0.05) / pay(0.01)` 成功；第 5 笔付款被拒：`Blocked("daily tx count reached")` —— 规则真的拦住了钱。
+
+复跑命令：
+
+```bash
+export DEPLOY_PK=$(cat ../.deploy-testnet.key)
+forge script script/Deploy.s.sol:DeployTestnet \
+  --rpc-url https://data-seed-prebsc-1-s1.binance.org:8545 --private-key $DEPLOY_PK --broadcast
+```
+
 ## 1. 测试网先行（BSC Testnet, chain 97）
 
 ```bash

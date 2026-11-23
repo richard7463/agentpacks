@@ -1151,9 +1151,11 @@ const CHAIN_ABI=[
 ];
 let chainAcc=null,chainPending=null;
 try{chainPending=JSON.parse(localStorage.getItem('ap_pending')||'null')}catch(e){}
-function coreAddr(){return localStorage.getItem('ap_core')||''}
-/* 链 ID 以十六进制存：0x38 = 56（主网），0x61 = 97（测试网） */
-function netId(){const v=localStorage.getItem('ap_chain');return v==='61'||v==='97'?'61':'38'}
+const TESTNET_CORE='0xdc2dcE427379a048280Bb43AeC5E7A302B732650';
+const TESTNET_VAULT='0x43AfFA20eAC55aAFFD8aB7B90729413d6aDCBc3A';
+function coreAddr(){return localStorage.getItem('ap_core')||(netId()==='61'?TESTNET_CORE:'')}
+/* 链 ID 以十六进制存：0x38 = 56（主网），0x61 = 97（测试网）。默认测试网（主网尚未部署） */
+function netId(){const v=localStorage.getItem('ap_chain');return v==='38'||v==='56'?'38':'61'}
 function netName(){return netId()==='61'?'BNB 测试网 97':'BNB 主网 56'}
 function chainScan(){return netId()==='61'?'https://testnet.bscscan.com':'https://bscscan.com'}
 function savePending(){localStorage.setItem('ap_pending',chainPending?JSON.stringify(chainPending):'')}
@@ -1311,7 +1313,7 @@ const VAULT_ABI=[
  "function balanceOf(address) view returns (uint256)",
  "function rateWeiPerCent(address) view returns (uint256)"
 ];
-function vaultAddr(){return localStorage.getItem('ap_vault')||''}
+function vaultAddr(){return localStorage.getItem('ap_vault')||(netId()==='61'?TESTNET_VAULT:'')}
 function vaultContract(signer){return new ethers.Contract(vaultAddr(),VAULT_ABI,signer)}
 function vaultSay(t,cls){const o=$('#vaultOut');o.className='banner'+(cls?' '+cls:'');o.innerHTML=t}
 async function vaultSigner(){const p=await chainProvider();await p.send('eth_requestAccounts',[]);return p.getSigner()}
