@@ -835,6 +835,12 @@ function detail(id){
     try{
       if(!coreAddr())return cto.textContent='先在「实验室」保存 AgentPackCore 地址。';
       if(!window.ethereum)return cto.textContent='没有检测到钱包，请用 Binance Wallet / MetaMask 打开。';
+      let onchain=true;
+      try{await chainRead('ownerOf',[c.id])}catch(e){onchain=false}
+      if(!onchain){
+        cto.innerHTML='<b style="color:var(--red)">这是一张演示卡，链上不存在（#${c.id}）。</b><br>先在「实验室」用钱包买一包并揭示，拿到链上卡后再来流片。';
+        cc.disabled=true;return;
+      }
       const [bemCost,gates]=await chainRead('tapeNandCost',[c.id]);
       const [bnbCost]=await chainRead('tapeCost',[c.id]);
       quote={bemCost,bnbCost,gates};
@@ -849,6 +855,7 @@ function detail(id){
   if(cc)cc.onclick=async()=>{
     try{
       if(!quote)return toast('先查报价');
+      try{await chainRead('ownerOf',[c.id])}catch(e){return cto.innerHTML='<b style="color:var(--red)">这张卡链上不存在，请先买包揭示拿到链上卡。</b>'}
       const sg=await vaultSigner();await ensureChain();
       const me=await sg.getAddress();
       const bem=new ethers.Contract(bemAddr(),BEM_ABI,sg);
@@ -1212,6 +1219,7 @@ const CHAIN_ABI=[
  "function ruleOf(uint256) view returns (uint8,uint256,uint256)",
  "function equippedRule(address) view returns (uint256,uint8,uint256,uint256)",
  "function checkPayment(address,uint256,address,uint256,uint16,uint64,bool,uint8,bool) view returns (bool,string)",
+ "function ownerOf(uint256) view returns (address)",
  "function cardCircuit(uint256) view returns (uint256)",
  "function tapeCost(uint256) view returns (uint256,uint256)",
  "function tapeNandCost(uint256) view returns (uint256,uint256)"
