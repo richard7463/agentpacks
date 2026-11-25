@@ -57,7 +57,7 @@ function ruleUSD(t){const g=(NETLIST_META[t]||{}).g||36;const raw=g*1734000*1.5+
 async function doPublicTape(rule,say){
   try{
     const sg=await vaultSigner();await ensureChain();
-    const me=await sg.getAddress();
+    const me=await sg.getAddress();chainAcc=me;
     const [bemCost,bnbCost]=await (new ethers.Contract(pubAddr(),PUB_ABI,readProvider())).quote(rule);
     const pre=await preflightTape(sg,{bemCost,bnbCost});
     const bem=pre.bem;
@@ -624,10 +624,10 @@ function switchTab(v){
 }
 function renderAll(){regenFree();
   $('#chPts').textContent=S.pts;
-  const who=(S.name||'游客')+(S.myInPool?' · 在池':'');
+  const who=S.name?(S.name+(S.myInPool?' · 在池':'')):(chainAcc?chainAcc.slice(0,6)+'…'+chainAcc.slice(-4):'游客');
   $('#chName').textContent=who;
   const mn=$('#meName');if(mn)mn.textContent=who;
-  const av=$('#meAvatar');if(av)av.textContent=(S.name||'游').trim().charAt(0)||'游';
+  const av=$('#meAvatar');if(av)av.textContent=S.name?(S.name.trim().charAt(0)||'游'):(chainAcc?'我':'游');
   $('#pkN').textContent=S.packs.length+' 包';
   $('#rec').textContent='战绩 '+S.w+' / '+S.l;
   $('#streakN').textContent=S.streak;
@@ -1466,6 +1466,13 @@ async function renderMe(){
     const bal=await c.balanceOf(acct);
     const n=Math.min(Number(bal),80);
     for(let i=0;i<n;i++)ids.push(Number(await c.tokenOfOwnerByIndex(acct,i)));
+  }catch(e){ids.length=0}
+  // processor 不是 ERC721Enumerable，tokenOfOwnerByIndex 会 revert → 改逐个 ownerOf 扫描
+  if(!ids.length)try{
+    const c2=new ethers.Contract(processorAddr(),ME_PROC_ABI,p);
+    const found=await Promise.all(Array.from({length:64},(_,i)=>
+      c2.ownerOf(i+1).then(o=>[i+1,String(o)]).catch(()=>null)));
+    found.forEach(x=>{if(x&&x[1].toLowerCase()===acct.toLowerCase()&&!ids.includes(x[0]))ids.push(x[0])});
   }catch(e){}
   let hist=[];try{hist=JSON.parse(localStorage.getItem('ap_tapeouts')||'[]')}catch(e){}
   for(const h of hist){
@@ -2005,4 +2012,8 @@ $('#heroPack').innerHTML=packArt('hp');
 })();
 
 renderAll();
+/* 已授权过钱包的页面刷新后自动认出地址，右上角不再显示「游客」 */
+if(window.ethereum)window.ethereum.request({method:'eth_accounts'}).then(a=>{
+  if(a&&a[0]&&!chainAcc){chainAcc=a[0];renderAll()}
+}).catch(()=>{});
 setInterval(()=>{regenFree()},1000);
