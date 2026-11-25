@@ -17,6 +17,11 @@
 
 定价：`mintPrice = 1,734,000` raw BEM = 0.01734 BEM/门 ≈ $0.167/门 → **平均 60 门 ≈ $10**；protocolFee 1e6 raw、TAPEOUT_FEE 2e14 wei、supplyCap 1e6。
 
+**PublicTapeOut（2026-11-25 重新部署，v83）**：`0x682de09159baedde84733cc54f04e000b457578c`（旧 `0xfbe8…f62` 已作废）。
+新增 `minBemCost = 52,030,000` raw BEM ≈ **$5.00 @ $9.61/BEM**：低价卡（4~22 门）按 $5 下限收，贵卡仍按真实 NAND 成本收，所以所有电路卡价格集中在 **$5.11 ~ $31.70**。
+`quote()` 返回的就是含下限的价格；多收的 BEM 留在合约，owner 可用 `sweepBem(to, amount)` 提走；`setMinBemCost(raw)` 可随 BEM 美元价调整下限。
+`forge test` **70/70**。前端 `app.js` 的 `ruleUSD()` 已同步下限公式。
+
 **主网实测**：`approve(0.1 BEM)` → `createCPU` → `mint(0,4)`（买 4 门 NAND）→ `processor.tapeout(t2网表,1,2)`（付 2e14 wei）→ `ownerOf(1)` = 部署钱包 → `eval(1,0x00)=0x00`；`minted` 从 0 变 4。
 
 **关键修复（第二轮）**：官方 transistor 的 `mint()` 是 **BEM transferFrom**，不收原生 BNB；旧版 Core 给 mint 发 BNB 会 revert。现 Core 已改为：

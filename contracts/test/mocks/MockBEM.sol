@@ -15,6 +15,13 @@ contract MockBEM {
         return true;
     }
 
+    function transfer(address to, uint256 amount) external returns (bool) {
+        require(balanceOf[msg.sender] >= amount, "bem balance");
+        balanceOf[msg.sender] -= amount;
+        balanceOf[to] += amount;
+        return true;
+    }
+
     function transferFrom(address from, address to, uint256 amount) external returns (bool) {
         require(allowance[from][msg.sender] >= amount, "bem allowance");
         require(balanceOf[from] >= amount, "bem balance");

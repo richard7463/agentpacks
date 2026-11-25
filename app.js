@@ -47,7 +47,8 @@ const DEMO_NAMES=[
 /* 12 条真网表元数据（TapeForge 铸造 · 全输入穷举验证，tools/mint12.mjs）*/
 const NETLIST_META={"0":{"g":36,"d":13,"cases":128},"1":{"g":22,"d":10,"cases":64},"2":{"g":4,"d":2,"cases":2},"3":{"g":39,"d":15,"cases":256},"4":{"g":22,"d":11,"cases":64},"5":{"g":20,"d":9,"cases":32},"6":{"g":125,"d":19,"cases":1024},"7":{"g":31,"d":14,"cases":256},"8":{"g":15,"d":8,"cases":32},"9":{"g":189,"d":25,"cases":8192},"10":{"g":90,"d":23,"cases":4096},"11":{"g":4,"d":2,"cases":4}};
 
-function ruleUSD(t){const g=(NETLIST_META[t]||{}).g||36;return ((g*0.01734+0.01)*9.61)+(0.0002*560.67)}
+/* 与主网 PublicTapeOut 报价同式：BEM 部分有 $5 下限，BNB tapeout 费另计 */
+function ruleUSD(t){const g=(NETLIST_META[t]||{}).g||36;return Math.max((g*0.01734+0.01)*9.61,5)+(0.0002*560.67)}
 async function doPublicTape(rule,say){
   try{
     const sg=await vaultSigner();await ensureChain();
@@ -63,14 +64,33 @@ async function doPublicTape(rule,say){
     const tx=await new ethers.Contract(pubAddr(),PUB_ABI,sg).tapeoutRaw(rule,{value:bnbCost});
     const rc=await tx.wait();
     let cid='?';try{const ev=rc.events&&rc.events[0];cid=ev&&ev.args&&ev.args[2]}catch(e){}
+    recordTape(cid,rule,tx.hash);
     say&&say('✅ 已流片 circuit #'+cid);
-    beep(880,.12);return cid;
+    return cid;
   }catch(e){const m=e.reason||e.message||String(e);say&&say('⛔ '+m);throw e}
+}
+function pktSay(t){
+  const m=$('#pktMsg');if(!m)return;
+  m.className='pkt-msg on';
+  m.innerHTML='<span class="pkt-dot"></span>'+t;
+  toast(t,3200,t.indexOf('⛔')>=0?'bad':t.indexOf('✅')>=0?'ok':'');
 }
 window.__pkt=async(rule,btn)=>{
   btn.disabled=true;const old=btn.textContent;btn.textContent='签名中…';
-  try{await doPublicTape(rule,t=>{btn.textContent=t.length>20?'流片中…':t;toast(t)});btn.textContent='✓ 已流片'}
-  catch(e){btn.textContent='重试流片';setTimeout(()=>btn.textContent=old,2200)}
+  pktSay('授权 BEM 并签名中，别关掉这个窗口…');
+  try{
+    const cid=await doPublicTape(rule,t=>{btn.textContent=t.length>20?'流片中…':t;pktSay(t)});
+    btn.textContent='✓ 已流片';
+    const m=$('#pktMsg');
+    if(m)m.innerHTML='<span class="pkt-dot ok"></span><b style="color:var(--teal)">✅ 流片成功</b> · circuit #'+cid
+      +' · <a href="'+chainScan()+'/token/'+processorAddr()+'?a='+cid+'" target="_blank" style="color:var(--gold)">BscScan 查看 NFT ↗</a>';
+    toast('✅ 流片成功 · circuit #'+cid+' · NFT 已进钱包',5200,'ok');
+    beep(880,.12);
+  }catch(e){
+    btn.disabled=false;btn.textContent='重试流片';
+    pktSay('<b style="color:var(--red)">⛔ 流片失败：'+errText(e)+'</b> · 点「重试流片」再试');
+    toast('⛔ 流片失败：'+errText(e),5200,'bad');
+  }
 };
 const FACES={
   // crypto
@@ -147,7 +167,9 @@ if(S.day!==today()){
 
 /* ────────── 演示档每日限额 ────────── */
 const $=q=>document.querySelector(q), $$=q=>document.querySelectorAll(q);
-function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),1900)}
+function toast(t,ms,kind){const el=$('#toast');el.textContent=t;el.className='toast'+(kind?' '+kind:'');void el.offsetWidth;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),ms||2600)}
+function errText(e){return (e&&(e.reason||e.shortMessage||e.message))||String(e)}
+function recordTape(cid,rule,tx){try{const a=JSON.parse(localStorage.getItem('ap_tapeouts')||'[]');a.unshift({cid:Number(cid)||0,rule:Number(rule)||0,tx:tx||'',t:Date.now(),owner:chainAcc||''});localStorage.setItem('ap_tapeouts',JSON.stringify(a.slice(0,200)))}catch(e){}}
 function demoQuota(){
   if(S.demoDay!==today()){S.demoDay=today();S.demoToday=0}
   return Math.max(0,DEMO_DAILY_CAP-(S.demoToday||0));
@@ -550,6 +572,7 @@ function switchTab(v){
   if(G&&v!=='gate'){cancelAnimationFrame(G.raf);G=null;$('#gatePlay').hidden=true;$('#gateEnd').hidden=true;$('#gateSetup').hidden=false}
   renderAll();
   if(v==='chain'||v==='gate')renderChain();
+  if(v==='me')renderMe();
   if(v==='gate')renderGate();
 }
 function renderAll(){regenFree();
@@ -659,7 +682,7 @@ function dealCards(){
     $('#bOpenIt').style.display='none';
     $('#ovlTag').textContent='开包结果';
     $('#ovlHint').textContent='点任意一张翻开';
-    $('#stage').innerHTML='<div class="deal-head"><b>5</b>张卡，背面已经写着稀有度</div><div class="slots" id="slots"></div>';
+    $('#stage').innerHTML='<div id="pktMsg" class="pkt-msg" role="status" aria-live="polite"></div><div class="deal-head"><b>5</b>张卡，背面已经写着稀有度</div><div class="slots" id="slots"></div>';
     opening.forEach((c,i)=>{
       const st=statsOf(c);
       const d=document.createElement('div');
@@ -865,28 +888,38 @@ function detail(id){
       cto.innerHTML='<b style="color:var(--gold)">≈ $'+usd.toFixed(2)+'</b> · '
         +ethers.utils.formatUnits(bemCost,8)+' BEM (NAND) + '
         +ethers.utils.formatEther(bnbCost)+' BNB (tapeout) · '+gates.toString()+' 门 · 规则 t'+rule+'（不需要卡）';
-      cc.disabled=false;
-    }catch(e){cto.textContent='价格读取失败：'+(e.reason||e.message||e)}
+      cc.disabled=false;cc.textContent='直接流片';
+    }catch(e){cto.textContent='价格读取失败：'+(e.reason||e.message||e);cc.disabled=true}
   }
   autoCardQuote();
   if(cc)cc.onclick=async()=>{
+    cc.disabled=true;
     try{
-      if(!quote)return toast('价格还没加载好');
+      if(!quote)return toast('价格还没加载好',3200,'bad');
       const sg=await vaultSigner();await ensureChain();
-      const me=await sg.getAddress();
+      const me=await sg.getAddress();chainAcc=me;
       const bem=new ethers.Contract(bemAddr(),BEM_ABI,sg);
       const allowance=await bem.allowance(me,pubAddr());
       if(allowance.lt(quote.bemCost)){
         cto.textContent='授权 '+ethers.utils.formatUnits(quote.bemCost,8)+' BEM…';
+        toast('正在授权 BEM，请在钱包里确认',3200);
         const a=await bem.approve(pubAddr(),quote.bemCost);await a.wait();
       }
       const tx=await new ethers.Contract(pubAddr(),PUB_ABI,sg).tapeoutRaw(quote.rule,{value:quote.bnbCost});
       cto.textContent='流片交易 '+tx.hash.slice(0,12)+'… 等待确认';
+      toast('流片交易已发出，等待链上确认…',3200);
       const rc=await tx.wait();
       let cid='?';try{const ev=rc.events&&rc.events[0];cid=ev&&ev.args&&ev.args[2]}catch(e){}
-      cto.innerHTML='✅ 流片成功 · <a href="'+chainScan()+'/token/'+processorAddr()+'?a='+cid+'" target="_blank" style="color:var(--gold)">circuit #'+cid+' ↗</a> · NFT 已进钱包。';
-      beep(880,.12);toast('真身 circuit NFT 已进钱包');
-    }catch(e){cto.textContent='⛔ '+(e.reason||e.message||e)}
+      recordTape(cid,quote.rule,tx.hash);
+      cto.innerHTML='<b style="color:var(--teal)">✅ 流片成功</b> · <a href="'+chainScan()+'/token/'+processorAddr()+'?a='+cid+'" target="_blank" style="color:var(--gold)">circuit #'+cid+' ↗</a> · NFT 已进钱包。';
+      cc.textContent='✓ 已流片';
+      toast('✅ 流片成功 · circuit #'+cid+' · NFT 已进钱包',5200,'ok');
+      beep(880,.12);
+    }catch(e){
+      cc.disabled=false;cc.textContent='重试流片';
+      cto.innerHTML='<b style="color:var(--red)">⛔ 流片失败：'+errText(e)+'</b> · 可点「重试流片」再试。';
+      toast('⛔ 流片失败：'+errText(e),5200,'bad');
+    }
   };
   const me=$('#mEval');
   if(me)me.onclick=async()=>{
@@ -1407,6 +1440,77 @@ function renderChain(){
       st('● packPoints = <b style="color:var(--gold)">'+pts+'</b>','ok');
     }catch(e){st('● '+(e.reason||e.message||e),'bad')}};
 }
+
+/* ══════════ 我的：连钱包后看自己流片出来的电路 NFT ══════════ */
+const ME_PROC_ABI=[
+ "function balanceOf(address) view returns (uint256)",
+ "function tokenOfOwnerByIndex(address,uint256) view returns (uint256)",
+ "function ownerOf(uint256) view returns (address)",
+ "function eval(uint256,bytes) view returns (bytes)"
+];
+async function renderMe(){
+  const box=$('#meBox');if(!box)return;
+  let acct=chainAcc;
+  if(!acct&&window.ethereum){try{acct=(await window.ethereum.request({method:'eth_accounts'}))[0]||null}catch(e){}}
+  if(acct)chainAcc=acct;
+  const setMe=body=>{
+    box.innerHTML='<div class="chain-status '+(acct?'ok':'bad')+'">● '+(acct
+        ?'钱包 <span class="mono">'+acct+'</span> · '+netName()
+        :'还没连接钱包 —— 连接后这里会列出你亲手流片出来的电路 NFT。')+'</div>'
+      +'<div class="chain-actions"><button class="btn primary" id="bMeConnect">'+(acct?'切换 / 重新连接钱包':'连接浏览器钱包')+'</button>'
+      +'<button class="btn ghost" id="bMeRefresh">刷新</button></div>'
+      +body+(acct?'':wcPanelHTML());
+    bindWc();
+    const bc=$('#bMeConnect');
+    if(bc)bc.onclick=async()=>{
+      try{
+        if(!window.ethereum)throw new Error('没有检测到浏览器钱包，可用下方 X / 邮箱连接');
+        const a=(await window.ethereum.request({method:'eth_requestAccounts'}))[0];
+        await ensureChain();chainAcc=a;toast('钱包已连接：'+a.slice(0,8)+'…',3200,'ok');renderMe();
+      }catch(e){toast('连接失败：'+errText(e),4200,'bad')}
+    };
+    const br=$('#bMeRefresh');if(br)br.onclick=renderMe;
+  };
+  if(!acct)return setMe('<div class="banner">电路 NFT 是通过「收藏 → 点开电路卡 → 链上流片」或「实验室 ⑤ 公开流片」铸出来的，会直接进这个钱包。</div>');
+  setMe('<div class="chain-status">正在读取链上电路…</div>');
+  const p=readProvider(),ids=[];
+  try{
+    const c=new ethers.Contract(processorAddr(),ME_PROC_ABI,p);
+    const bal=await c.balanceOf(acct);
+    const n=Math.min(Number(bal),80);
+    for(let i=0;i<n;i++)ids.push(Number(await c.tokenOfOwnerByIndex(acct,i)));
+  }catch(e){}
+  let hist=[];try{hist=JSON.parse(localStorage.getItem('ap_tapeouts')||'[]')}catch(e){}
+  for(const h of hist){
+    if(h&&h.cid&&h.owner&&h.owner.toLowerCase()===acct.toLowerCase()&&!ids.includes(Number(h.cid)))ids.push(Number(h.cid));
+  }
+  if(!ids.length)return setMe('<div class="banner">这个钱包还没有电路 NFT。去「收藏」点开一张电路卡流片，或在「实验室 ⑤」选一条规则直接流片。</div>');
+  const byId={};hist.forEach(h=>{if(h)byId[h.cid]=h});
+  const cards=ids.map(id=>{
+    const h=byId[id]||{},t=Number(h.rule||0);
+    const name=HOUSE[t]?HOUSE[t].n:'规则 t'+t;
+    const gates=(NETLIST_META[t]||{}).g;
+    return '<div class="me-nft">'
+      +'<div class="me-nft-top"><b>circuit #'+id+'</b><span class="chip gold">'+name+(gates?' · '+gates+' 门':'')+'</span></div>'
+      +'<div class="me-nft-meta"><a href="'+chainScan()+'/token/'+processorAddr()+'?a='+id+'" target="_blank" style="color:var(--gold)">BscScan ↗</a>'
+      +(h.tx?' · <a href="'+chainScan()+'/tx/'+h.tx+'" target="_blank" style="color:var(--gold)">流片交易 ↗</a>':'')
+      +(h.t?' <span class="sub">· '+new Date(h.t).toLocaleString()+'</span>':'')+'</div>'
+      +'<div class="me-nft-eval"><input class="inp mono" id="meIn-'+id+'" placeholder="eval 输入 0x…">'
+      +'<button class="btn sm cut" data-me-eval="'+id+'">问电路</button><span class="me-out" id="meOut-'+id+'"></span></div>'
+      +'</div>';
+  }).join('');
+  setMe('<div class="me-sum">共 <b>'+ids.length+'</b> 条电路 NFT · 每条都能免费 eval 复算</div><div class="me-list">'+cards+'</div>');
+  $$('[data-me-eval]').forEach(b=>b.onclick=async()=>{
+    const id=b.dataset.meEval,hex=$('#meIn-'+id).value.trim(),out=$('#meOut-'+id);
+    if(!/^0x([0-9a-fA-F]{2})*$/.test(hex))return toast('输入格式不对，例如 0x05',3200,'bad');
+    out.textContent='读取中…';
+    try{
+      const ret=await new ethers.Contract(processorAddr(),ME_PROC_ABI,p).eval(id,hex);
+      const bytes=Array.from(ethers.utils.arrayify(ret)),v=bytes[0]||0;
+      out.innerHTML='→ <b style="color:var(--gold)">0x'+v.toString(16).padStart(2,'0')+'</b> · allow='+(v&1)+' ask='+((v>>1)&1);
+    }catch(e){out.innerHTML='<span style="color:var(--red)">eval 失败：'+errText(e)+'</span>'}
+  });
+}
 $('#bSaveAddr').onclick=()=>{
   const v=$('#cAddr').value.trim();
   if(v&&!/^0x[0-9a-fA-F]{40}$/.test(v))return toast('地址格式不正确');
@@ -1441,7 +1545,8 @@ const PUB_ABI=[
  "function quote(uint8) view returns (uint256,uint256,uint256,uint32)",
  "function tapeoutRaw(uint8) payable returns (uint256)"
 ];
-const PUB_MAINNET='0xfbe8c8535bfa3602a4ab24f4a247a4cedc719f62';
+/* v83：带 $5 BEM 计价下限的新 PublicTapeOut（旧 0xfbe8… 已作废） */
+const PUB_MAINNET='0x682de09159baedde84733cc54f04e000b457578c';
 function pubAddr(){return PUB_MAINNET}
 let pubQuote=null;
 async function autoPubQuote(){
@@ -1455,29 +1560,39 @@ async function autoPubQuote(){
     if(po)po.innerHTML='<b style="color:var(--gold)">≈ $'+usd.toFixed(2)+'</b> · '
       +ethers.utils.formatUnits(bemCost,8)+' BEM (NAND) + '
       +ethers.utils.formatEther(bnbCost)+' BNB (tapeout) · '+gates.toString()+' 门';
-    const bt=$('#bPubTape');if(bt)bt.disabled=false;
-  }catch(e){const pp=$('#pubPrice');if(pp)pp.textContent='价格读取失败';}
+    const bt=$('#bPubTape');if(bt){bt.disabled=false;bt.textContent='直接流片'}
+  }catch(e){const pp=$('#pubPrice');if(pp)pp.textContent='价格读取失败';const bt=$('#bPubTape');if(bt)bt.disabled=true}
 }
 if($('#pubRule'))$('#pubRule').onchange=autoPubQuote;
 autoPubQuote();
 $('#bPubTape')&&($('#bPubTape').onclick=async()=>{
+  const b=$('#bPubTape'),po=$('#pubOut');b.disabled=true;
   try{
-    if(!pubQuote)return toast('先查报价');
+    if(!pubQuote)return toast('先查报价',3200,'bad');
     const sg=await vaultSigner();await ensureChain();
-    const me=await sg.getAddress();
+    const me=await sg.getAddress();chainAcc=me;
     const bem=new ethers.Contract(bemAddr(),BEM_ABI,sg);
     const allowance=await bem.allowance(me,pubAddr());
     if(allowance.lt(pubQuote.bemCost)){
-      $('#pubOut').textContent='授权 '+ethers.utils.formatUnits(pubQuote.bemCost,8)+' BEM…';
+      po.textContent='授权 '+ethers.utils.formatUnits(pubQuote.bemCost,8)+' BEM…';
+      toast('正在授权 BEM，请在钱包里确认',3200);
       const a=await bem.approve(pubAddr(),pubQuote.bemCost);await a.wait();
     }
-    const tx=await new ethers.Contract(pubAddr(),PUB_ABI,sg).tapeoutRaw(Number($('#pubRule').value),{value:pubQuote.bnbCost});
-    $('#pubOut').textContent='流片交易 '+tx.hash.slice(0,12)+'… 等待确认';
+    const rule=Number($('#pubRule').value);
+    const tx=await new ethers.Contract(pubAddr(),PUB_ABI,sg).tapeoutRaw(rule,{value:pubQuote.bnbCost});
+    po.textContent='流片交易 '+tx.hash.slice(0,12)+'… 等待确认';
+    toast('流片交易已发出，等待链上确认…',3200);
     const rc=await tx.wait();
     let cid='?';try{const ev=rc.events&&rc.events[0];cid=ev&&ev.args&&ev.args[2]}catch(e){}
-    $('#pubOut').innerHTML='✅ 流片成功 · circuit #'+cid+' · <a href="'+chainScan()+'/token/'+processorAddr()+'?a='+cid+'" target="_blank" style="color:var(--gold)">BscScan ↗</a> · NFT 已进你的钱包。';
-    beep(880,.12);toast('真身 circuit NFT 已进钱包');
-  }catch(e){$('#pubOut').textContent='⛔ '+(e.reason||e.message||e)}
+    recordTape(cid,rule,tx.hash);
+    po.innerHTML='<b style="color:var(--teal)">✅ 流片成功</b> · circuit #'+cid+' · <a href="'+chainScan()+'/token/'+processorAddr()+'?a='+cid+'" target="_blank" style="color:var(--gold)">BscScan ↗</a> · NFT 已进你的钱包。';
+    toast('✅ 流片成功 · circuit #'+cid+' · NFT 已进钱包',5200,'ok');
+    beep(880,.12);
+  }catch(e){
+    b.disabled=false;
+    po.innerHTML='<b style="color:var(--red)">⛔ 流片失败：'+errText(e)+'</b> · 可点「直接流片」重试。';
+    toast('⛔ 流片失败：'+errText(e),5200,'bad');
+  }
 });
 
 /* ══════════ GuardVault：卡灵的闸门 ══════════ */
