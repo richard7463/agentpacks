@@ -159,12 +159,21 @@ const MS_DEF=[
 /* ────────── 存档 ────────── */
 const SKEY='apacks_v5';
 let S=null;
-const DEMO_DAILY_CAP=20; // 游客演示档每天最多 20 包（=100 张卡）；所有演示发放走 grantPacks()
-function fresh(){return{v:5,name:null,pts:0,packs:[],freeCap:20,lastRegen:Date.now(),
+let chainAcc=null,chainPending=null,meQueryAddr=null;
+/* 每日演示包梯度：有 .ai 多领、穿上电路再多领、钱包真有电路 NFT 再 +5 */
+function dailyCap(){
+  let c=5;                                  // 游客
+  if(chainAcc)c=10;                         // 连钱包
+  if(S.hasAgentId||S.name)c=15;             // 有 .ai
+  if(S.equipped>0)c=20;                     // 已 equip 电路卡
+  if(S.hasCircuitNft)c+=5;                  // 钱包持有电路 NFT
+  return c;
+}
+function fresh(){return{v:5,name:null,pts:0,packs:Array(12).fill(1),freeCap:20,lastRegen:Date.now(),
   cards:[],nextId:1,equipped:0,firstPack:false,sinceSSR:0,
   pool:[],myInPool:false,sort:'r',w:0,l:0,team:[],chCleared:{},
   day:null,mis:{},claimed:{},streak:1,lastDay:Date.now(),followed:false,
-  demoDay:null,demoToday:0};}
+  demoDay:null,demoToday:0,hasAgentId:false,hasCircuitNft:false,checkinDay:null};}
 function save(){localStorage.setItem(SKEY,JSON.stringify(S))}
 function load(){try{S=JSON.parse(localStorage.getItem(SKEY))}catch(e){}if(!S||S.v!==5)S=fresh()}
 load();
@@ -175,6 +184,12 @@ if(S.day!==today()){
   S.day=today();S.mis={open5:0,open15:0,open50:0,sr:0,ssr:0,equip:0,star:0,sell:0,join:0,gate:0,battle:0,clear:0,redeem:0};
   S.mis.streak=1;S.claimed={};
   S.demoDay=today();S.demoToday=0; // 演示档每日额度按自然日重置
+  save();
+}
+/* CT Packs 同款：每天签到送 2 包 */
+if(S.checkinDay!==today()){
+  S.checkinDay=today();
+  grantPacks(2,'每天签到',true);
   save();
 }
 
@@ -225,13 +240,13 @@ async function preflightTape(sg,quote){
 function recordTape(cid,rule,tx){try{const a=JSON.parse(localStorage.getItem('ap_tapeouts')||'[]');a.unshift({cid:Number(cid)||0,rule:Number(rule)||0,tx:tx||'',t:Date.now(),owner:chainAcc||''});localStorage.setItem('ap_tapeouts',JSON.stringify(a.slice(0,200)))}catch(e){}}
 function demoQuota(){
   if(S.demoDay!==today()){S.demoDay=today();S.demoToday=0}
-  return Math.max(0,DEMO_DAILY_CAP-(S.demoToday||0));
+  return Math.max(0,dailyCap()-(S.demoToday||0));
 }
 function grantPacks(n,tag,silent){
   const room=Math.min(demoQuota(),Math.max(0,(S.freeCap||20)-S.packs.length));
   const add=Math.max(0,Math.min(n,room));
   if(add>0){for(let i=0;i<add;i++)S.packs.push(1);S.demoToday=(S.demoToday||0)+add;save()}
-  if(add<n&&!silent)toast('演示档每天最多 '+DEMO_DAILY_CAP+' 包，今日已领满'+(tag?'（'+tag+'）':''));
+  if(add<n&&!silent)toast('演示档每天最多 '+dailyCap()+' 包，今日已领满'+(tag?'（'+tag+'）':''));
   return add;
 }
 function fmtN(n){return n&&n.length>16?n.slice(0,15)+'…':(n||'')}
@@ -571,9 +586,18 @@ function faceHTML(c){
 }
 function cskill(c){return HOUSE[cardRule(c)].s}
 function cdesc(c){return HOUSE[cardRule(c)].d}
+function kolCardFor(addr){
+  ensurePool();
+  const act=S.pool.filter(p=>p.active);
+  if(!act.length)return null;
+  let h=0;for(let i=0;i<addr.length;i++)h=(h*31+addr.charCodeAt(i))>>>0;
+  return S.pool.indexOf(act[h%act.length]);
+}
 function open5(){
   const out=[];
   const idSlot=Math.floor(Math.random()*5);   // 每包必出 1 张名人身份卡
+  // CT 同款粉丝包：被邀请人的首包第 4 张固定是邀请人（KOL）的卡
+  const fanRef=!S.firstPack&&refAddr?kolCardFor(refAddr):null;
   ensurePool();
   for(let i=0;i<5;i++){
     let r=rollR();
@@ -581,13 +605,17 @@ function open5(){
     else if(S.firstPack&&S.sinceSSR+1>=10&&r<3)r=3;
     if(r>=3)S.sinceSSR=0;else S.sinceSSR++;
     if(r>=3)S.mis.sr++; if(r>=4)S.mis.ssr++;
-    if(i===idSlot){
+    if(i===3&&fanRef!=null){
+      const p=S.pool[fanRef];if(p)p.pulls=(p.pulls||0)+1;
+      out.push({id:S.nextId++,r,star:0,kind:1,ref:fanRef});
+    }else if(i===idSlot){
       const act=S.pool.filter(p=>p.active);
       const p=act[Math.floor(Math.random()*act.length)];
       p.pulls=(p.pulls||0)+1;
       out.push({id:S.nextId++,r,star:0,kind:1,ref:S.pool.indexOf(p)});
     }else out.push(makeCard(r));
   }
+  if(fanRef!=null)toast('粉丝包：第 4 张来自邀请人 '+S.pool[fanRef].name,4200,'ok');
   S.firstPack=true;S.pts+=5;
   S.mis.open5++;S.mis.open15++;S.mis.open50++;
   S.cards.push(...out);save();return out;
@@ -620,12 +648,12 @@ function regenFree(){
   if(g>0){grantPacks(g,'每日恢复',true);S.lastRegen=now;save()}
   const cur=S.packs.length,full=cur>=S.freeCap,quota=demoQuota();
   $('#chPacks').textContent=cur+'/'+S.freeCap;
-  $('#chRf').textContent=quota===0?'今日 '+DEMO_DAILY_CAP+'/'+DEMO_DAILY_CAP:full?'包已满':Math.max(0,20-Math.floor((now-S.lastRegen)/1000))+' 秒后 +1';
+  $('#chRf').textContent=quota===0?'今日 '+dailyCap()+'/'+dailyCap():full?'包已满':Math.max(0,20-Math.floor((now-S.lastRegen)/1000))+' 秒后 +1';
   $('#pmCount').textContent=cur;
   $('#pmFill').style.width=Math.min(100,cur/S.freeCap*100)+'%';
-  $('#regen').textContent=quota===0?'今日演示包已领满（'+DEMO_DAILY_CAP+'/'+DEMO_DAILY_CAP+'），明天 00:00 重置':
-    full?'已经存满，开掉才会继续回':'正在回包，每 20 秒 +1 · 今日 '+S.demoToday+'/'+DEMO_DAILY_CAP;
-  $('#landN').textContent=quota?DEMO_DAILY_CAP:0;
+  $('#regen').textContent=quota===0?'今日演示包已领满（'+dailyCap()+'/'+dailyCap()+'），明天 00:00 重置':
+    full?'已经存满，开掉才会继续回':'正在回包，每 20 秒 +1 · 今日 '+S.demoToday+'/'+dailyCap();
+  $('#landN').textContent=quota?dailyCap():0;
 }
 function switchTab(v){
   $('#mmodal').classList.remove('on');
@@ -1282,12 +1310,12 @@ $('#bReset').onclick=()=>{
 $$('[data-buy]').forEach(b=>b.onclick=()=>{
   const t=+b.dataset.buy;const n=[1,10,100][t];
   const g=grantPacks(n,'补给');
-  beep(523,.12);toast(g?'已到账 '+g+' 包（演示档，今日额度 '+S.demoToday+'/'+DEMO_DAILY_CAP+'）':'今日演示额度已用完');renderAll();
+  beep(523,.12);toast(g?'已到账 '+g+' 包（演示档，今日额度 '+S.demoToday+'/'+dailyCap()+'）':'今日演示额度已用完');renderAll();
 });
 $('#bFollow').onclick=()=>{
   if(S.followed)return toast('已领取过');
-  S.followed=true;const g=grantPacks(10,'关注');
-  toast('关注奖励 +'+g+' 包（演示，今日额度 '+S.demoToday+'/'+DEMO_DAILY_CAP+'）');renderAll();
+  S.followed=true;const g=grantPacks(5,'关注');
+  toast('关注奖励 +'+g+' 包（演示，今日额度 '+S.demoToday+'/'+dailyCap()+'）');renderAll();
 };
 
 /* ══════════ 落地 & 开包按钮 ══════════ */
@@ -1339,7 +1367,6 @@ const BEM_ABI=[
 const BEM_MAINNET='0x5ce033B2bFCa3Af30b3e8C8457DeaF776A8b695a';
 function bemAddr(){return BEM_MAINNET}
 const PROC_ABI=["function eval(uint256,bytes) view returns (bytes)"];
-let chainAcc=null,chainPending=null,meQueryAddr=null;
 try{chainPending=JSON.parse(localStorage.getItem('ap_pending')||'null')}catch(e){}
 const MAINNET_CORE='0xee7928436a480af5f93c3558a8ef27588c511d7b';
 const MAINNET_VAULT='0xa0fb1d7f76d4b1bc55a8060cdbcf773c1d8d8d3d';
