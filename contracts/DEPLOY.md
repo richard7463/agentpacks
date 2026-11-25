@@ -14,6 +14,7 @@
 | Transistors (NAND token 0) | `0x250cF36a4A0a09948318B74f69bba51e0d317094` | creator = 部署钱包，NAND 收入归我们 |
 | AgentPackCore | `0xEe7928436A480AF5f93C3558a8Ef27588c511d7b` | 构造固化 `TAPE_PROCESSOR` + `BEM`；`buyPack` 对所有人开放 |
 | GuardVault | `0xA0fb1D7F76D4b1Bc55A8060CDbcf773C1D8D8d3D` | 指向上面的新 Core |
+| RuleConfig | `0xc02722543e54f2e5fe049e6f3696c75e28b72910` | 用户签名的数字参数（电路不变、数字可改，TapeID 同款）：`setOverride(rule,value)` / `getOverride(who,rule)` |
 
 定价：`mintPrice = 1,734,000` raw BEM = 0.01734 BEM/门 ≈ $0.167/门 → **平均 60 门 ≈ $10**；protocolFee 1e6 raw、TAPEOUT_FEE 2e14 wei、supplyCap 1e6。
 
