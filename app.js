@@ -180,9 +180,8 @@ function decodeRevert(raw){
   const d=raw.startsWith('0x')?raw:('0x'+raw),sel=d.slice(0,10).toLowerCase(),arg='0x'+d.slice(10);
   try{
     if(sel==='0xe450d38c'){const a=ethers.utils.defaultAbiCoder.decode(['address','uint256','uint256'],arg);
-      const w=a[0];return 'BEM 余额不足：钱包 '+w.slice(0,6)+'…'+w.slice(-4)+' 当前 '
-        +ethers.utils.formatUnits(a[1],8)+' BEM，需要 '+ethers.utils.formatUnits(a[2],8)
-        +' BEM（≈$5）。请先充值/购买 BEM 到这个钱包 '+w+'，到账后再点流片。'}
+      return 'BEM 余额不足：当前 '+ethers.utils.formatUnits(a[1],8)+' BEM，需要 '
+        +ethers.utils.formatUnits(a[2],8)+' BEM（≈$5）。请先充值/购买 BEM 到你的钱包，到账后再点流片。'}
     if(sel==='0xfb8f41b2'){const a=ethers.utils.defaultAbiCoder.decode(['address','uint256','uint256'],arg);
       return 'BEM 授权额度不足：当前 '+ethers.utils.formatUnits(a[1],8)+' BEM，需要 '+ethers.utils.formatUnits(a[2],8)+' BEM'}
     const simple={
@@ -209,9 +208,8 @@ async function preflightTape(sg,quote){
   const me=await sg.getAddress();
   const bem=new ethers.Contract(bemAddr(),BEM_ABI,sg);
   const bal=await bem.balanceOf(me);
-  if(bal.lt(quote.bemCost))throw new Error('BEM 余额不足：你的钱包 '+me.slice(0,6)+'…'+me.slice(-4)+' 当前 '
-    +ethers.utils.formatUnits(bal,8)+' BEM，需要 '+ethers.utils.formatUnits(quote.bemCost,8)
-    +' BEM（≈$5）。请先充值/购买 BEM 到这个钱包 '+me+'，到账后再点流片。');
+  if(bal.lt(quote.bemCost))throw new Error('BEM 余额不足：当前 '+ethers.utils.formatUnits(bal,8)+' BEM，需要 '
+    +ethers.utils.formatUnits(quote.bemCost,8)+' BEM（≈$5）。请先充值/购买 BEM 到你的钱包，到账后再点流片。');
   const bnb=await sg.getBalance();
   if(bnb.lt(quote.bnbCost))throw new Error('BNB 不足：需要 '+ethers.utils.formatEther(quote.bnbCost)+' BNB 付流片费。');
   return {me,bem};
