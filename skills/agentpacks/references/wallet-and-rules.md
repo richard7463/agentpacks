@@ -3,8 +3,10 @@
 ## rule id ≠ circuit token id
 
 `api/rules.json` is keyed by **rule id** (`2`, `11`, `7`, `0`). A circuit NFT
-snapshot `api/circuit/<id>.json` is keyed by **token id**. Token `#2` carries
-rule `t0` (止损, 36 gates). Never assume token `#2` means rule `t2`.
+snapshot `api/circuit/<tokenId>.json` is keyed by **token id**, which must be
+discovered from the wallet. `#2` is only a **published example** snapshot: it
+carries rule `t0` (止损, 36 gates). Never assume token `#2` means rule `t2`,
+and never hardcode `#2` for a different wallet.
 
 ## The four open rules (keyed by rule id)
 

@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Agent Skill · 卡灵战争 Agent Packs</title>
 <meta name="description" content="让任何 AI Agent 读懂卡灵战争：抽卡、翻卡、流片、看电路、守门付款。">
-<link rel="icon" href="/favicon.ico?v=95" sizes="any">
-<link rel="stylesheet" href="ui.css?v=95">
+<link rel="icon" href="/favicon.ico?v=96" sizes="any">
+<link rel="stylesheet" href="ui.css?v=96">
 <style>
   .skill-wrap{max-width:880px;margin:0 auto;padding:64px 22px 100px}
   .skill-hero{padding:38px;border-radius:24px;background:var(--ink2);box-shadow:inset 0 0 0 1px var(--line2)}
@@ -35,7 +35,7 @@
     <a class="tab on" href="skill.html">Agent Skill</a>
     <a class="tab" href="/">返回游戏 →</a>
   </nav>
-  <div class="ver-badge">v95</div>
+  <div class="ver-badge">v96</div>
 </div></header>
 
 <main class="skill-wrap">
@@ -75,13 +75,14 @@
       <h3>⑤ 机器可读数据</h3>
       <p>规则、门数、价格、合约、守门策略；不需要任何 NFT 工具就能抓。</p>
       <a href="api/rules.json" target="_blank">api/rules.json ↗</a><br>
+      <a href="api/circuit/index.json" target="_blank">api/circuit/index.json ↗</a><br>
       <a href="agent.txt" target="_blank">agent.txt ↗</a><br>
-      <a href="api/circuit/2.json" target="_blank">api/circuit/2.json ↗</a>
+      <a href="api/circuit/2.json" target="_blank">api/circuit/2.json（示例）↗</a>
     </div>
     <div class="skill-card">
       <h3>⑥ 当前电路</h3>
       <p>止损 / 风控 / 钻石手 / 委托，$5.11–$9.21，全部在 BSC 主网。</p>
-      <a href="/?v=95" target="_blank">去「我的」看电路 ↗</a>
+      <a href="/?v=96" target="_blank">去「我的」看电路 ↗</a>
     </div>
   </div>
 
@@ -91,7 +92,8 @@
     <ol>
       <li>把 <b>https://agentid.cards/skills/agentpacks/SKILL.md</b> 发给 Agent，让它先完整读一遍。</li>
       <li>让它按意图读对应 reference：<b>抽卡/翻卡</b> 读 web-actions，<b>看规则/NFT</b> 读 wallet-and-rules，<b>守门付款</b> 读 guard。</li>
-      <li>读不到 NFT 或规则时，让它抓 <b>api/rules.json</b> 和 <b>api/circuit/&lt;id&gt;.json</b>；仍读不到就 <b>fail closed</b>。</li>
+      <li>让它先从<b>自己的钱包地址</b>发现真正拥有的电路 token ID（不要写死 #2），再读 <b>api/circuit/&lt;discoveredTokenId&gt;.json</b> 或网站「我的」页复制的动态 JSON。</li>
+      <li>读不到 NFT 或规则时，让它抓 <b>api/rules.json</b> / <b>api/circuit/index.json</b>；仍读不到就 <b>fail closed</b>。</li>
     </ol>
   </div>
 </main>

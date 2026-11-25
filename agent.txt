@@ -29,11 +29,13 @@ HOW TO VERIFY OWNERSHIP WITH PLAIN eth_call
     tokenURI(2)            0xc87b56dd0000000000000000000000000000000000000000000000000000000000000002
                            (empty string is NORMAL: this NFT has no metadata/image)
 
-  Owner of circuit #2 at snapshot time (after user transferred it into Binance Wallet):
-    0x99Fc9652e21dd8B211Af38D27C3B067F8c8ad9d3
-  Always re-read ownerOf on-chain before trusting; the static file is a snapshot.
-  If an agent cannot call eth_call, fetch https://agentid.cards/api/circuit/2.json
-  for machine-readable rules, then apply the guard policy below.
+  EXAMPLE ONLY: circuit #2 is one published snapshot; its owner at snapshot time
+  was 0x99Fc9652e21dd8B211Af38D27C3B067F8c8ad9d3. DO NOT hardcode token #2 or
+  this address. Discover the user's own token IDs from their wallet first
+  (see SKILL.md → "Wallet-centric discovery"), then read
+  https://agentid.cards/api/circuit/<discoveredTokenId>.json
+  or the dynamic JSON copied from the site's 「我的」 page.
+  Always re-read ownerOf on-chain before trusting; static files are snapshots.
 
 IMPORTANT: rule id (t0/t2/t7/t11) is NOT the same as circuit NFT token id (#2).
   A circuit NFT can carry any rule: circuit #2 currently carries rule t0 (止损).

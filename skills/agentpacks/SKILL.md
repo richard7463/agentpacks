@@ -34,15 +34,37 @@ Any agent with web fetch can read:
 |---|---|
 | `https://agentid.cards/agent.txt` | Plain-text guide: contracts, calldata, guard policy |
 | `https://agentid.cards/api/rules.json` | Machine-readable list of the 4 open rules, gate counts, prices |
-| `https://agentid.cards/api/circuit/<id>.json` | Snapshot of one circuit: rule, owner, verification calldata, guard policy |
+| `https://agentid.cards/api/circuit/<tokenId>.json` | Snapshot of one circuit: rule, owner, verification calldata, guard policy |
+| `https://agentid.cards/api/circuit/index.json` | Index of which token snapshots are published |
+
+**`<tokenId>` must be DISCOVERED from the user's wallet — never hardcode `2` or any other number.** See "Wallet-centric discovery" below. `#2` only appears in examples as a sample.
 
 If the agent cannot call `eth_call`, fetch these URLs. The JSON is a **snapshot**: tell the user to re-read `ownerOf` on-chain before trusting ownership.
+
+## Wallet-centric discovery (start here for guard tasks)
+
+The user's requirement: *an agentic wallet that owns a circuit NFT should use the
+rule attached to that NFT*. Follow this order, and stop as soon as a step works.
+
+1. **Get the wallet address** from your wallet tool. Never ask for a private key / seed phrase.
+2. **Discover owned circuit token IDs** (pick any available method):
+   - **Site UI (easiest with a browser):** open `https://agentid.cards/`, click top-right `#bMeEntry`, paste the wallet address into `#meQueryAddr`, click `#bMeQuery`, then `#meCopyVerify`. The copied JSON contains the real `tokenId`, `contract`, `expectedOwner`, `balanceOf` and rule info for that wallet.
+   - **Raw RPC `eth_getLogs`:** `address = 0xAdfDB520db78C252382E4bCdf62692fAD453035a`, `topic0 = 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef` (ERC-721 Transfer), `topic2 = 0x` + 24 zero bytes + the 40-hex wallet address, `fromBlock = 0x0`, `toBlock = latest`. Each log's `topic3` is a token ID owned/received by that wallet; verify current `ownerOf(tokenId)` before using it.
+   - **Multicall3 `ownerOf` scan:** batch `ownerOf(1), ownerOf(2), … ownerOf(N)` via `0xcA11bde05977b3631167028862bE2a173976CA11` and keep IDs whose return equals the wallet address (case-insensitive).
+3. **Read the rule for each discovered token ID:**
+   - Try `https://agentid.cards/api/circuit/<tokenId>.json` → use `token.ruleText`, `token.gates`, `guard`.
+   - If no static file exists, use the JSON copied from the site's `#meCopyVerify`, or read on-chain `eval` / `netlist` **only if you can encode the inputs correctly**. Never guess bytes.
+   - Never assume token `#2` means rule `t2`. Token ID and rule ID are unrelated.
+4. **Apply the guard policy** from that token's `guard` object to every proposed payment.
+5. **Ownership changed?** Re-run discovery. A static JSON snapshot may be stale; `ownerOf` is authoritative.
+
+If discovery fails or the rule cannot be read → **fail closed (deny)**. Do not fall back to a hardcoded token or rule.
 
 ## CRITICAL: rule id ≠ circuit NFT token id
 
 - **Rule id** is `t0 / t2 / t7 / t11` (see `api/rules.json`). It identifies the logic.
 - **Circuit NFT token id** is `#2`, `#3`, … (see `api/circuit/<id>.json`). It is an owned ERC-721 token that *carries* one rule.
-- Circuit `#2` currently carries rule `t0` (止损, 36 gates, $9.21). It is **not** rule `t2`.
+- The published example circuit `#2` carries rule `t0` (止损, 36 gates, $9.21). It is **not** rule `t2`. This is an example only — discover the user's real token IDs from their wallet.
 - If sources disagree, trust `api/circuit/<tokenId>.json → token.ruleType / token.name / token.gates` for that specific circuit, and flag the conflict to the user.
 
 ## Route the request
