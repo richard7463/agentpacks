@@ -17,7 +17,9 @@
 
 定价：`mintPrice = 1,734,000` raw BEM = 0.01734 BEM/门 ≈ $0.167/门 → **平均 60 门 ≈ $10**；protocolFee 1e6 raw、TAPEOUT_FEE 2e14 wei、supplyCap 1e6。
 
-**PublicTapeOut（2026-11-25 v86 重新部署）**：`0x6714b52c342e5889d35344b9bbec4a70737f2a64`（旧 `0x682de0…578c`、`0xfbe8…f62` 均已作废）。
+**PublicTapeOut（2026-11-25 v89 重新部署）**：`0x9c7fdbef499458e4546eecef009cf01a510235ce`（旧 `0x6714bd…2a64`、`0x682de0…578c`、`0xfbe8…f62` 均已作废）。
+
+v89 修复：官方 transistor 把 NAND（ERC-1155）铸给调用者，本合约原先没实现 `onERC1155Received`，导致 `ERC1155InvalidReceiver` revert。现已加 ERC-1155 接收器，并在 BSC 主网 fork 上端到端跑通（cast: circuit #2 铸出）。
 
 规则与定价（按用户反馈调整）：
 - **只开放 4 条规则**（四个家族各一条）：t0 止损（36 门）、t2 风控（4 门）、t7 钻石手（31 门）、t11 委托（4 门）；其余 8 条在 `quote()` 里直接 revert。

@@ -187,7 +187,8 @@ function decodeRevert(raw){
     const simple={
       '0xca7c57d4':'规则未开放（当前只支持止损/风控/钻石手/委托 4 条）','0x0bba69fb':'BNB 费用不对',
       '0xf4613fc4':'BEM 划转失败','0xb01d44fa':'处理器没配置','0x30cd7471':'不是合约 owner',
-      '0xd92e233d':'地址不能为 0'
+      '0xd92e233d':'地址不能为 0',
+      '0x57f447ce':'流片合约无法接收 NAND（合约版本过旧），请刷新页面重试'
     };
     if(simple[sel])return simple[sel];
     if(sel==='0x08c379a0'){const a=ethers.utils.defaultAbiCoder.decode(['string'],arg);return a[0]}
@@ -832,11 +833,7 @@ function renderCards(){
 function detail(id){
   const c=S.cards.find(x=>x.id===id);if(!c)return;
   const st=statsOf(c);
-  const edD=ruleDerived(c),edT=edD.t;
-  const edAvail=c.kind===0&&edT!==2;
-  const [edLo,edHi]=ruleRange(c);
-  const edCur=ruleParams(c).p1;
-  const fuel=S.cards.filter(x=>x.id!==c.id&&x.id!==S.equipped);
+  const edT=ruleDerived(c).t;
   const m=$('#mbox');
   m.innerHTML=`<div class="detail">
     <div class="detail-card">${cardHTML(c)}</div>
@@ -855,24 +852,6 @@ function detail(id){
           <span class="chip ${S.equipped===c.id?'teal':''}" style="margin-left:auto">${S.equipped===c.id?'生效中':'未装备'}</span></div>
         <div class="rb-name">${ruleName(c)}</div>
         <p class="rb-desc">${ruleLong(c)}</p>
-        <div class="stack4">
-          <div class="s4">
-            <span class="s4-n">1 芯</span><b>电路</b>
-            <span class="s4-v">${c.kind===1?'身份卡走注册表，无需流片':'本地数据 · 未流片 · 用下方「链上流片」把规则铸成 NFT'+(NETLIST_META[ruleDerived(c).t]?' · '+NETLIST_META[ruleDerived(c).t].g+' 门 NAND':'')}</span>
-          </div>
-          <div class="s4 ${c.ovr!=null?'on':''}">
-            <span class="s4-n">2 魂</span><b>参数</b>
-            <span class="s4-v">${c.ovr!=null?'已自定义 · '+ruleShort(c):'卡档位 · '+ruleShort(c)}</span>
-          </div>
-          <div class="s4 on">
-            <span class="s4-n">3 证</span><b>证书</b>
-            <span class="s4-v">ruleOf(#${c.id}) 链上可读 · 卡面规则句 ✓</span>
-          </div>
-          <div class="s4 ${((S.mis.gate||0)>0&&S.equipped===c.id)?'on':''}">
-            <span class="s4-n">4 履</span><b>履历</b>
-            <span class="s4-v">checkPayment() 可复算 ✓${(S.mis.gate||0)>0?' · 守门 '+S.mis.gate+' 局':''}</span>
-          </div>
-        </div>
         
         <div class="rb-test">
           <input class="inp" id="chkAmt" type="number" min="0" step="0.01" placeholder="金额 USD" ${c.kind===1?'disabled':''}>
@@ -896,27 +875,11 @@ function detail(id){
           </div>
         </div>`:''}
         <div style="margin-top:10px"><button class="btn sm ghost" id="mTheater">亲眼看这条规则怎么判 →</button></div>
-        ${edAvail?`
-        <div class="rb-ed">
-          <div class="rb-ed-head"><span class="eyebrow" style="margin:0">调数值 · TapeID 同款</span>
-            ${c.ovr!=null?'<span class="chip gold">已自定义</span>':''}</div>
-          <p class="rb-desc">数值跟卡走，只有卡主能改；上限由稀有度 × 星级决定。${c.ovr!=null?'':'默认即卡档位上限，往下调越守越严。'}</p>
-          <div class="rb-test">
-            <input class="inp" id="edSent" placeholder="一句话：把上限改成 35 美元 / 冷却改成 90 分钟">
-            <button class="btn sm cut" id="edPrev">生成对比</button>
-          </div>
-          <div class="rb-out" id="edOut">可调范围 ${fmtParam(edT,edLo)} – ${fmtParam(edT,edHi)} · 当前 ${fmtParam(edT,edCur)}</div>
-        </div>`:''}
       </div>
       <div class="row" style="margin-top:14px">
         <button class="btn sm ${S.equipped===c.id?'':'primary'}" id="mEq">${S.equipped===c.id?'脱下这张卡':'穿到我的 Agent ID 上'}</button>
-        <button class="btn sm ghost" id="mSell">卖出 +${SELL[c.r]} 分</button>
+        <button class="btn sm ghost" id="mSell">丢弃这张卡</button>
         ${c.kind===1?'<button class="btn sm cut" id="mShare">晒到 X</button>':''}
-      </div>
-      <div style="margin-top:18px">
-        <span class="sub">升星 starUp() · 1 张燃料 = 1 星（上限 5）</span>
-        <div class="fuel" id="fuelBox">${fuel.slice(0,50).map(f=>`<span class="fchip" data-f="${f.id}">#${f.id} · ${RAR[f.r]}</span>`).join('')||'<span class="sub">没有多余卡</span>'}</div>
-        <button class="btn sm primary" id="mStar" style="margin-top:10px">升星（已选 <b id="fc">0</b>）</button>
       </div>
     </div>
   </div>`;
@@ -996,42 +959,14 @@ function detail(id){
     out.className='rb-out '+(ok?'ok':'bad');
     out.textContent=(ok?'PASS · ':'FAIL · ')+msg+'（$'+usd(amt)+'）';
   };
-  const edBtn=$('#edPrev');
-  if(edBtn)edBtn.onclick=()=>{
-    const txt=$('#edSent').value;
-    const val=parseRuleSentence(edT,txt);
-    const out=$('#edOut');
-    if(val==null){out.className='rb-out bad';
-      out.textContent='没听懂。试试「把上限改成 35 美元」「每天最多 5 笔」「冷却改成 90 分钟」。';return}
-    if(val<edLo||val>edHi){out.className='rb-out bad';
-      out.textContent='超档：这张卡的范围是 '+fmtParam(edT,edLo)+' – '+fmtParam(edT,edHi)+'。要么调进来，要么升星 / 换更高稀有度的卡。';return}
-    out.className='rb-out';
-    out.innerHTML=fmtParam(edT,edCur)+' → <b style="color:var(--pass)">'+fmtParam(edT,val)+'</b> ✓ 档位内<br>'+
-      '只修改签名参数，电路本身不变。主网 = <span class="mono">setRuleConfig(#'+c.id+', cfg)</span> 一笔交易。 '+
-      '<button class="btn sm primary cut" id="edOk">确认修改</button>'+
-      (c.ovr!=null?' <button class="btn sm ghost" id="edRst">恢复卡档位</button>':'');
-    $('#edOk').onclick=()=>{c.ovr=val;save();beep(660,.1);toast('数值已更新：'+fmtParam(edT,val));detail(id)};
-    const rst=$('#edRst');
-    if(rst)rst.onclick=()=>{delete c.ovr;save();toast('已恢复卡档位');detail(id)};
-  };
-  const picked=new Set();
-  $$('#fuelBox .fchip').forEach(ch=>ch.onclick=()=>{
-    const fid=+ch.dataset.f;picked.has(fid)?picked.delete(fid):picked.add(fid);
-    ch.classList.toggle('sel');$('#fc').textContent=picked.size});
   $('#mEq').onclick=()=>{
     if(S.equipped===c.id){S.equipped=0;toast('已脱下')}
     else{S.equipped=c.id;S.mis.equip++;toast('已穿到 '+(S.name||'你的身份'))}
     beep(660,.1);save();$('#mmodal').classList.remove('on');renderAll()};
   $('#mSell').onclick=()=>{
-    if(S.equipped===c.id)S.equipped=0;
-    S.pts+=SELL[c.r];S.mis.sell++;
     S.cards=S.cards.filter(x=>x.id!==c.id);
-    toast('已卖出 +'+SELL[c.r]+' 分');save();$('#mmodal').classList.remove('on');renderAll()};
-  $('#mStar').onclick=()=>{
-    if(!picked.size)return toast('先选择燃料卡');
-    S.cards=S.cards.filter(x=>!picked.has(x.id));
-    c.star=Math.min(5,c.star+picked.size);S.mis.star++;
-    beep(880,.16,'triangle',.08);toast('升到 ★'+c.star);save();$('#mmodal').classList.remove('on');renderAll()};
+    if(S.equipped===c.id)S.equipped=0;
+    toast('已丢弃这张卡');save();$('#mmodal').classList.remove('on');renderAll()};
 }
 $('#mmodal').onclick=e=>{if(e.target.id==='mmodal')$('#mmodal').classList.remove('on')};
 $('#bRedeem').onclick=()=>{
@@ -1597,8 +1532,8 @@ const PUB_ABI=[
  "function quote(uint8) view returns (uint256,uint256,uint256,uint32)",
  "function tapeoutRaw(uint8) payable returns (uint256)"
 ];
-/* v86：只开放 4 条规则、$5~$12 收窄价、差额自动进 treasury（旧 0x682de0… 已作废） */
-const PUB_MAINNET='0x6714b52c342e5889d35344b9bbec4a70737f2a64';
+/* v89：支持 ERC-1155 NAND 接收（修 ERC1155InvalidReceiver），旧 0x6714bd… 已作废 */
+const PUB_MAINNET='0x9c7fdbef499458e4546eecef009cf01a510235ce';
 function pubAddr(){return PUB_MAINNET}
 let pubQuote=null;
 async function autoPubQuote(){

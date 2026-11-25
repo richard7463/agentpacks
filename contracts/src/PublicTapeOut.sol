@@ -42,6 +42,10 @@ contract PublicTapeOut {
     event BemToTreasury(address indexed to, uint256 amount);
     event BemSwept(address indexed to, uint256 amount);
 
+    /* official transistor 把 NAND(ERC-1155) 铸给调用者，所以本合约必须能接收 ERC-1155 */
+    bytes4 private constant ERC1155_RECEIVED = 0xf23a6e61;
+    bytes4 private constant ERC1155_BATCH_RECEIVED = 0xbc197c81;
+
     ICoreNetlists public immutable core;
     IPTapeOut public immutable proc;
     IBEM20 public immutable bem;
@@ -126,6 +130,16 @@ contract PublicTapeOut {
         if (target < nand) target = nand; // 绝不自掏腰包补贴
         bemCost = target;
         bnbCost = proc.TAPEOUT_FEE();
+    }
+
+    function onERC1155Received(address, address, uint256, uint256, bytes calldata)
+        external pure returns (bytes4) { return ERC1155_RECEIVED; }
+
+    function onERC1155BatchReceived(address, address, uint256[] calldata, uint256[] calldata, bytes calldata)
+        external pure returns (bytes4) { return ERC1155_BATCH_RECEIVED; }
+
+    function supportsInterface(bytes4 id) external pure returns (bool) {
+        return id == 0x01ffc9a7 || id == 0x4e2312e0; // ERC-165 / ERC-1155Receiver
     }
 
     /// @notice 直接流片。先 approve(bem, address(this), quote(rule))，再带 bnbCost 调本函数。

@@ -100,6 +100,15 @@ contract PublicTapeOutTest is Test {
         assertEq(bem.balanceOf(address(pub)), 0);
     }
 
+    function test_AcceptsErc1155Nand() public {
+        assertEq(pub.onERC1155Received(address(0), address(0), 0, 1, ""), bytes4(0xf23a6e61));
+        uint256[] memory ids = new uint256[](1);
+        uint256[] memory amts = new uint256[](1);
+        amts[0] = 1;
+        assertEq(pub.onERC1155BatchReceived(address(0), address(0), ids, amts, ""), bytes4(0xbc197c81));
+        assertTrue(pub.supportsInterface(0x4e2312e0));
+    }
+
     function test_BadRuleReverts() public {
         vm.expectRevert(PublicTapeOut.BadRule.selector);
         pub.quote(12);
