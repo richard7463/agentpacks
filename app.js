@@ -17,7 +17,9 @@ const RULECFG_ABI=[
 let ruleOverrides={};
 const ODDS=[464,300,150,60,20,5,1];
 const SELL=[1,2,4,10,30,120,600];
-const RCOL=['#8E8AA8','#C9C6DC','#6FE3FF','#B49BFF','#FF7AD9','#F5C451','#FFE9A8'];
+/* v5：稀有度 = 材质（粗铁 / 抛光钢 / 青铜 / 秘银 / 黄金 / 龙鳞金 / 龙骨+符文） */
+const RCOL=['#8A857C','#B9C3CC','#C98A4B','#A9C8E0','#E0B84A','#E3893A','#F1E6CC'];
+const MAT=['粗铁','抛光钢','青铜','秘银','黄金','龙鳞金','龙骨'];
 const HOUSE=[
   {n:'止损电路',s:'止损回血',d:'HP 低于 40% 时，每回合回复 8% 生命'},
   {n:'梭哈电路',s:'满血狂暴',d:'HP 高于 90% 时，攻击力 +60%'},
@@ -107,37 +109,37 @@ window.__pkt=async(rule,btn)=>{
 };
 const FACES={
   // crypto
-  'cz.ai':      {mono:'C',tag:'币安掌门',   c:'#F2C14E',photo:'faces/cz.jpg'},
-  'heyi.ai':    {mono:'Y',tag:'BNB 大管家', c:'#F2C14E',photo:'faces/heyi.jpg'},
-  'justin.ai':  {mono:'S',tag:'波场教主',   c:'#FF8AD8',photo:'faces/justin.jpg'},
-  'vitalik.ai': {mono:'V',tag:'以太架构师', c:'#8AF0FF',photo:'faces/vitalik.jpg'},
-  'satoshi.ai': {mono:'S',tag:'创世传奇',   c:'#B79BFF',photo:'faces/satoshi.jpg'},  'michael.ai': {mono:'M',tag:'囤币狂人',   c:'#F2C14E',photo:'faces/michael.jpg'},  // tech
-  'musk.ai':    {mono:'M',tag:'火星船长',   c:'#D4FF8A',photo:'faces/musk.jpg'},
-  'zuck.ai':    {mono:'Z',tag:'元宇宙房东', c:'#8AF0FF',photo:'faces/zuck.jpg'},
-  'jensen.ai':  {mono:'J',tag:'算力教父',   c:'#D4FF8A',photo:'faces/jensen.jpg'},
-  'tim.ai':     {mono:'T',tag:'苹果大掌柜', c:'#F2EFFF',photo:'faces/tim.jpg'},
-  'sam.ai':     {mono:'S',tag:'OpenAI 掌门',c:'#D4FF8A',photo:'faces/sam.jpg'},
-  'bezos.ai':   {mono:'B',tag:'蓝色起源',   c:'#8AF0FF',photo:'faces/bezos.jpg'},
-  'gates.ai':   {mono:'G',tag:'慈善首富',   c:'#F2EFFF',photo:'faces/gates.jpg'},
-  'brin.ai':    {mono:'B',tag:'谷歌双子',   c:'#8AF0FF',photo:'faces/brin.jpg'},
-  'jack.ai':    {mono:'J',tag:'推特始祖',   c:'#B79BFF',photo:'faces/jack.jpg'},
+  'cz.ai':      {mono:'C',tag:'币安掌门',   c:'#D4AF37',photo:'faces/cz.jpg'},
+  'heyi.ai':    {mono:'Y',tag:'BNB 大管家', c:'#D4AF37',photo:'faces/heyi.jpg'},
+  'justin.ai':  {mono:'S',tag:'波场教主',   c:'#D9822B',photo:'faces/justin.jpg'},
+  'vitalik.ai': {mono:'V',tag:'以太架构师', c:'#B7C4CF',photo:'faces/vitalik.jpg'},
+  'satoshi.ai': {mono:'S',tag:'创世传奇',   c:'#9FB0BD',photo:'faces/satoshi.jpg'},  'michael.ai': {mono:'M',tag:'囤币狂人',   c:'#D4AF37',photo:'faces/michael.jpg'},  // tech
+  'musk.ai':    {mono:'M',tag:'火星船长',   c:'#8FB585',photo:'faces/musk.jpg'},
+  'zuck.ai':    {mono:'Z',tag:'元宇宙房东', c:'#B7C4CF',photo:'faces/zuck.jpg'},
+  'jensen.ai':  {mono:'J',tag:'算力教父',   c:'#8FB585',photo:'faces/jensen.jpg'},
+  'tim.ai':     {mono:'T',tag:'苹果大掌柜', c:'#E8DCC0',photo:'faces/tim.jpg'},
+  'sam.ai':     {mono:'S',tag:'OpenAI 掌门',c:'#8FB585',photo:'faces/sam.jpg'},
+  'bezos.ai':   {mono:'B',tag:'蓝色起源',   c:'#B7C4CF',photo:'faces/bezos.jpg'},
+  'gates.ai':   {mono:'G',tag:'慈善首富',   c:'#E8DCC0',photo:'faces/gates.jpg'},
+  'brin.ai':    {mono:'B',tag:'谷歌双子',   c:'#B7C4CF',photo:'faces/brin.jpg'},
+  'jack.ai':    {mono:'J',tag:'推特始祖',   c:'#9FB0BD',photo:'faces/jack.jpg'},
   // stars
-  'taylor.ai':  {mono:'T',tag:'霉霉女王',   c:'#FF8AD8',photo:'faces/taylor.jpg'},
-  'rihanna.ai': {mono:'R',tag:'日日天后',   c:'#F2C14E',photo:'faces/rihanna.jpg'},
-  'jay.ai':     {mono:'J',tag:'周董',       c:'#FF8AD8',photo:'faces/jay.jpg'},
-  'jackie.ai':  {mono:'J',tag:'功夫成龙',   c:'#F2C14E',photo:'faces/jackie.jpg'},
-  'snoop.ai':   {mono:'S',tag:'狗爷',       c:'#D4FF8A',photo:'faces/snoop.jpg'},
-  'andy.ai':    {mono:'A',tag:'华仔',       c:'#F2EFFF',photo:'faces/andy.jpg'},
-  'drake.ai':   {mono:'D',tag:'公鸭',       c:'#B79BFF',photo:'faces/drake.jpg'},
+  'taylor.ai':  {mono:'T',tag:'霉霉女王',   c:'#D9822B',photo:'faces/taylor.jpg'},
+  'rihanna.ai': {mono:'R',tag:'日日天后',   c:'#D4AF37',photo:'faces/rihanna.jpg'},
+  'jay.ai':     {mono:'J',tag:'周董',       c:'#D9822B',photo:'faces/jay.jpg'},
+  'jackie.ai':  {mono:'J',tag:'功夫成龙',   c:'#D4AF37',photo:'faces/jackie.jpg'},
+  'snoop.ai':   {mono:'S',tag:'狗爷',       c:'#8FB585',photo:'faces/snoop.jpg'},
+  'andy.ai':    {mono:'A',tag:'华仔',       c:'#E8DCC0',photo:'faces/andy.jpg'},
+  'drake.ai':   {mono:'D',tag:'公鸭',       c:'#9FB0BD',photo:'faces/drake.jpg'},
   // 网红
-  'mrbeast.ai':{mono:'M',tag:'YouTube 顶流', c:'#D4FF8A',photo:'faces/mrbeast.jpg'},
-  'speed.ai':  {mono:'A',tag:'甲亢哥',      c:'#FF8AD8',photo:'faces/speed.jpg'},  'ninja.ai':  {mono:'N',tag:'蓝发主播',   c:'#8AF0FF',photo:'faces/ninja.jpg'},  // finance
-  'warren.ai':  {mono:'W',tag:'奥马哈股神', c:'#F2C14E',photo:'faces/warren.jpg'},
-  'jamie.ai':   {mono:'J',tag:'摩根船长',   c:'#8AF0FF',photo:'faces/jamie.jpg'},
-  'jerome.ai':  {mono:'J',tag:'加息之手',   c:'#F2EFFF',photo:'faces/jerome.jpg'},
-  'larry.ai':   {mono:'L',tag:'贝莱德掌门', c:'#F2C14E',photo:'faces/larry.jpg'},
+  'mrbeast.ai':{mono:'M',tag:'YouTube 顶流', c:'#8FB585',photo:'faces/mrbeast.jpg'},
+  'speed.ai':  {mono:'A',tag:'甲亢哥',      c:'#D9822B',photo:'faces/speed.jpg'},  'ninja.ai':  {mono:'N',tag:'蓝发主播',   c:'#B7C4CF',photo:'faces/ninja.jpg'},  // finance
+  'warren.ai':  {mono:'W',tag:'奥马哈股神', c:'#D4AF37',photo:'faces/warren.jpg'},
+  'jamie.ai':   {mono:'J',tag:'摩根船长',   c:'#B7C4CF',photo:'faces/jamie.jpg'},
+  'jerome.ai':  {mono:'J',tag:'加息之手',   c:'#E8DCC0',photo:'faces/jerome.jpg'},
+  'larry.ai':   {mono:'L',tag:'贝莱德掌门', c:'#D4AF37',photo:'faces/larry.jpg'},
   // 虚构示例
-  'kestrel.ai': {mono:'K',tag:'虚构示例',   c:'#FF8AD8',photo:''},
+  'kestrel.ai': {mono:'K',tag:'虚构示例',   c:'#D9822B',photo:''},
 };
 const MS_DEF=[
   {k:'open5', n:'开 5 个包', g:5, rw:2, t:'包'},
@@ -274,25 +276,56 @@ function noise({t=0,a=.005,d=.3,v=.3,type='bandpass',f=1200,f2=null,q=.8}){
   env(g,o,a,d,v);s.connect(flt).connect(g).connect(MASTER);s.start(o);s.stop(o+a+d+.05);
 }
 function chord(f,t,d,v,type='triangle'){[1,1.26,1.5,2].forEach((m,i)=>tone({f:f*m,type,t:t+i*.03,a:.01,d,v:v/(i+1.5)}))}
+/* v5.1 音色：真实开卡包的手感 —— 铝箔/纸撕开、卡片滑出落桌、翻面脆响、稀有度闪光、收牌洗牌声。
+   仍然只用 tone / noise / chord 合成，没有外部音频文件。 */
+const sfxR=(a,b)=>a+Math.random()*(b-a);
+function grains({t=0,len=.3,n=30,f0=1800,f1=6500,v0=.05,v1=.13,q0=.8,q1=3,rise=0}={}){ // 撕纸 / 揉箔：一串极短的带通噪声颗粒
+  for(let i=0;i<n;i++){const k=i/n,tt=t+k*len+sfxR(-.006,.006);
+    noise({t:Math.max(0,tt),a:.001,d:sfxR(.008,.03),v:sfxR(v0,v1)*(1+rise*k),type:'bandpass',f:sfxR(f0,f1)*(1+rise*.4*k),q:sfxR(q0,q1)})}
+}
+function shimmer(t,len,n,v=.03){for(let i=0;i<n;i++)tone({f:sfxR(4200,8800),type:'sine',t:t+Math.random()*len,a:.002,d:sfxR(.05,.16),v:v*sfxR(.4,1)})}
+function bell(f,t,d,v){tone({f,type:'sine',t,a:.003,d,v});tone({f:f*2.01,type:'sine',t,a:.002,d:d*.6,v:v*.35});tone({f:f*3.98,type:'sine',t,a:.001,d:d*.3,v:v*.12})}
+function thock(t,v=.16,f=200){noise({t,a:.001,d:.03,v,type:'lowpass',f:1600});tone({f,f2:f*.7,type:'sine',t,a:.002,d:.06,v:v*.5})}
 const SFX={
-  tear(){for(let i=0;i<6;i++)noise({t:i*.16,d:.08,v:.12+i*.03,f:400+i*250,q:2});
-    noise({t:.9,a:.3,d:.15,v:.35,type:'highpass',f:800,f2:6000});
-    tone({f:60,f2:40,type:'sine',t:1,a:.01,d:.6,v:.6});
-    noise({t:1,d:.6,v:.4,type:'lowpass',f:3000,f2:300})},
-  tick(i=0){noise({t:i*.09,d:.12,v:.12,f:2500,f2:900,q:1.2})},
-  charge(){[220,277,330,392,440].forEach((f,i)=>tone({f,type:'triangle',t:i*.15,a:.01,d:.12,v:.04}))},
-  flip(r=0){noise({d:.05,v:.2,type:'highpass',f:3000});tone({f:(262+r*40)*2,type:'sine',t:.05,d:.25,v:.12});
-    if(r>=2)chord(262+r*40,.08,.6,r>=4?.35:.22)},
-  reveal(r=0){
-    if(r>=5){tone({f:70,f2:30,type:'sine',d:1.2,v:.9});noise({d:1.6,v:.35,type:'highpass',f:5000,f2:2500});
-      chord(261,.02,2.2,.7,'sawtooth');chord(523,.05,2.4,.5);
-      [2,2.5,3,4].forEach((m,i)=>tone({f:261*m,t:.25+i*.09,d:.5,v:.08}))}
-    else if(r>=4){tone({f:90,f2:35,type:'sine',a:.005,d:.9,v:.8});noise({d:.25,v:.25,type:'lowpass',f:1500,f2:200})}
-    else if(r>=2)chord(330,.02,.5,.18);else tone({f:300,d:.12,type:'square',v:.05})},
-  win(){[523,659,784,1047].forEach((f,i)=>tone({f,type:'triangle',t:i*.12,d:.5,v:.3}))},
-  lose(){[392,330,262].forEach((f,i)=>tone({f,type:'triangle',t:i*.18,d:.5,v:.22}))}
+  packIn(){grains({len:.18,n:10,f0:2500,f1:7000,v0:.02,v1:.05});tone({f:95,f2:60,type:'sine',a:.01,d:.25,v:.22});thock(.12,.1,150)},
+  grain(p=0){grains({len:.03,n:3,f0:1800+p*2500,f1:4500+p*3000,v0:.04,v1:.09})},      // 沿缝线拖动时的小撕裂
+  tear(){
+    grains({len:.1,n:8,f0:3000,f1:8000,v0:.02,v1:.05});                                    // 捏住封口，箔面窸窣
+    grains({t:.08,len:.3,n:42,f0:1500,f1:5200,v0:.05,v1:.14,rise:1});                      // 「嘶啦」一声撕开
+    noise({t:.36,a:.001,d:.02,v:.35,type:'highpass',f:3000});tone({f:1300,type:'triangle',t:.36,a:.001,d:.03,v:.05}); // 蜡封崩开
+    noise({t:.38,a:.03,d:.22,v:.12,type:'highpass',f:2000,f2:7000});                       // 封条甩飞
+    noise({t:.4,a:.06,d:.3,v:.1,type:'lowpass',f:900,f2:300})},                            // 包口「噗」地松开
+  pop(){noise({a:.06,d:.22,v:.22,f:400,f2:2600,q:.9});tone({f:72,f2:42,type:'sine',a:.004,d:.3,v:.4});grains({t:.02,len:.15,n:10,f0:3000,f1:8000,v0:.03,v1:.07})},
+  draw(t=0){noise({t,a:.03,d:.08,v:.12,f:1100,f2:3200,q:1.2});thock(t+.12,.22,sfxR(180,230))}, // 一张卡滑出、落在桌上
+  tick(i=0){noise({t:i*.09,a:.001,d:.01,v:.12,type:'highpass',f:3500});thock(i*.09+.004,.05,260)},
+  charge(){ // 稀有卡翻开前：卡在手里抖，声音往上推
+    tone({f:180,f2:760,type:'sine',a:.82,d:.08,v:.06});tone({f:181.5,f2:764,type:'triangle',a:.82,d:.08,v:.03});
+    noise({a:.84,d:.06,v:.14,f:500,f2:6500,q:1});
+    [0,.24,.42,.56,.67,.75,.81,.86].forEach((t,i)=>noise({t,a:.001,d:.012,v:.05+i*.012,type:'highpass',f:3200}))},
+  flip(r=0){ // 翻面：一声短促的「啪」
+    noise({a:.02,d:.04,v:.06,f:2200,f2:4800,q:1.1});
+    noise({t:.05,a:.001,d:.014,v:.36,type:'highpass',f:3600});
+    tone({f:820+r*60,type:'triangle',t:.05,a:.001,d:.025,v:.05})},
+  reveal(r=0){ // 稀有度光：越高越亮、越长
+    if(r<=0)return;
+    if(r===1){bell(880,.06,.28,.04);return}
+    if(r===2){bell(659,.06,.4,.06);bell(988,.14,.5,.05);return}
+    if(r===3){[784,988,1319].forEach((f,i)=>bell(f,.06+i*.07,.6,.06));shimmer(.12,.5,8);return}
+    tone({f:62,f2:34,type:'sine',t:.04,a:.004,d:.8,v:.55});                              // 传说以上：低音一沉
+    [523,659,784,1047,1319].forEach((f,i)=>bell(f,.06+i*.06,.9,.07));                    // 金色琶音
+    shimmer(.15,.9,r>=5?26:14,.035);
+    if(r>=5){chord(196,.08,1.6,.32,'sawtooth');noise({t:.05,a:.35,d:1.1,v:.12,type:'highpass',f:5000,f2:9000});
+      [1568,1976,2637].forEach((f,i)=>bell(f,.42+i*.07,1,.045))}
+    if(r>=6){[392,393.6,588,589.8].forEach(f=>tone({f,type:'triangle',t:.3,a:.4,d:1.8,v:.05}));shimmer(.6,1.4,30,.03)}},
+  collect(){ // 收进收藏：洗牌一样「哗啦」叠好
+    for(let i=0;i<26;i++){const t=i*.016+sfxR(0,.006);noise({t,a:.001,d:.007,v:sfxR(.1,.2),type:'highpass',f:sfxR(2600,4200)})}
+    noise({a:.05,d:.35,v:.09,f:900,f2:2400,q:.8});thock(.46,.28,170)},
+  win(){[523,659,784,1047].forEach((f,i)=>bell(f,i*.1,.6,.07));shimmer(.3,.6,12)},
+  lose(){[392,330,262].forEach((f,i)=>tone({f,type:'triangle',t:i*.16,a:.01,d:.4,v:.12}));thock(.48,.15,120)}
 };
-function beep(f,d,t='square',g=.06){tone({f,type:t,d,v:g})}
+/* 通用界面提示音：从芯片方波改成柔和的卡牌敲击 + 铃音 */
+function beep(f,d,t='square',g=.06){if(t==='sawtooth'){thock(0,g*2.2,Math.min(f,220));return}
+  noise({a:.001,d:.012,v:g*1.3,type:'highpass',f:3200});bell(f,.005,Math.max(.12,d*1.6),g*1.5)}
 function fanfare(r){SFX.reveal(r)}
 function seeded(id){let t=id+0x6D2B79F5;return function(){t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
 
@@ -301,7 +334,7 @@ function oddsLadderHTML(){
   const strip=RAR.map((r,i)=>`<i class="r${i}" style="--g:${ODDS[i]}" title="${r} ${ODDS[i]}‰"></i>`).join('');
   const legend=RAR.map((r,i)=>{
     const every=Math.round(1000/ODDS[i]);
-    return `<div class="r${i}"><b>${r}</b><span>${ODDS[i]}‰</span><em>${every<=1?'几乎每张':'约每 '+every+' 张出 1 张'}</em></div>`;
+    return `<div class="r${i}"><b>${r}</b><i class="mat">${MAT[i]}</i><span>${ODDS[i]}‰</span><em>${every<=1?'几乎每张':'约每 '+every+' 张出 1 张'}</em></div>`;
   }).join('');
   return `<div class="odds-strip" role="img" aria-label="稀有度概率：${RAR.map((r,i)=>r+' '+ODDS[i]+'‰').join('，')}">${strip}</div><div class="odds-legend">${legend}</div>`;
 }
@@ -313,28 +346,28 @@ function loadImg(src){return new Promise((ok,no)=>{const i=new Image();i.onload=
 async function renderShareCard(c){
   const cv=document.createElement('canvas');cv.width=600;cv.height=840;
   const x=cv.getContext('2d');
-  x.fillStyle='#0F0C24';x.fillRect(0,0,600,840);
-  const n=cname(c),f=FACES[n]||{c:'#B79BFF',photo:''};
+  x.fillStyle='#0B0913';x.fillRect(0,0,600,840);
+  const n=cname(c),f=FACES[n]||{c:'#9FB0BD',photo:''};
   try{ // 照片铺满上半（cover 裁剪）
     const img=await loadImg(f.photo);
     const sc=Math.max(600/img.width,760/img.height);
     const w=img.width*sc,h=img.height*sc;
     x.drawImage(img,(600-w)/2,Math.min(0,(760-h)*.15),w,h);
   }catch(e){}
-  x.fillStyle='rgba(10,8,25,.86)';x.fillRect(0,660,600,180);
-  x.fillStyle='rgba(10,8,25,.35)';x.fillRect(0,600,600,60);
+  x.fillStyle='rgba(10,8,14,.86)';x.fillRect(0,660,600,180);
+  x.fillStyle='rgba(10,8,14,.35)';x.fillRect(0,600,600,60);
   // 名字 + 标签
-  x.fillStyle='#F2EFFF';x.font='900 56px Archivo,Arial';x.fillText(n,36,726);
-  x.fillStyle=f.c||'#F2C14E';x.font='700 26px Arial';x.fillText(f.tag||'.ai 身份卡',38,762);
+  x.fillStyle='#E8DCC0';x.font="900 54px Cinzel,'Noto Serif SC',serif";x.fillText(n,36,726);
+  x.fillStyle=f.c||'#D4AF37';x.font="700 26px 'Noto Serif SC',serif";x.fillText(f.tag||'.ai 身份卡',38,762);
   // 稀有度 + 编号
-  x.fillStyle='#F2C14E';x.font='900 30px Arial';
+  x.fillStyle='#D4AF37';x.font="900 30px 'Noto Serif SC',serif";
   x.fillText(RAR[c.r]+(c.star?' ★'+c.star:''),38,812);
-  x.fillStyle='#9C96C4';x.fillText('#'+c.id,120,812);
+  x.fillStyle='#A89A7C';x.fillText('#'+c.id,120,812);
   // 水印
-  x.fillStyle='#6b639a';x.font='600 20px Arial';x.textAlign='right';
+  x.fillStyle='#7a6e58';x.font="600 20px 'Noto Serif SC',serif";x.textAlign='right';
   x.fillText('agentid.cards · 每包必出名人卡',572,812);x.textAlign='left';
   // 金框
-  x.strokeStyle='rgba(242,193,78,.55)';x.lineWidth=3;x.strokeRect(6,6,588,828);
+  x.strokeStyle='rgba(201,162,39,.55)';x.lineWidth=3;x.strokeRect(6,6,588,828);
   return new Promise(ok=>cv.toBlob(ok,'image/png'));
 }
 /* ────────── 邀请（链上）：分享链接带 ?ref=0x… ，受邀人连钱包后写进合约 ────────── */
@@ -561,8 +594,8 @@ function artSVG(c,w=200,h=286){
   const glyph=c.kind===1
     ? `<circle cx="${cx}" cy="${cy}" r="${R*.46}" fill="none" stroke="${col}" stroke-width="1" opacity=".75"/>
        <text x="${cx}" y="${cy+R*.11}" text-anchor="middle" font-family="ui-monospace,monospace" font-size="${R*.42}" fill="${col}">.ai</text>`
-    : `<path d="M${cx} ${cy-R*.34} L${cx+R*.34} ${cy} L${cx} ${cy+R*.34} L${cx-R*.34} ${cy} Z" fill="none" stroke="${col}" stroke-width="1.1" opacity=".7"/>
-       <circle cx="${cx}" cy="${cy}" r="${R*.1}" fill="${col}" opacity=".55"/>`;
+    : `<path d="M${cx-R*.36} ${cy-R*.4}H${cx+R*.36}V${cy}C${cx+R*.36} ${cy+R*.28} ${cx+R*.16} ${cy+R*.44} ${cx} ${cy+R*.54}C${cx-R*.16} ${cy+R*.44} ${cx-R*.36} ${cy+R*.28} ${cx-R*.36} ${cy}Z" fill="${col}" fill-opacity=".12" stroke="${col}" stroke-width="1.2" opacity=".85"/>
+       <path d="M${cx} ${cy-R*.62}V${cy+R*.3}M${cx-R*.16} ${cy-R*.26}H${cx+R*.16}" stroke="${col}" stroke-width="1.4" opacity=".9"/>`;
   return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <defs>
       <radialGradient id="${uid}" cx="50%" cy="38%" r="68%">
@@ -576,11 +609,11 @@ function artSVG(c,w=200,h=286){
         <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
       </linearGradient>
       <linearGradient id="${uid}b" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#0F0C24" stop-opacity="0"/>
-        <stop offset="100%" stop-color="#0F0C24"/>
+        <stop offset="0%" stop-color="#0B0913" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#0B0913"/>
       </linearGradient>
     </defs>
-    <rect width="${w}" height="${h}" fill="#120f2c"/>
+    <rect width="${w}" height="${h}" fill="#17110d"/>
     <rect width="${w}" height="${h}" fill="url(#${uid})"/>
     <rect width="${w}" height="${h}" fill="url(#${uid}l)"/>
     ${grid}
@@ -611,7 +644,7 @@ function heroHTML(c,size){
 /// 名人卡面：faces/<name>.jpg 存在即直上卡面；不存在显示首字母徽章（照片槽位，随时补图）
 function faceHTML(c){
   const n=cname(c);
-  const f=FACES[n]||{mono:(n[0]||'?').toUpperCase(),tag:'.ai 身份',c:'#B79BFF',photo:''};
+  const f=FACES[n]||{mono:(n[0]||'?').toUpperCase(),tag:'.ai 身份',c:'#9FB0BD',photo:''};
   // <img> + onerror 自删：加载失败时首字母徽章自然兜底，绝不出现空黑卡
   return `<div class="art face-art">
     <img class="face-img" src="${f.photo}" alt="${n}" loading="lazy" onerror="this.remove()">
@@ -739,67 +772,85 @@ function renderStreak(){
 /* ══════════ 开包仪式 ══════════ */
 let opening=null,flipN=0,phase='pack';
 
-/* 卡包：锡箔包装（上下压齿封口 + 镭射徽章 + 电路走线） */
+/* 卡包 v5：皮革封包（上下缝线 + 烫金边 + 蜡封纹章）。
+   蜡封画两遍，分别裁成左右两半（.seal-l / .seal-r），撕开时由 CSS 让两半裂开落下。 */
 function packArt(p){
-  let crimp='';for(let x=0;x<180;x+=6)crimp+=`<path d="M${x} 0h6v14l-3 4-3-4z"/>`;
-  let crimpB='';for(let x=0;x<180;x+=6)crimpB+=`<path d="M${x} 288h6v-14l-3-4-3 4z"/>`;
-  return `<svg viewBox="0 0 180 288" role="img" aria-label="Agent Packs 卡包">
+  const seal=`<path d="M90 120c8-1 13 3 18 2 6 3 7 9 11 13 1 6-2 10-1 16-2 6-7 8-10 12-6 2-11 0-17 1-6-2-9-6-14-9-3-5-3-10-5-15 1-6 5-9 7-14 4-4 7-6 11-6z" fill="url(#${p}wx)"/>
+    <circle cx="90" cy="150" r="21" fill="none" stroke="#3a060c" stroke-opacity=".55" stroke-width="1.4"/>
+    <circle cx="90" cy="150" r="23" fill="none" stroke="#ffb8a8" stroke-opacity=".22" stroke-width=".8"/>
+    <path d="M77 137l26 26M103 137l-26 26" stroke="#3a060c" stroke-opacity=".55" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M82 141h16v8c0 6-4 9-8 11-4-2-8-5-8-11z" fill="#6e101b" stroke="#ffb8a8" stroke-opacity=".35" stroke-width=".9"/>
+    <path d="M90 143v13M86 147h8" stroke="#ffb8a8" stroke-opacity=".45" stroke-width="1.1"/>
+    <ellipse cx="82" cy="133" rx="7" ry="3" fill="#fff" fill-opacity=".16" transform="rotate(-30 82 133)"/>`;
+  let studs='';[[14,38],[166,38],[14,250],[166,250]].forEach(([x,y])=>studs+=`<circle cx="${x}" cy="${y}" r="3.2" fill="url(#${p}gd)" stroke="#2a1a0a" stroke-width=".8"/>`);
+  return `<svg viewBox="0 0 180 288" role="img" aria-label="卡灵战争 封印卡包">
     <defs>
-      <linearGradient id="${p}bg" x1="0" y1="0" x2=".6" y2="1">
-        <stop offset="0" stop-color="#3b2f8f"/><stop offset=".5" stop-color="#1d1650"/><stop offset="1" stop-color="#110d33"/>
+      <linearGradient id="${p}lb" x1="0" y1="0" x2=".7" y2="1">
+        <stop offset="0" stop-color="#6a4426"/><stop offset=".45" stop-color="#3f2814"/><stop offset="1" stop-color="#1f130a"/>
       </linearGradient>
-      <linearGradient id="${p}fl" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#FF8AD8"/><stop offset=".33" stop-color="#8AF0FF"/><stop offset=".66" stop-color="#D4FF8A"/><stop offset="1" stop-color="#B79BFF"/>
+      <linearGradient id="${p}fl" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#2e1d0f"/><stop offset="1" stop-color="#1a0f07"/>
       </linearGradient>
-      <linearGradient id="${p}cr" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="#cfc8f2"/><stop offset=".5" stop-color="#8f86c4"/><stop offset="1" stop-color="#e8e3ff"/>
+      <linearGradient id="${p}gd" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#F7E39C"/><stop offset=".45" stop-color="#C9A227"/><stop offset="1" stop-color="#6e5214"/>
       </linearGradient>
-      <radialGradient id="${p}gl" cx="50%" cy="42%" r="50%">
-        <stop offset="0" stop-color="#B79BFF" stop-opacity=".55"/><stop offset="1" stop-color="#B79BFF" stop-opacity="0"/>
+      <radialGradient id="${p}wx" cx="38%" cy="32%" r="70%">
+        <stop offset="0" stop-color="#c8525f"/><stop offset=".5" stop-color="#8B1E2D"/><stop offset="1" stop-color="#43080f"/>
       </radialGradient>
+      <radialGradient id="${p}gl" cx="50%" cy="50%" r="55%">
+        <stop offset="0" stop-color="#D9822B" stop-opacity=".28"/><stop offset="1" stop-color="#D9822B" stop-opacity="0"/>
+      </radialGradient>
+      <pattern id="${p}tx" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <path d="M0 0v6" stroke="#000" stroke-opacity=".16" stroke-width="2"/>
+      </pattern>
+      <clipPath id="${p}cL"><path d="M0 0h90l-3 132 5 9-6 8 4 9-2 130H0z"/></clipPath>
+      <clipPath id="${p}cR"><path d="M90 0h90v288H88l2-130-4-9 6-8-5-9z"/></clipPath>
     </defs>
-    <rect y="14" width="180" height="260" fill="url(#${p}bg)"/>
-    <rect y="14" width="180" height="260" fill="url(#${p}gl)"/>
-    <g stroke="#D6D1F2" stroke-opacity=".16" fill="none" stroke-width="1">
-      <path d="M0 70h34v26h22M180 84h-30v-22h-18M0 214h28v-20h30M180 200h-26v24h-24M90 274v-26"/>
-    </g>
-    <g fill="#D6D1F2" fill-opacity=".4"><circle cx="56" cy="96" r="2"/><circle cx="132" cy="62" r="2"/><circle cx="58" cy="194" r="2"/><circle cx="130" cy="224" r="2"/></g>
-    <g fill="url(#${p}cr)">${crimp}${crimpB}</g>
-    <path d="M0 18h180M0 270h180" stroke="#0F0C24" stroke-opacity=".5"/>
-    <text x="16" y="44" font-family="Archivo,sans-serif" font-size="8.5" font-weight="700" fill="#D6D1F2" fill-opacity=".8">第 0 季</text>
-    <text x="164" y="44" text-anchor="end" font-family="Archivo,sans-serif" font-size="8.5" font-weight="700" fill="#D6D1F2" fill-opacity=".8">5 张卡</text>
-    <circle cx="90" cy="122" r="44" fill="none" stroke="url(#${p}fl)" stroke-width="2.5"/>
-    <circle cx="90" cy="122" r="36" fill="url(#${p}fl)" opacity=".92"/>
-    <path d="M90 98l20 24-20 24-20-24z" fill="#0F0C24" opacity=".9"/>
-    <circle cx="90" cy="122" r="5" fill="url(#${p}fl)"/>
-    <text x="90" y="200" text-anchor="middle" font-family="Archivo,sans-serif" font-stretch="125%" font-size="25" font-weight="900" fill="#F2EFFF" letter-spacing="-1">AGENT</text>
-    <text x="90" y="226" text-anchor="middle" font-family="Archivo,sans-serif" font-stretch="125%" font-size="25" font-weight="900" fill="url(#${p}fl)" letter-spacing="-1">PACKS</text>
-    <text x="90" y="252" text-anchor="middle" font-family="Archivo,sans-serif" font-size="7.5" font-weight="600" fill="#9C96C4">Agent ID × TapeOut</text>
+    <rect width="180" height="288" fill="url(#${p}lb)"/>
+    <rect width="180" height="288" fill="url(#${p}tx)"/>
+    <rect y="28" width="180" height="234" fill="url(#${p}gl)"/>
+    <rect width="180" height="29" fill="url(#${p}fl)"/>
+    <rect y="262" width="180" height="26" fill="url(#${p}fl)"/>
+    <path d="M6 22H174M6 266H174" stroke="#F0D98A" stroke-opacity=".75" stroke-width="1.3" stroke-dasharray="5 4"/>
+    <path d="M0 28.5H180M0 262H180" stroke="#000" stroke-opacity=".6"/>
+    <rect x="10" y="34" width="160" height="222" fill="none" stroke="url(#${p}gd)" stroke-width="1.6" rx="2"/>
+    <rect x="16" y="40" width="148" height="210" fill="none" stroke="#C9A227" stroke-opacity=".35" stroke-width=".7"/>
+    ${studs}
+    <path d="M60 92h60M74 96h32" stroke="url(#${p}gd)" stroke-width="1"/>
+    <path d="M90 88l4 4-4 4-4-4z" fill="url(#${p}gd)"/>
+    <text x="90" y="72" text-anchor="middle" font-family="'Noto Serif SC','Noto Serif CJK SC',serif" font-size="21" font-weight="900" fill="url(#${p}gd)" letter-spacing="3">卡灵战争</text>
+    <text x="90" y="112" text-anchor="middle" font-family="Cinzel,'Noto Serif SC',serif" font-size="8" font-weight="700" fill="#C7B899" letter-spacing="3">AGENT PACKS</text>
+    <path d="M78 170l-8 44 10-7 6 9 2-44zM102 170l8 44-10-7-6 9-2-44z" fill="#6e101b" stroke="#3a060c" stroke-width=".8"/>
+    <g class="seal-l" clip-path="url(#${p}cL)">${seal}</g>
+    <g class="seal-r" clip-path="url(#${p}cR)">${seal}</g>
+    <path class="seal-crack" d="M90 124l-3 14 5 9-6 8 4 10-2 14" fill="none" stroke="#2a0508" stroke-width="1.6" stroke-linecap="round"/>
+    <text x="90" y="236" text-anchor="middle" font-family="'Noto Serif SC',serif" font-size="9" font-weight="700" fill="#C7B899" letter-spacing="2">五卡 · 一封</text>
+    <text x="90" y="250" text-anchor="middle" font-family="Cinzel,serif" font-size="6.5" font-weight="600" fill="#A89A7C" letter-spacing="1.5">AGENT ID × TAPEOUT</text>
   </svg>`;
 }
 function startOpen(){
   if(opening)return toast('先收下这批');
   opening=open5();flipN=0;phase='pack';
   $('#ovlTag').textContent='开包中';
-  $('#ovlHint').textContent='点卡包撕开';
+  $('#ovlHint').textContent='点蜡封撕开，或沿顶部缝线划开';
   $('#stage').innerHTML=`<div class="pack3d" id="bp" data-tilt><div class="rays"></div>${packArt('op')}<span class="foil"></span><span class="glare"></span></div>`;
   $('#bAll').style.display='none';$('#bDone').style.display='none';$('#bShareX').style.display='none';$('#bOpenIt').style.display='';
   $('#ovl').classList.add('on');
-  beep(220,.12,'triangle',.05);
+  SFX.packIn();
   $('#bp').onclick=dealCards;
 }
 
 function dealCards(){
   if(phase!=='pack')return;
   phase='burst';
-  beep(140,.3,'sawtooth',.09);
+  SFX.pop();
   const bp=$('#bp');
   const best=opening.reduce((m,c)=>Math.max(m,c.r),0);
   if(best>=4){$('#ovl').classList.add('flashg');setTimeout(()=>$('#ovl').classList.remove('flashg'),620)}
   if(bp){
     bp.classList.add('boom');
     const burst=document.createElement('div');burst.className='burst';
-    const FOILC=['#FF8AD8','#8AF0FF','#D4FF8A','#B79BFF','#F2EFFF'];
+    const FOILC=['#F0D98A','#C9A227','#D9822B','#8B1E2D','#E8DCC0'];
     for(let i=0;i<40;i++){
       const a=Math.random()*Math.PI*2,d=90+Math.random()*300;
       const col=best>=4&&Math.random()<.5?RCOL[best]:FOILC[i%FOILC.length];
@@ -832,7 +883,7 @@ function dealCards(){
             ${c.kind===1?`<div class="fi">身份卡 · ${fmtN(S.pool[c.ref].name)}</div>`:''}
             <div class="fst">ATK ${st.atk} · DEF ${st.def} · RAT ${st.rat}</div>
           </div>
-          ${c.kind===0?`<button class="pkt" data-rule="${cardRule(c)}" style="position:absolute;top:8px;right:8px;z-index:8;padding:5px 10px;border-radius:99px;border:1px solid rgba(242,193,78,.75);background:rgba(10,8,25,.9);color:#F2C14E;font-size:10.5px;font-weight:800">⚡ 流片</button>`:''}
+          ${c.kind===0?`<button class="pkt" data-rule="${cardRule(c)}" style="position:absolute;top:8px;right:8px;z-index:8;padding:5px 10px;border-radius:3px;border:1px solid rgba(201,162,39,.75);background:linear-gradient(180deg,#2c2532,#120e16);color:#F0D98A;font-size:10.5px;font-weight:800;letter-spacing:.06em;box-shadow:0 2px 0 #000">⚒ 流片</button>`:''}
         </div>
       </div>`;
       d.onclick=()=>{
@@ -843,6 +894,7 @@ function dealCards(){
       if(pb)pb.onclick=ev=>{ev.stopPropagation();window.__tapeCard=c;window.__pkt(Number(pb.dataset.rule),pb)};
       $('#slots').appendChild(d);
     });
+    opening.forEach((c,i)=>SFX.draw(i*.095+.05));
     $('#bAll').style.display='';
   },460);
 }
@@ -871,7 +923,7 @@ $('#bAll').onclick=()=>{
   const cards=opening.slice();
   $$('.slot').forEach((d,i)=>setTimeout(()=>flip(d,cards[i]),i*230));
 };
-$('#bDone').onclick=()=>{$('#ovl').classList.remove('on');opening=null;renderAll()};
+$('#bDone').onclick=()=>{SFX.collect();$('#ovl').classList.remove('on');opening=null;renderAll()};
 $('#bClose').onclick=()=>{$('#ovl').classList.remove('on');opening=null;renderAll()};
 
 /* ══════════ 收藏 ══════════ */
@@ -904,7 +956,16 @@ function renderCards(){
     .sort((a,b)=>sortMode==='id'?a.id-b.id:sortMode==='atk'?statsOf(b).atk-statsOf(a).atk:(b.r-a.r||b.id-a.id));
   const eqc=S.cards.find(x=>x.id===S.equipped);
   $('#cstat').textContent='共 '+S.cards.length+' 张 · '+(eqc?'生效中 #'+eqc.id+' · '+ruleName(eqc)+' · '+ruleShort(eqc):'未装备规则');
+  // 按稀有度排序时像军械库一样分栏：龙骨 / 龙鳞金 / 黄金 / 秘银 / 青铜 / 钢 / 铁
+  const perR={};arr.forEach(c=>perR[c.r]=(perR[c.r]||0)+1);
+  let lastR=-1;
   arr.forEach((c,i)=>{
+    if(sortMode==='r'&&c.r!==lastR){
+      lastR=c.r;
+      const h=document.createElement('div');h.className='armory-h r'+c.r;
+      h.innerHTML=`${MAT[c.r]} · ${RAR[c.r]}<span>${perR[c.r]} 张</span>`;
+      g.appendChild(h);
+    }
     const t=document.createElement('div');
     t.className='cg-wrap';t.style.animationDelay=Math.min(i*22,300)+'ms';
     t.innerHTML=cardHTML(c);
@@ -1015,6 +1076,7 @@ function detail(id){
   const cto=$('#chainTapeOut'),cc=$('#mTapeChain');
   let quote=null;
   async function autoCardQuote(){
+    if(!cto||!cc)return; // 身份卡没有流片区块（v115 起即会抛 null 错误）
     try{
       // 卡只是本地数据；价格永远按这张卡的规则走公开流片报价，不依赖卡是否上链
       const rule=Number(ruleDerived(c).t);

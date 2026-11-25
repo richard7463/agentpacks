@@ -3,24 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0F0C24">
-<link rel="icon" href="/favicon.ico?v=115" sizes="any">
-<link rel="icon" type="image/png" href="/favicon-32.png?v=115">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=115">
+<meta name="theme-color" content="#0B0913">
+<link rel="icon" href="/favicon.ico?v=116" sizes="any">
+<link rel="icon" type="image/png" href="/favicon-32.png?v=116">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=116">
 <meta name="description" content="Agent Packs：开出带真实 .ai 身份的 Agent 卡，每张卡是一条任何人都能在链上复算的支出规则。">
 <title>卡灵战争 Agent Packs · 你抽到的不是英雄，是一条规则</title>
 <meta property="og:type" content="website">
 <meta property="og:title" content="卡灵战争 · 你抽到的不是英雄，是一条规则">
 <meta property="og:description" content="开包开出一个有名字的 AI。每张卡是一条链上可复算的支出规则，名人照片直接上卡面。">
-<meta property="og:image" content="https://agentid.cards/og/game.jpg?v=115">
+<meta property="og:image" content="https://agentid.cards/og/game.jpg?v=116">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="卡灵战争 · 你抽到的不是英雄，是一条规则">
 <meta name="twitter:description" content="开包开出一个有名字的 AI · 名人照片上卡 · 规则链上可验">
-<meta name="twitter:image" content="https://agentid.cards/og/game.jpg?v=115">
+<meta name="twitter:image" content="https://agentid.cards/og/game.jpg?v=116">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="ui.css?v=115">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Noto+Serif+SC:wght@600;700;900&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="ui.css?v=116">
 </head>
 <body>
 <a class="skip" href="#main">跳到内容</a>
@@ -60,7 +60,7 @@
   <div class="hero">
     <div class="hero-copy">
       <p class="kicker"><span class="kicker-dot"></span>开放中：每个卡灵就是一条链上规则 · Binance Agent ID 做身份，TapeOut 电路做魂</p>
-      <h1 class="reveal-lines"><span class="ln"><span>开包开出的</span></span><span class="ln"><span>不是图片，</span></span><span class="ln"><span>是一个有名字的&nbsp;AI</span></span></h1>
+      <h1 class="reveal-lines"><span class="ln"><span>卡是武器，</span></span><span class="ln"><span>电路是灵魂，</span></span><span class="ln"><span>誓约焊死在链上</span></span></h1>
       <p class="lead">每包必出 1 张<b>名人卡</b>——<b>.ai</b> 身份、照片上卡、规则链上可读。把卡穿到你的 Agent ID 上，任何人都能在 BscScan 读出它的参数，再拿一笔支付复算它有没有守约。</p>
       <div class="hero-cta">
         <button class="btn primary xl" id="bLandOpen">免费开一包</button>
@@ -76,7 +76,7 @@
         <span class="foil" aria-hidden="true"></span>
         <span class="glare" aria-hidden="true"></span>
       </button>
-      <p class="pack-hint" aria-hidden="true">点一下，或者沿顶部虚线划开</p>
+      <p class="pack-hint" aria-hidden="true">点蜡封，或者沿顶部缝线划开</p>
     </div>
   </div>
 
@@ -389,7 +389,7 @@
   <div class="chess-hero">
     <div class="ch-copy">
       <h3>从 2017 打到 2025</h3>
-      <p>卡背的电路就是技能：止损回血、梭哈狂暴、杠杆自损、钻石手反弹。每章 3 波小怪加 1 个 Boss，第一次通关送 2 包和 30 分。</p>
+      <p>卡背的电路就是技能：止损回血、梭哈狂暴、杠杆自损、钻石手反弹。每章 3 波小怪加 1 个 Boss，第一次通关送 2 包。</p>
     </div>
     <ol class="timeline" aria-label="五个章节">
       <li><b>2017</b><span>ICO 狂潮</span></li>
@@ -524,12 +524,12 @@
   <div class="ovl-top"><span id="ovlTag">开包中</span><button class="ovl-x" id="bClose" aria-label="关闭">✕</button></div>
   <div id="stage"></div>
   <div class="ovl-actions">
-    <button class="btn primary" id="bOpenIt">撕开卡包</button>
+    <button class="btn primary" id="bOpenIt">撕开蜡封</button>
     <button class="btn ghost" id="bAll" style="display:none">全部翻开</button>
     <button class="btn primary" id="bDone" style="display:none">收进收藏</button>
     <button class="btn cut" id="bShareX" style="display:none">晒到 X</button>
   </div>
-  <div class="ovl-hint" id="ovlHint">点卡包撕开</div>
+  <div class="ovl-hint" id="ovlHint">点蜡封撕开，或沿顶部缝线划开</div>
 </div>
 
 <div id="mmodal" role="dialog" aria-modal="true" aria-label="卡牌详情"><div class="mbox" id="mbox"></div></div>
@@ -537,10 +537,10 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js" defer></script>
-<script src="privy-widget.js?v=115" defer></script>
-<script src="i18n.js?v=115" defer></script>
-<script src="app.js?v=115" defer></script>
-<script src="fx.js?v=115" defer></script>
-<div class="ver-badge">v115</div>
+<script src="privy-widget.js?v=116" defer></script>
+<script src="i18n.js?v=116" defer></script>
+<script src="app.js?v=116" defer></script>
+<script src="fx.js?v=116" defer></script>
+<div class="ver-badge">v116</div>
 </body>
 </html>

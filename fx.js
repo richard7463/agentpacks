@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
-   Agent Packs · 动效层（v4.1）
+   Agent Packs · 动效层（v5：古金光泽 · 蜡封碎裂 · 火星粒子）
    - WebGL 镭射箔：卡包表面的薄膜干涉 + 褶皱 + 闪点，跟随指针
    - 撕开卡包：沿顶部虚线拖动，压齿条被撕下
    - 稀有卡翻开前蓄力，SSR+ 全屏闪光 + 稀有度大字
@@ -18,7 +18,7 @@ uniform vec2 r;uniform vec2 m;uniform float t;uniform float k;
 float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
   return mix(mix(h(i),h(i+vec2(1.,0.)),f.x),mix(h(i+vec2(0.,1.)),h(i+1.),f.x),f.y);}
-vec3 film(float x){return .5+.5*cos(6.2831*(x+vec3(0.,.33,.67)));}
+vec3 film(float x){float g=.5+.5*cos(6.2831*x);return mix(vec3(.30,.18,.05),vec3(1.,.87,.52),g)+vec3(.12,.04,0.)*sin(6.2831*x*2.);} /* v5：古金金属光泽，不再是彩虹膜 */
 void main(){
   vec2 uv=gl_FragCoord.xy/r; uv.y=1.-uv.y;
   vec2 p=uv*vec2(r.x/r.y,1.);
@@ -90,6 +90,10 @@ function tearThen(go){
   if(!bp||bp.classList.contains('torn')||CALM){go();return}
   bp.classList.add('torn');
   if(typeof SFX!=='undefined')SFX.tear();else beep(900,.05,'sawtooth',.03);
+  // 蜡封碎裂：火星 + 蜡屑从封口处迸出
+  if(window.fxBurst){const r=bp.getBoundingClientRect();
+    setTimeout(()=>fxBurst({x:r.left+r.width/2,y:r.top+r.height*.52,colors:['#8B1E2D','#c4505d','#D9822B','#F0D98A'],count:46,power:9,kinds:['shard','spark','glow'],gravity:.32}),420);
+    fxBurst({x:r.left+r.width/2,y:r.top+r.height*.1,colors:['#F0D98A','#D9822B'],count:18,power:5,kinds:['spark'],gravity:.1})}
   setTimeout(go,520);
 }
 dealCards=function(){
@@ -110,7 +114,7 @@ function armPack(bp){
   zone.addEventListener('pointermove',e=>{
     if(x0===null)return;
     const w=zone.clientWidth;const p=Math.max(0,Math.min(1,Math.abs(e.clientX-x0)/(w*.7)));
-    if(p>best){best=p;zone.querySelector('i').style.width=(p*88)+'%';if(Math.random()<.35)beep(500+p*900,.02,'sawtooth',.015)}
+    if(p>best){best=p;zone.querySelector('i').style.width=(p*88)+'%';if(Math.random()<.45)(typeof SFX!=='undefined'?SFX.grain(p):beep(500+p*900,.02,'sawtooth',.015))}
     if(p>=1){x0=null;dealCards()}
   });
   const end=e=>{e&&e.stopPropagation();if(x0!==null&&best<1)zone.querySelector('i').style.width='0';x0=null};
@@ -127,6 +131,8 @@ flip=function(d,c){
   if(!fc||fc.classList.contains('flip')||phase!=='cards'||d.dataset.charging)return;
   if(c.r<4||CALM){_flip(d,c);return}
   d.dataset.charging=1;d.classList.add('charging');ovl.classList.add('focus');
+  const rc0=d.getBoundingClientRect(),gold=['#F0D98A','#C9A227','#D9822B','#E8DCC0'];
+  if(window.fxConverge)fxConverge({x:rc0.left+rc0.width/2,y:rc0.top+rc0.height/2,colors:gold,count:46});
   if(typeof SFX!=='undefined')SFX.charge();else [220,277,330,392,440].forEach((f,i)=>setTimeout(()=>beep(f,.12,'triangle',.04),i*150));
   setTimeout(()=>{
     d.classList.remove('charging');delete d.dataset.charging;
@@ -135,6 +141,7 @@ flip=function(d,c){
     const fl=document.createElement('div');fl.className='rare-flash r'+c.r;
     fl.style.setProperty('--fx',(r.left+r.width/2)+'px');fl.style.setProperty('--fy',(r.top+r.height/2)+'px');
     document.body.appendChild(fl);setTimeout(()=>fl.remove(),950);
+    if(window.fxBurst)fxBurst({x:r.left+r.width/2,y:r.top+r.height/2,colors:c.r>=5?['#F0D98A','#D9822B','#8B1E2D','#fff3d0']:gold,count:c.r>=5?90:60,power:c.r>=5?14:11});
     const nm=document.createElement('div');nm.className='rare-name';nm.textContent=RAR[c.r];
     document.body.appendChild(nm);setTimeout(()=>nm.remove(),1650);
     setTimeout(()=>ovl.classList.remove('focus'),700);
