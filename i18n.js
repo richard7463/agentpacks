@@ -5,15 +5,15 @@
   const D = {
     '跳到内容': 'Skip to content',
     '卡灵战争': 'Kaling War',
-    'Agent Packs · 第 0 战季': 'Agent Packs · Season 0',
+    'Agent Packs': 'Agent Packs',
     '世界观': 'Story', '开包': 'Open', '收藏': 'Collection', '实验室': 'Lab',
     '补给': 'Supply', '任务': 'Quests', '卡池': 'Pool',
     '卡包': 'Packs', '已满': 'Full', '积分': 'Points', '身份': 'ID', '游客': 'Guest',
     '普通': 'Common', '精良': 'Uncommon', '稀有': 'Rare', '史诗': 'Epic',
     '传说': 'Legendary', '神话': 'Mythic', '至尊': 'Ultimate',
     '我的': 'Mine', '打开我的': 'Open my profile',
-    '第 0 战季开放中：每个卡灵就是一条链上规则 · Binance Agent ID 做身份，TapeOut 电路做魂':
-      'Season 0 is live: every Kaling is an on-chain rule · Binance Agent ID as identity, TapeOut circuits as soul',
+    '开放中：每个卡灵就是一条链上规则 · Binance Agent ID 做身份，TapeOut 电路做魂':
+      'Live: every Kaling is an on-chain rule · Binance Agent ID as identity, TapeOut circuits as soul',
     '开包开出的': 'A pack does not hold', '不是图片，': 'an image — it holds',
     '是一个有名字的 AI': 'an AI with a name',
     '每包必出 1 张': 'Every pack has 1 ', '名人卡': 'celebrity card',
@@ -45,7 +45,7 @@
     '卡背印着一条支出规则。稀有度和星级越高，额度越大，参数在链上任何人都读得到。':
       'The back prints a spending rule. Higher rarity and stars mean higher caps; anyone can read the params on-chain.',
     '穿上就生效': 'Equip it and it guards',
-    '卡灵战争 · 第 0 战季': 'Kaling War · Season 0',
+    '卡灵战争': 'Kaling War',
     '30/30 测试通过 · BNB Chain': '58+ tests passing · BNB Chain',
     '免费包每 20 秒回 1 个，最多存 12 个。': 'A free pack every 20 seconds, 20 per day cap.',
     '可以开的包': 'Packs ready', '开 1 包': 'Open 1', '连开 5 包': 'Open 5',

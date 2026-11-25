@@ -1,0 +1,51 @@
+# Kaling War / Agent Packs — full context for AI agents
+
+## What we are
+A card game where a card is a verifiable NAND spending rule. We use Binance Agent ID as identity and TapeOut circuits as the "soul": open packs to get cards, tape out a rule into a real circuit NFT on BSC, and let an AI agent read that NFT to decide whether a payment should be allowed, asked about, or denied. Site: https://agentid.cards . Chain: BNB Smart Chain mainnet, chainId 56.
+
+## Read this first
+https://agentid.cards/skills/agentpacks/SKILL.md — the complete agent playbook.
+References: web-actions.md, wallet-and-rules.md, guard.md, binance-agentic-wallet.md on the same host.
+
+## Canonical prompt
+先完整读 https://agentid.cards/skills/agentpacks/SKILL.md 并遵守它；用我钱包里实际拥有的电路 NFT 的 token ID 去读对应规则；读不到就从链上网表识别；仍读不到就 fail closed。
+
+## Contracts (BSC mainnet 56)
+- Circuit NFT (ERC-721, "Kaling Circuit" / KALC): 0xAdfDB520db78C252382E4bCdf62692fAD453035a
+- Core (rule params / checkPayment): 0xEE7928436a480af5F93c3558a8Ef27588C511d7b
+- PublicTapeOut: 0x9c7fdbef499458e4546eecef009cf01a510235ce
+- RuleConfig (user-owned numeric params): 0xc02722543e54f2e5fe049e6f3696c75e28b72910
+- BEM: 0x5ce033B2bFCa3Af30b3e8C8457DeaF776A8b695a
+- RPC: https://bsc-dataseed1.bnbchain.org
+
+## Open rules (tapeout prices include 0.0002 BNB fee)
+- t2 白名单 (card art name 风控电路), 4 gates, $5.11: only pay addresses holding a Binance Agent ID.
+- t11 委托, 4 gates, $5.11: pay only a designated payee inside a time window.
+- t7 钻石手, 31 gates, $7.96: minimum gap between payments.
+- t0 止损, 36 gates, $9.21: daily cap, over-cap requires human approval.
+The other 8 legacy rules revert in PublicTapeOut.quote().
+
+## Robust rule identification (no static files needed)
+Every circuit NFT stores its NAND netlist on-chain. For ANY token ID:
+- ownerOf(tokenId): selector 0x6352211e + padded tokenId.
+- netlist(tokenId): selector 0x3fc4be56 + padded tokenId. Decode ABI bytes (offset word, length word, then bytes); gates = byteLength / 7.
+- Core.HOUSE_NETLIST(i) for i=0..11: selector 0x44eda2fa + padded i. Compare actual bytes (not length) — t2 and t11 are both 4 gates, only bytes differ. Matching i is the rule id.
+- RuleConfig.getOverride(owner, ruleId) returns (value, at). value > 0 overrides the base number; units: t0 cents ($52 = 5200), t7 seconds (3600), t11 seconds (43200), t2 none.
+- Effective number = override if > 0, else base from https://agentid.cards/api/rules.json .
+A 404 on api/circuit/<tokenId>.json is NORMAL for new tokens and must NOT cause fail-closed. Fail closed only if RPC is unreachable or the netlist matches no official rule.
+
+## Guard policy
+allow -> proceed. ask -> stop, ask the human for the exact amount + payee, re-evaluate on any change. deny -> refuse. error / unreadable / missing input -> fail closed = deny. Re-evaluation is read-only; never sign or transfer; never describe a simulation as a completed payment.
+Mandatory Chinese wording: 「这个守门是只读的，普通钱包本身可以绕过，不构成链上强制拦截。」
+
+## Numeric parameters (TapeID model)
+Circuit bytes are immutable; user-owned numbers are mutable via RuleConfig.setOverride(rule, value) with a wallet signature. The website's card detail has 「数字参数 · 电路不变」. Example: daily cap $50 -> $100.
+
+## Pack mechanics (CT Packs inspired)
+New user 12 packs; daily check-in +2; follow X +5; daily cap by identity: guest 5, wallet 10, .ai 15, equipped circuit 20, owning a circuit NFT +5. KOL fan pack: a user invited via ?ref=<address> gets the inviter's celebrity card as card 4 of the first pack; card 5 is still guaranteed SSR.
+
+## Demo evidence
+https://agentid.cards/demo.html shows two real Binance AI Pro tests (impersonating the contract owner, and an "urgent refund to 0xdead" scam). Both returned ask, never allow. The agent also independently identified token #1 as t2 and token #2 as t0 by comparing netlists on-chain without any static JSON.
+
+## Honest boundaries
+Current enforcement is Skill-level: the agent reads the rule and follows it. A normal wallet using Binance's built-in transfer can bypass it; there is no on-chain enforced guard in this version. Packs are local demo data; only circuit NFTs are real on-chain. Never claim a mainnet circuit is attached to TapeID (TapeID runs on BSC Testnet).

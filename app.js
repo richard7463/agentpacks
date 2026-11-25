@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
-   Agent Packs · Season 0
+   Agent Packs
    ═══════════════════════════════════════════════════ */
 
 /* ────────── 常量 ────────── */
@@ -1324,7 +1324,7 @@ $('#bOpen5').onclick=()=>{if(S.packs.length<5)return toast('至少要 5 个包�
   S.packs.splice(0,5);save();startOpen()};
 $('#bLandOpen').onclick=()=>{if(!S.packs.length&&!grantPacks(1,'落地页'))return toast('今日演示额度已用完，明天再来');switchTab('open');S.packs.pop();save();startOpen()};
 $('#bLandPool').onclick=()=>switchTab('verify');
-$$('.tab').forEach(t=>t.onclick=()=>switchTab(t.dataset.v));
+$$('.tab[data-v]').forEach(t=>t.onclick=()=>switchTab(t.dataset.v));
 $('#bMeEntry').onclick=()=>switchTab('me');
 $('#heroPackWrap').onclick=()=>$('#bLandOpen').click();
 $('#brandHome').onclick=e=>{

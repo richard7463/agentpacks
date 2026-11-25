@@ -1,0 +1,28 @@
+# Kaling War / Agent Packs
+
+> A card game where each card is a verifiable NAND spending rule. Open packs, tape out a rule into a real BSC circuit NFT, and let an AI agent read that NFT to guard its payments. Built on Binance Agent ID + TapeOut circuits. Live on BNB Smart Chain mainnet (chain 56) at https://agentid.cards .
+
+## Agent Skill (read this first)
+- [Agent Packs Skill](https://agentid.cards/skills/agentpacks/SKILL.md): the full playbook for any plain AI agent (Grok, Muse, Claude, Binance Agentic Wallet). Covers pack opening, card reading, tapeout, NFT discovery, rule identification and payment guarding.
+- [web actions](https://agentid.cards/skills/agentpacks/references/web-actions.md): exact selectors and steps on the site.
+- [wallet & rules](https://agentid.cards/skills/agentpacks/references/wallet-and-rules.md): contracts, calldata, ERC-721 verification.
+- [guard policy](https://agentid.cards/skills/agentpacks/references/guard.md): allow / ask / deny, fail closed, mandatory Chinese wording.
+- [Binance Agentic Wallet](https://agentid.cards/skills/agentpacks/references/binance-agentic-wallet.md): BSC setup and honest boundaries.
+
+## Machine-readable endpoints
+- [rules + prices + base values](https://agentid.cards/api/rules.json)
+- [published circuit snapshots](https://agentid.cards/api/circuit/index.json)
+- [plain-text guide](https://agentid.cards/agent.txt)
+- [full details](https://agentid.cards/llms-full.txt)
+
+## Canonical prompt for an agentic wallet
+先完整读 https://agentid.cards/skills/agentpacks/SKILL.md 并遵守它；用我钱包里实际拥有的电路 NFT 的 token ID 去读对应规则；读不到就从链上网表识别；仍读不到就 fail closed。
+
+## Pages
+- [Game](https://agentid.cards/)
+- [Live agent demo / scam tests](https://agentid.cards/demo.html)
+- [Agent wallet onboarding](https://agentid.cards/agent-wallet.html)
+- [Story](https://agentid.cards/story.html)
+
+## Optional
+- [llms-full.txt](https://agentid.cards/llms-full.txt)
