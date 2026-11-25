@@ -921,7 +921,7 @@ function detail(id){
         </div>
         <div class="rb-out" id="chkOut">按卡上参数复算一笔支付，不产生交易。</div>
         <div class="rb-note">equip() 后生效 · 任何人可调用 checkPayment() 复算</div>
-        ${c.kind===0?`<div class="rb-ed" style="margin-top:12px">
+        ${c.kind===0&&edT!==2?`<div class="rb-ed" style="margin-top:12px">
           <div class="rb-ed-head"><span class="eyebrow" style="margin:0">数字参数 · 电路不变</span><span class="chip gold">链上可改 · 仅你能改</span></div>
           <p class="rb-desc">像 TapeID：电路字节永不改变，你只能改自己的数字（额度 / 冷却 / 窗口）。保存到链上 RuleConfig，Agent 读到你改后的值。</p>
           <div class="rb-test"><input class="inp" id="rcVal" type="number" min="0" step="any" placeholder="新数值" value="${rcFromValue(edT,ruleParams(c).p1)}">
