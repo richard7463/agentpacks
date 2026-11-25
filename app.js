@@ -385,9 +385,17 @@ function shareURL(c){
 }
 const RAR_CN=RAR; // 兼容旧引用
 function shareText(c){
-  // 关键：卡名不带 .ai 后缀（.ai 是真实 TLD，X 会链接化）；稀有度用中文（UC 看不懂）
+  // 卡名不带 .ai 后缀（.ai 是真实 TLD，X 会链接化）；稀有度用中文
   const n=cname(c).replace('.ai','');
-  return '我在卡灵战争抽到了名人卡灵 '+n+'【'+(RAR_CN[c.r]||RAR[c.r])+(c.star?'·'+c.star+'星':'')+'】→ '+shareURL(c);
+  const rar=RAR[c.r]||'普通',star=c.star?'★'+c.star:'';
+  const t=ruleDerived(c).t;
+  const rule=c.kind===1?'指定收款方':(RULE_DEF[t]?RULE_DEF[t].n:'守门规则');
+  const fam=c.kind===1?'安全':(FAM[RULE_DEF[t]?RULE_DEF[t].f:0]||FAM[0]).n;
+  let head,mid;
+  if(c.r>=5){head='⚔️ 龙鳞级出货！'+n+'【'+rar+star+'】降临我的卡组。';mid='卡是武器，电路是灵魂——'+fam+' · '+rule+'，誓约焊死在链上。'}
+  else if(c.r>=3){head='在卡灵战争开包，抽到 '+n+'【'+rar+star+'】！';mid=fam+' · '+rule+'。卡是武器，电路是灵魂。'}
+  else{head='开包战利品：'+n+'【'+rar+star+'】。';mid=fam+' · '+rule+'。'}
+  return head+'\n'+mid+'\n你也来开一包 👇\n'+shareURL(c);
 }
 async function shareCard(c){
   // X 的 OG 链接预览：推文只带链接，X 自动抓 og:image 渲染名人卡（CT Packs 同款）
