@@ -250,17 +250,50 @@ function grantPacks(n,tag,silent){
   return add;
 }
 function fmtN(n){return n&&n.length>16?n.slice(0,15)+'…':(n||'')}
-let AC=null;
-function beep(f,d,t='square',g=.06){try{
-  if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();
-  const o=AC.createOscillator(),ga=AC.createGain();
-  o.type=t;o.frequency.value=f;ga.gain.value=g;o.connect(ga);ga.connect(AC.destination);
-  const now=AC.currentTime;ga.gain.setValueAtTime(g,now);
-  ga.gain.exponentialRampToValueAtTime(.001,now+d);o.start(now);o.stop(now+d)}catch(e){}}
-function fanfare(r){
-  if(r>=5){[523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>beep(f,.3,'triangle',.1),i*110))}
-  else if(r>=4){[440,554,659].forEach((f,i)=>setTimeout(()=>beep(f,.22,'triangle',.08),i*100))}
-  else if(r>=2)beep(392,.16,'triangle',.06); else beep(300,.1,'square',.04)}
+/* ── WebAudio 合成音效（CT Packs 同款：噪声扫频 + 低频轰 + 泛音和弦） ── */
+let AC=null,MASTER=null,NOISEBUF=null;
+function actx(){
+  if(AC)return AC;
+  const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;
+  AC=new C();MASTER=AC.createGain();MASTER.gain.value=.55;
+  const comp=AC.createDynamicsCompressor();MASTER.connect(comp).connect(AC.destination);
+  NOISEBUF=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate);
+  const d=NOISEBUF.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  return AC;
+}
+function env(g,t,a,d,v){g.gain.setValueAtTime(1e-4,t);g.gain.exponentialRampToValueAtTime(Math.max(.0002,v),t+a);g.gain.exponentialRampToValueAtTime(1e-4,t+a+d)}
+function tone({f=440,f2=null,type='sine',t=0,a=.005,d=.2,v=.3}){
+  const c=actx();if(!c)return;const o=c.currentTime+t,osc=c.createOscillator(),g=c.createGain();
+  osc.type=type;osc.frequency.setValueAtTime(f,o);if(f2)osc.frequency.exponentialRampToValueAtTime(f2,o+a+d);
+  env(g,o,a,d,v);osc.connect(g).connect(MASTER);osc.start(o);osc.stop(o+a+d+.05);
+}
+function noise({t=0,a=.005,d=.3,v=.3,type='bandpass',f=1200,f2=null,q=.8}){
+  const c=actx();if(!c)return;const o=c.currentTime+t,s=c.createBufferSource(),flt=c.createBiquadFilter(),g=c.createGain();
+  s.buffer=NOISEBUF;flt.type=type;flt.Q.value=q;flt.frequency.setValueAtTime(f,o);
+  if(f2)flt.frequency.exponentialRampToValueAtTime(f2,o+a+d);
+  env(g,o,a,d,v);s.connect(flt).connect(g).connect(MASTER);s.start(o);s.stop(o+a+d+.05);
+}
+function chord(f,t,d,v,type='triangle'){[1,1.26,1.5,2].forEach((m,i)=>tone({f:f*m,type,t:t+i*.03,a:.01,d,v:v/(i+1.5)}))}
+const SFX={
+  tear(){for(let i=0;i<6;i++)noise({t:i*.16,d:.08,v:.12+i*.03,f:400+i*250,q:2});
+    noise({t:.9,a:.3,d:.15,v:.35,type:'highpass',f:800,f2:6000});
+    tone({f:60,f2:40,type:'sine',t:1,a:.01,d:.6,v:.6});
+    noise({t:1,d:.6,v:.4,type:'lowpass',f:3000,f2:300})},
+  tick(i=0){noise({t:i*.09,d:.12,v:.12,f:2500,f2:900,q:1.2})},
+  charge(){[220,277,330,392,440].forEach((f,i)=>tone({f,type:'triangle',t:i*.15,a:.01,d:.12,v:.04}))},
+  flip(r=0){noise({d:.05,v:.2,type:'highpass',f:3000});tone({f:(262+r*40)*2,type:'sine',t:.05,d:.25,v:.12});
+    if(r>=2)chord(262+r*40,.08,.6,r>=4?.35:.22)},
+  reveal(r=0){
+    if(r>=5){tone({f:70,f2:30,type:'sine',d:1.2,v:.9});noise({d:1.6,v:.35,type:'highpass',f:5000,f2:2500});
+      chord(261,.02,2.2,.7,'sawtooth');chord(523,.05,2.4,.5);
+      [2,2.5,3,4].forEach((m,i)=>tone({f:261*m,t:.25+i*.09,d:.5,v:.08}))}
+    else if(r>=4){tone({f:90,f2:35,type:'sine',a:.005,d:.9,v:.8});noise({d:.25,v:.25,type:'lowpass',f:1500,f2:200})}
+    else if(r>=2)chord(330,.02,.5,.18);else tone({f:300,d:.12,type:'square',v:.05})},
+  win(){[523,659,784,1047].forEach((f,i)=>tone({f,type:'triangle',t:i*.12,d:.5,v:.3}))},
+  lose(){[392,330,262].forEach((f,i)=>tone({f,type:'triangle',t:i*.18,d:.5,v:.22}))}
+};
+function beep(f,d,t='square',g=.06){tone({f,type:t,d,v:g})}
+function fanfare(r){SFX.reveal(r)}
 function seeded(id){let t=id+0x6D2B79F5;return function(){t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
 
 /* ────────── 概率阶梯 ────────── */
@@ -819,7 +852,7 @@ function flip(d,c){
   if(fc.classList.contains('flip')||phase!=='cards')return;
   fc.classList.add('flip');d.classList.add('done');
   d.querySelector('.front').classList.add('pop');
-  fanfare(c.r);flipN++;
+  SFX.flip(c.r);fanfare(c.r);flipN++;
   if(c.r>=5){$('#ovl').classList.add('flashg');setTimeout(()=>$('#ovl').classList.remove('flashg'),620)}
   if(flipN>=5){
     $('#bDone').style.display='';$('#bAll').style.display='none';

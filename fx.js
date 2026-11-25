@@ -89,7 +89,7 @@ function tearThen(go){
   const bp=q('#bp');
   if(!bp||bp.classList.contains('torn')||CALM){go();return}
   bp.classList.add('torn');
-  beep(900,.05,'sawtooth',.03);setTimeout(()=>beep(1300,.07,'sawtooth',.03),60);
+  if(typeof SFX!=='undefined')SFX.tear();else beep(900,.05,'sawtooth',.03);
   setTimeout(go,520);
 }
 dealCards=function(){
@@ -127,7 +127,7 @@ flip=function(d,c){
   if(!fc||fc.classList.contains('flip')||phase!=='cards'||d.dataset.charging)return;
   if(c.r<4||CALM){_flip(d,c);return}
   d.dataset.charging=1;d.classList.add('charging');ovl.classList.add('focus');
-  [220,277,330,392,440].forEach((f,i)=>setTimeout(()=>beep(f,.12,'triangle',.04),i*150));
+  if(typeof SFX!=='undefined')SFX.charge();else [220,277,330,392,440].forEach((f,i)=>setTimeout(()=>beep(f,.12,'triangle',.04),i*150));
   setTimeout(()=>{
     d.classList.remove('charging');delete d.dataset.charging;
     _flip(d,c);
@@ -186,7 +186,7 @@ switchTab=function(v){
   const w=document.createElement('div');w.className='wipe';document.body.appendChild(w);
   setTimeout(()=>_switch(v),300);setTimeout(()=>w.remove(),720);
 };
-qa('.tab').forEach(t=>t.onclick=()=>switchTab(t.dataset.v));
+qa('.tab[data-v]').forEach(t=>t.onclick=()=>switchTab(t.dataset.v));
 
 /* ───────────── 6 · 情境指针 + 磁吸主按钮 ───────────── */
 if(FINE&&!CALM){
@@ -197,4 +197,48 @@ if(FINE&&!CALM){
     b.addEventListener('pointerleave',()=>b.style.transform='');
   });
 }
+
+/* ───────────── 7 · Canvas 粒子（CT Packs 同款 burst / converge） ───────────── */
+(function(){
+  if(CALM)return;
+  let cv=null,ctx=null,parts=[],raf=0;
+  function mount(){
+    if(cv)return;cv=document.createElement('canvas');cv.className='fx-layer';document.body.appendChild(cv);
+    ctx=cv.getContext('2d');const size=()=>{const a=Math.min(2,devicePixelRatio||1);cv.width=innerWidth*a;cv.height=innerHeight*a;ctx.setTransform(a,0,0,a,0,0)};
+    size();addEventListener('resize',size);
+  }
+  function frame(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);ctx.globalCompositeOperation='lighter';
+    parts=parts.filter(p=>p.life>0);
+    for(const p of parts){
+      p.life-=p.decay;p.vx*=p.drag;p.vy=p.vy*p.drag+p.g;p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;
+      ctx.globalAlpha=Math.max(0,p.life);
+      if(p.kind==='spark'){ctx.strokeStyle=p.color;ctx.lineWidth=p.size;ctx.lineCap='round';
+        ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x-p.vx*3,p.y-p.vy*3);ctx.stroke()}
+      else if(p.kind==='shard'){ctx.save();ctx.translate(p.x,p.y);ctx.rot=p.rot||0;ctx.rotate(p.rot);
+        ctx.fillStyle=p.color;ctx.fillRect(-p.size,-p.size*.35,p.size*2,p.size*.7);ctx.restore()}
+      else{const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size*3);
+        g.addColorStop(0,p.color);g.addColorStop(1,'transparent');ctx.fillStyle=g;
+        ctx.beginPath();ctx.arc(p.x,p.y,p.size*3,0,Math.PI*2);ctx.fill()}
+    }
+    ctx.globalAlpha=1;raf=parts.length?requestAnimationFrame(frame):0;
+  }
+  function run(){if(!raf)raf=requestAnimationFrame(frame)}
+  window.fxBurst=({x=innerWidth/2,y=innerHeight/2,colors=['#fff'],count=60,power=12,kinds=['spark','glow','shard'],gravity=.18}={})=>{
+    mount();for(let i=0;i<count;i++){
+      const a=Math.random()*Math.PI*2,s=power*(.3+Math.random()*.9);
+      parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-power*.15,g:gravity,drag:.96,life:1,
+        decay:.008+Math.random()*.014,size:1.2+Math.random()*3.2,rot:Math.random()*6,vr:(Math.random()-.5)*.3,
+        color:colors[i%colors.length],kind:kinds[i%kinds.length]});
+    }run();
+  };
+  window.fxConverge=({colors=['#fff'],count=50,x=innerWidth/2,y=innerHeight/2}={})=>{
+    mount();for(let i=0;i<count;i++){
+      const a=Math.random()*Math.PI*2,R=Math.max(innerWidth,innerHeight)*(.4+Math.random()*.3),
+        px=x+Math.cos(a)*R,py=y+Math.sin(a)*R,s=50+Math.random()*30;
+      parts.push({x:px,y:py,vx:(x-px)/s,vy:(y-py)/s,g:0,drag:1,life:1,decay:1/s,
+        size:1+Math.random()*2.5,rot:0,vr:0,color:colors[i%colors.length],kind:'spark'});
+    }run();
+  };
+})();
 })();
