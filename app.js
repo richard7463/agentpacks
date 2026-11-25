@@ -147,7 +147,7 @@ const MS_DEF=[
   {k:'ssr',   n:'抽到传说以上 ×1', g:1, rw:3, t:'包'},
   {k:'equip', n:'穿 1 张卡', g:1, rw:1, t:'包'},
   {k:'star',  n:'升星 1 次', g:1, rw:1, t:'包'},
-  {k:'sell',  n:'卖卡 ×5', g:5, rw:10, t:'分'},
+  {k:'sell',  n:'卖卡 ×5', g:5, rw:2, t:'包'},
   {k:'join',  n:'认领 .ai 入池', g:1, rw:2, t:'包'},
   {k:'gate',  n:'守门 1 局', g:1, rw:2, t:'包'},
   {k:'battle',n:'打 1 局自走棋', g:1, rw:1, t:'包'},
@@ -673,7 +673,6 @@ function switchTab(v){
   if(v==='gate')renderGate();
 }
 function renderAll(){regenFree();
-  $('#chPts').textContent=S.pts;
   const who=S.name?(S.name+(S.myInPool?' · 在池':'')):(chainAcc?chainAcc.slice(0,6)+'…'+chainAcc.slice(-4):'游客');
   $('#chName').textContent=who;
   const mn=$('#meName');if(mn)mn.textContent=who;
@@ -1073,12 +1072,6 @@ function detail(id){
 }
 $('#mmodal').onclick=e=>{if(e.target.id==='mmodal')$('#mmodal').classList.remove('on')};
 $('#useBox').onclick=e=>{if(e.target.id==='useBox')$('#useBox').classList.remove('on')};
-$('#bRedeem').onclick=()=>{
-  if(S.pts<500)return toast('积分不够（需 500）');
-  S.pts-=500;S.mis.redeem++;
-  S.cards.push({id:S.nextId++,r:3,star:0,kind:0,ref:ACTIVE_RULES[Math.floor(Math.random()*ACTIVE_RULES.length)]});
-  beep(784,.2,'triangle',.08);toast('兑换成功：1 张保底史诗');save();renderAll();
-};
 
 /* ══════════ 自走棋 ══════════ */
 function renderChapters(){
@@ -1089,7 +1082,7 @@ function renderChapters(){
     d.innerHTML=`<div class="chn">${ch.y}</div>
       <div class="cht">${ch.t}</div>
       <div class="chd">${ch.d}</div>
-      <div class="chm"><span class="pips" title="难度 ${ch.lvl}/5">${'<i></i>'.repeat(ch.lvl)}</span><span>${done?'✓ 已通关':'首通 +2 包 +30 分'}</span></div>`;
+      <div class="chm"><span class="pips" title="难度 ${ch.lvl}/5">${'<i></i>'.repeat(ch.lvl)}</span><span>${done?'✓ 已通关':'首通 +2 包'}</span></div>`;
     d.onclick=()=>startChapter(ch);g.appendChild(d);
   });}
   renderTeam();
@@ -1185,9 +1178,9 @@ function simBattle(){
     B.log.push('','× 全军覆没——升星或换技能再来');drawBattle();save();renderAll();return}
   if(B.boss){B.over=true;S.w++;S.mis.battle++;S.mis.clear=1;
     const first=!S.chCleared[B.ch.id];S.chCleared[B.ch.id]=true;
-    if(first){S.pts+=30;const g=grantPacks(2,'首通');toast('首通 '+B.ch.t+'：+30 分 +'+g+' 包'+(g<2?'（今日额度不足）':''))}
-    else{S.pts+=15;toast('通关：+15 分')}
-    B.log.push('','★ 通关 '+B.ch.t+'！'+(first?'首通奖励 +30 分 +2 包':''));
+    if(first){S.pts+=30;const g=grantPacks(2,'首通');toast('首通 '+B.ch.t+'：+'+g+' 包'+(g<2?'（今日额度不足）':''))}
+    else{}
+    B.log.push('','★ 通关 '+B.ch.t+'！'+(first?'首通奖励 +2 包':''));
     [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.25,'triangle',.09),i*110));
     drawBattle();save();renderAll();return}
   B.wave++;B.log.push('（波次胜利，进入下一波）');
@@ -1241,7 +1234,7 @@ function renderMis(){
       <div class="tbar"><i style="width:${Math.round(v/m.g*100)}%"></i></div>`;
     if(done&&!cl)row.querySelector('button').onclick=()=>{
       S.claimed[m.k]=true;
-      if(m.t==='包'){grantPacks(m.rw,'任务')}else S.pts+=m.rw;
+      if(m.t==='包'){grantPacks(m.rw,'任务')}
       beep(660,.12);toast('任务奖励：'+m.rw+' '+m.t);save();renderAll()};
     b.appendChild(row);
   });
@@ -1454,7 +1447,6 @@ function renderChain(){
     <div class="chain-actions">
       <input class="inp" id="cCard" placeholder="卡号 #">
       <button class="btn" id="bCEquip">穿卡 equip</button>
-      <button class="btn ghost" id="bCPts">查积分 packPoints</button>
     </div>
     <div class="chain-status" id="cStatus" style="margin-top:12px">● 等待连接</div>`;
   bindWc();
@@ -1523,11 +1515,6 @@ function renderChain(){
       const id=$('#cCard').value.trim().replace('#','');if(!id)return toast('填卡号');
       const rc=await chainSend('equip',[Number(id)]);
       st('● 已穿卡 #'+id+' '+txLink(rc.transactionHash),'ok');beep(660,.15);
-    }catch(e){st('● '+(e.reason||e.message||e),'bad')}};
-  $('#bCPts').onclick=async()=>{try{
-      if(!chainAcc)chainAcc=(await window.ethereum.request({method:'eth_requestAccounts'}))[0];
-      const pts=await chainRead('packPoints',[chainAcc]);
-      st('● packPoints = <b style="color:var(--gold)">'+pts+'</b>','ok');
     }catch(e){st('● '+(e.reason||e.message||e),'bad')}};
 }
 
@@ -2117,7 +2104,7 @@ function gateEnd(){
       <h3>${g==='S'?'一笔没漏，一笔没错':title}</h3>
       <p class="sub">判对 ${G.right} / ${GATE_N} 笔 · 拦下骗局 $${usd(G.saved)} · 被骗走 $${usd(G.lost)} · 误杀 ${G.miss} 笔</p>
       <p class="sub">规则栈：${stack}</p>
-      <p class="sub">奖励：${packs?packs+' 包 + ':''}${G.right*2} 分。主网上，每一笔的规则判定都能用 <span class="mono">checkPayment()</span> 原样重放。</p>
+      <p class="sub">奖励：${packs?packs+' 包':''}主网上，每一笔的规则判定都能用 <span class="mono">checkPayment()</span> 原样重放。</p>
       <div class="row">
         <button class="btn primary" id="bGAgain">再守一局</button>
         <button class="btn ghost" id="bGEdit">换规则</button>

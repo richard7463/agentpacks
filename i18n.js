@@ -8,7 +8,7 @@
     'Agent Packs': 'Agent Packs',
     '世界观': 'Story', '开包': 'Open', '收藏': 'Collection', '实验室': 'Lab',
     '补给': 'Supply', '任务': 'Quests', '卡池': 'Pool',
-    '卡包': 'Packs', '已满': 'Full', '积分': 'Points', '身份': 'ID', '游客': 'Guest',
+    '卡包': 'Packs', '已满': 'Full', '身份': 'ID', '游客': 'Guest',
     '普通': 'Common', '精良': 'Uncommon', '稀有': 'Rare', '史诗': 'Epic',
     '传说': 'Legendary', '神话': 'Mythic', '至尊': 'Ultimate',
     '我的': 'Mine', '打开我的': 'Open my profile',
@@ -59,10 +59,6 @@
     '点一张卡，可以穿上、升星或卖掉。': 'Tap a card to equip, star up or sell it.',
     '按稀有度': 'By rarity', '按获得时间': 'By date', '按攻击力': 'By ATK',
     '全部': 'All', '交易': 'Trade', '风控': 'Lockdown', '安全': 'Security', '协作': 'Trust',
-    '用积分换一张史诗': 'Redeem points for an Epic',
-    '500 分换 1 张保底史诗。积分只能在站内用，不能提现。':
-      '500 points for a guaranteed Epic. Points are in-game only, never cashable.',
-    '花 500 分兑换': 'Redeem 500 points',
     '三步走：① 拨开关看懂电路怎么判 ② 亲自守 10 笔付款 ③ 连真钱包上链验证。':
       'Three steps: ① flip switches to see the circuit judge ② guard 10 payments ③ connect a wallet to verify on-chain.',
     '真电路 · 链上 · 谁也改不了': 'Real circuit · on-chain · unchangeable',
@@ -104,7 +100,7 @@
     '连接钱包': 'Connect wallet', '领包 + 承诺': 'Claim + commit', '揭示': 'Reveal',
     '买单包 0.002 BNB': 'Buy 1 pack · 0.002 BNB', '入池 claimIntoPool': 'Join pool',
     '退池 leavePool': 'Leave pool', '卡号 #': 'Card #', '穿卡 equip': 'Equip',
-    '查积分 packPoints': 'Check points', '等待连接': 'Waiting for connection',
+'等待连接': 'Waiting for connection',
     '复算一笔支付': 'Recompute a payment', '连接钱包后会依次调用 equippedRule(agent) 和 checkPayment(agent, amount, payee, spent, …)。':
       'Connect a wallet to call equippedRule(agent) then checkPayment(...).',
     '④ 用卡付款：卡灵的闸门（GuardVault）': '④ Pay with a card: the Kaling gate (GuardVault)',
@@ -120,7 +116,7 @@
     '带 3 张卡穿越五轮周期，全自动战斗。': 'Three cards, five market cycles, auto battle.',
     '上场阵容': 'Lineup', '战绩': 'Record',
     '任务': 'Quests', '每日': 'Daily', '成就': 'Achievements', '领取': 'Claim', '已领取': 'Claimed',
-    '你的 .ai 每被抽到一次，你得 10 分。卡面只印名字，不包含任何钱包信息。退出后，已经发出的卡成为绝版，不再新发。':
+    '你的 .ai 每被抽到一次，你得 1 包。卡面只印名字，不包含任何钱包信息。退出后，已经发出的卡成为绝版，不再新发。':
       'Each time your .ai is pulled you earn 10 points. The card prints only the name — no wallet data. Leave the pool and issued cards become collector\'s editions.',
     '你的 .ai 名字': 'Your .ai name', '认领入池': 'Claim into pool', '退出卡池': 'Leave pool',
     '重置演示档': 'Reset demo', '重置中…': 'Resetting…',

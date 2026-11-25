@@ -4,23 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0F0C24">
-<link rel="icon" href="/favicon.ico?v=112" sizes="any">
-<link rel="icon" type="image/png" href="/favicon-32.png?v=112">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=112">
+<link rel="icon" href="/favicon.ico?v=113" sizes="any">
+<link rel="icon" type="image/png" href="/favicon-32.png?v=113">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=113">
 <meta name="description" content="Agent Packs：开出带真实 .ai 身份的 Agent 卡，每张卡是一条任何人都能在链上复算的支出规则。">
 <title>卡灵战争 Agent Packs · 你抽到的不是英雄，是一条规则</title>
 <meta property="og:type" content="website">
 <meta property="og:title" content="卡灵战争 · 你抽到的不是英雄，是一条规则">
 <meta property="og:description" content="开包开出一个有名字的 AI。每张卡是一条链上可复算的支出规则，名人照片直接上卡面。">
-<meta property="og:image" content="https://agentid.cards/og/game.jpg?v=112">
+<meta property="og:image" content="https://agentid.cards/og/game.jpg?v=113">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="卡灵战争 · 你抽到的不是英雄，是一条规则">
 <meta name="twitter:description" content="开包开出一个有名字的 AI · 名人照片上卡 · 规则链上可验">
-<meta name="twitter:image" content="https://agentid.cards/og/game.jpg?v=112">
+<meta name="twitter:image" content="https://agentid.cards/og/game.jpg?v=113">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="ui.css?v=112">
+<link rel="stylesheet" href="ui.css?v=113">
 </head>
 <body>
 <a class="skip" href="#main">跳到内容</a>
@@ -219,13 +219,6 @@
   </div>
   <div class="cgrid" id="cGrid"></div>
 
-  <div class="redeem">
-    <div>
-      <h3>用积分换一张史诗</h3>
-      <p class="sub">500 分换 1 张保底史诗。积分只能在站内用，不能提现。</p>
-    </div>
-    <button class="btn primary" id="bRedeem">花 500 分兑换</button>
-  </div>
 </section>
 
 <!-- ══════════ 我的：钱包 + 流片电路 ══════════ -->
@@ -237,7 +230,6 @@
   <div class="block me-stats-block">
     <div class="me-stats">
       <div class="stat"><i>卡包</i><b id="chPacks">0/12</b><em id="chRf">已满</em></div>
-      <div class="stat pts"><i>积分</i><b id="chPts">0</b></div>
       <div class="stat agent"><i>身份</i><b id="meName">游客</b></div>
     </div>
   </div>
@@ -460,7 +452,7 @@
     <article class="tier">
       <h3>十连</h3>
       <div class="price">0.02<em>BNB</em></div>
-      <ul><li>10 个包 = 50 张卡</li><li>单包价 ×10，不涨价</li><li>积分 +50，兑史诗提速</li></ul>
+      <ul><li>10 个包 = 50 张卡</li><li>单包价 ×10，不涨价</li><li>多 50 张卡，凑齐更快</li></ul>
       <button class="btn ghost wide" data-buy="1">开 10 包</button>
     </article>
     <article class="tier featured">
@@ -505,7 +497,7 @@
     <span class="call">claimIntoPool()</span>
   </div>
   <div class="block">
-    <p class="sub">你的 .ai 每被抽到一次，你得 10 分。卡面只印名字，不包含任何钱包信息。退出后，已经发出的卡成为绝版，不再新发。</p>
+    <p class="sub">你的 .ai 每被抽到一次，你得 1 包。卡面只印名字，不包含任何钱包信息。退出后，已经发出的卡成为绝版，不再新发。</p>
     <div class="claim-row">
       <label class="sr-only" for="nmIn">你的 .ai 名字</label>
       <input class="inp" id="nmIn" placeholder="你的 .ai 名字，比如 kestrel.ai" maxlength="24" autocomplete="off">
@@ -545,10 +537,10 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js" defer></script>
-<script src="privy-widget.js?v=112" defer></script>
-<script src="i18n.js?v=112" defer></script>
-<script src="app.js?v=112" defer></script>
-<script src="fx.js?v=112" defer></script>
-<div class="ver-badge">v112</div>
+<script src="privy-widget.js?v=113" defer></script>
+<script src="i18n.js?v=113" defer></script>
+<script src="app.js?v=113" defer></script>
+<script src="fx.js?v=113" defer></script>
+<div class="ver-badge">v113</div>
 </body>
 </html>
