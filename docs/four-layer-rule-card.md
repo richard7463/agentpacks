@@ -8,7 +8,7 @@
 | 重 | 层 | tapeid 对应组件 | 我们的状态 | 规则卡上的样子 |
 |---|---|---|---|---|
 | **1 芯** | 电路层 | TapeOut processor 的 circuit NFT（45 门 agent-spend，NAND 逐门烧） | ✅ `tapeOut(cardId)` 已上合约（占位网表，流片前换真网表） | `circuit #7 · 11 门 NAND · 可转售` |
-| **2 魂** | 参数层 | owner 签名卡（unitUsd / dailyBudgetUsd / payees，改参数不换电路） | ✅ 演示档已实现（`ovr`，档位上限=稀有度×星级） | `每日 ≤ $20 · 上限内可调（调数值 → diff → 确认）` |
+| **2 魂** | 参数层 | owner 签名卡（unitUsd / dailyBudgetUsd / payees，改参数不换电路） | ✅ 演示档已实现（`ovr`，数值用户自定（与稀有度无关）） | `每日 ≤ $20 · 上限内可调（调数值 → diff → 确认）` |
 | **3 证** | 证书层 | rule certificate（卡面规则句 + 字节一致 + 64 采样 eval + owner 一致） | ✅ `ruleOf()` 链上可读；卡面印规则句 | `ruleOf(#42) → (0, 2800, 0) · 任何人可读` |
 | **4 履** | 履历层 | TapeIDRecordRegistry（追加式 verdict 记录，permissionless 复算） | 🚧 checkPayment 可复算 ✅ / 守门人战绩 ✅ / 链上记录 = S1 | `checkPayment() 重放 ✓ · 守门 4 局` |
 

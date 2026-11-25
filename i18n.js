@@ -27,7 +27,7 @@
     '规则证书': 'Rule certificate',
     '每张卡都是一张可以复算的规则证书': 'Every card is a verifiable rule certificate',
     '止损电路': 'Stop-loss circuit',
-    '每天最多花 $20，超出要人工放行。稀有度和星级越高，额度越大。':
+    '每天最多花 $52，超出要人工放行。额度由你自己设定，所有稀有度都一样。':
       'Spend at most $20 a day; over that needs a human. Rarity and stars raise the cap.',
     '风控电路': 'Risk circuit',
     '收款方必须也持有官方 Agent ID，否则拒绝。': 'Payee must hold an official Agent ID or payment is refused.',
@@ -42,7 +42,7 @@
     '免费包会自己回满。新手第一包保底传说，连续 10 张没出史诗就强制给一张。':
       'Free packs regenerate. Your first pack guarantees a Legendary; 10 cards without an Epic forces one.',
     '翻面就是规则': 'Flip it, read the rule',
-    '卡背印着一条支出规则。稀有度和星级越高，额度越大，参数在链上任何人都读得到。':
+    '卡背印着一条支出规则。额度由你自己设定，参数在链上任何人都读得到。':
       'The back prints a spending rule. Higher rarity and stars mean higher caps; anyone can read the params on-chain.',
     '穿上就生效': 'Equip it and it guards',
     '卡灵战争': 'Kaling War',

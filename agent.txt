@@ -49,7 +49,7 @@ CURRENTLY OPEN RULES (by rule id)
   Example: circuit NFT #2 carries rule t0 (止损, 36 gates).
   Its snapshot: daily spending cap $52; over the cap requires human approval.
   Actual parameter scales with card rarity and star:
-  cap = $20 * (100 + rarity*40 + star*20) / 100.
+  cap = $52 (fixed for all rarities; user-editable via RuleConfig).
 
 USER-CONFIGURABLE NUMBERS (TapeID model — circuit unchanged, numbers mutable)
   RuleConfig contract (BSC mainnet): 0xc02722543e54f2e5fe049e6f3696c75e28b72910

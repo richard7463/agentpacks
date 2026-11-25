@@ -21,7 +21,7 @@
     "family": "交易 / Trade",
     "gates": 36,
     "ruleText": "每天最多支出 $52；超出需人工放行。",
-    "parameterFormula": "capUsd = 20 * (100 + rarity*40 + star*20) / 100",
+    "parameterFormula": "capUsd = 52 (fixed for all rarities; user-editable via RuleConfig)",
     "tokenURI": ""
   },
   "verification": {

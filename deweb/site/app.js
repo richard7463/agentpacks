@@ -797,7 +797,7 @@ function detail(id){
         <div class="rb-ed">
           <div class="rb-ed-head"><span class="eyebrow" style="margin:0">调数值 · TapeID 同款</span>
             ${c.ovr!=null?'<span class="chip gold">已自定义</span>':''}</div>
-          <p class="rb-desc">数值跟卡走，只有卡主能改；上限由稀有度 × 星级决定。${c.ovr!=null?'':'默认即卡档位上限，往下调越守越严。'}</p>
+          <p class="rb-desc">数值跟卡走，只有卡主能改；所有稀有度相同，你自己定。${c.ovr!=null?'':'默认即卡档位上限，往下调越守越严。'}</p>
           <div class="rb-test">
             <input class="inp" id="edSent" placeholder="一句话：把上限改成 35 美元 / 冷却改成 90 分钟">
             <button class="btn sm cut" id="edPrev">生成对比</button>

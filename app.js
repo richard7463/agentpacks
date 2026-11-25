@@ -237,7 +237,7 @@ async function preflightTape(sg,quote){
   if(bnb.lt(quote.bnbCost))throw new Error('BNB 不足：需要 '+ethers.utils.formatEther(quote.bnbCost)+' BNB 付流片费。');
   return {me,bem};
 }
-function recordTape(cid,rule,tx){try{const a=JSON.parse(localStorage.getItem('ap_tapeouts')||'[]');a.unshift({cid:Number(cid)||0,rule:Number(rule)||0,tx:tx||'',t:Date.now(),owner:chainAcc||''});localStorage.setItem('ap_tapeouts',JSON.stringify(a.slice(0,200)))}catch(e){}}
+function recordTape(cid,rule,tx){try{const a=JSON.parse(localStorage.getItem('ap_tapeouts')||'[]');a.unshift({cid:Number(cid)||0,rule:Number(rule)||0,r:Number((window.__tapeCard||{}).r)||0,star:Number((window.__tapeCard||{}).star)||0,tx:tx||'',t:Date.now(),owner:chainAcc||''});localStorage.setItem('ap_tapeouts',JSON.stringify(a.slice(0,200)))}catch(e){}}
 function demoQuota(){
   if(S.demoDay!==today()){S.demoDay=today();S.demoToday=0}
   return Math.max(0,dailyCap()-(S.demoToday||0));
@@ -415,14 +415,15 @@ const RULE_DEF=[
 function usd(cents){const v=cents/100;return Number.isInteger(v)?v.toFixed(0):v.toFixed(2)}
 function ruleDerived(c){
   if(c.kind===1){const p=S.pool[c.ref];return{t:12,p1:p?p.name:'—',p2:0}}
-  const mult=100+c.r*40+c.star*20,t=cardRule(c);let p1=0,p2=0;
+  // 规则参数与稀有度/星级无关：所有卡同规则同默认值，数字由用户自己调
+  const mult=100,t=cardRule(c);let p1=0,p2=0;
   if(t===0)p1=2000*mult/100;
   else if(t===1)p1=5000*mult/100;
   else if(t===3){p1=3000*mult/100;p2=2}
   else if(t===4)p1=3+Math.floor(c.r/2)+c.star;
   else if(t===5)p1=500*mult/100;
   else if(t===6)p1=10000*mult/100;
-  else if(t===7){const cut=c.r*300+c.star*120;p1=cut<3600?3600-cut:300}
+  else if(t===7)p1=3600;
   else if(t===8)p1=7200*mult/100;                                   // 封控：锁 2 小时 × mult
   else if(t===9)p1=5000*mult/100;                                    // 双签：基准 $50
   else if(t===10){p1=5000*mult/100;p2=2+Math.floor(c.star/2)}        // 会签：M = 2 + star/2
@@ -433,9 +434,10 @@ function famOf(c){return RULE_DEF[ruleDerived(c).t].f}
 // 卡主可编辑的数值（TapeID：不可变电路 + 用户签名参数）。ovr 存在卡对象上，
 // 主网对应 setRuleConfig(cardId, cfg)——只有卡主能改，电路字节永不变。
 function ruleParams(c){
-  const d=ruleDerived(c);
-  if(ruleOverrides[d.t]!=null)d.p1=ruleOverrides[d.t];
-  else if(c.ovr!=null&&d.t!==2&&d.t!==8)d.p1=c.ovr;
+  const d=ruleDerived(c),rng=ruleRange(c);
+  // 安全范围限制，与稀有度无关：所有稀有度同规则同默认值
+  if(ruleOverrides[d.t]!=null)d.p1=Math.max(rng[0],Math.min(rng[1],ruleOverrides[d.t]));
+  else if(c.ovr!=null&&d.t!==2&&d.t!==8)d.p1=Math.max(rng[0],Math.min(rng[1],c.ovr));
   return d;
 }
 async function loadRuleOverride(t){
@@ -445,7 +447,7 @@ async function loadRuleOverride(t){
     if(v.value&&v.value.gt(0))ruleOverrides[t]=Number(v.value);else delete ruleOverrides[t];
   }catch(e){}
 }
-function ruleRange(c){ // 数值可调范围：[下限, 卡档位上限]
+function ruleRange(c){ // 数值可调范围：[下限, 安全上限]（与稀有度无关）
   const {t,p1}=ruleDerived(c);
   if(t===4)return[1,Math.round(p1)];
   if(t===7)return[Math.max(60,Math.floor(p1/4)),Math.round(p1*4)];
@@ -920,7 +922,7 @@ function showUseGuide(c){
 function detail(id){
   const c=S.cards.find(x=>x.id===id);if(!c)return;
   const st=statsOf(c);
-  const edT=ruleDerived(c).t;
+  const edT=ruleDerived(c).t,edRng=ruleRange(c);
   const m=$('#mbox');
   m.innerHTML=`<div class="detail">
     <div class="detail-card">${cardHTML(c)}</div>
@@ -951,8 +953,8 @@ function detail(id){
         <div class="rb-note">equip() 后生效 · 任何人可调用 checkPayment() 复算</div>
         ${c.kind===0&&edT!==2?`<div class="rb-ed" style="margin-top:12px">
           <div class="rb-ed-head"><span class="eyebrow" style="margin:0">数字参数 · 电路不变</span><span class="chip gold">链上可改 · 仅你能改</span></div>
-          <p class="rb-desc">像 TapeID：电路字节永不改变，你只能改自己的数字（额度 / 冷却 / 窗口）。保存到链上 RuleConfig，Agent 读到你改后的值。</p>
-          <div class="rb-test"><input class="inp" id="rcVal" type="number" min="0" step="any" placeholder="新数值" value="${rcFromValue(edT,ruleParams(c).p1)}">
+          <p class="rb-desc">电路字节永不改变；数字由你自己定，所有稀有度都一样。保存后 Agent 读到你设的值。</p>
+          <div class="rb-test"><input class="inp" id="rcVal" type="number" min="${rcFromValue(edT,edRng[0])}" max="${rcFromValue(edT,edRng[1])}" step="any" placeholder="新数值" value="${rcFromValue(edT,ruleParams(c).p1)}">
             <button class="btn sm cut" id="rcSave">保存（需钱包签名）</button></div>
           <div class="rb-out" id="rcOut">当前 <b id="rcCur">${fmtParam(edT,ruleParams(c).p1)}</b> · 单位 ${rcUnit(edT)}</div>
         </div>`:''}
@@ -1044,7 +1046,7 @@ function detail(id){
     const ri=$('#rcVal'),raw=parseFloat(ri&&ri.value);
     if(!(raw>0))return toast('请输入大于 0 的数字',3200,'bad');
     if(ri)ri.dataset.touched='1';
-    const val=rcToValue(edT,raw),out=$('#rcOut');
+    const val=Math.max(edRng[0],Math.min(edRng[1],rcToValue(edT,raw))),out=$('#rcOut');
     try{
       const sg=await vaultSigner();await ensureChain();
       chainAcc=await sg.getAddress();
