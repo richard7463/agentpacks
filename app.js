@@ -830,6 +830,46 @@ function renderCards(){
     g.appendChild(t);
   });
 }
+/* 点「穿到我的 Agent ID」时给出真正可操作的说明 + 可复制提示词 */
+function showUseGuide(c){
+  const inner=$('#useBoxInner');
+  const rule=ruleLong(c);
+  const prompt='你是我的支出守门人。每次我（或我的 Agent）准备付款前，先读取我钱包里这张电路卡对应的 circuit NFT（'
+    +cname(c)+'，processor '+processorAddr()+'）作为消费规则，调用 eval / checkPayment 复算这笔付款：'
+    +'金额、收款方、今天已花。\n规则：'+rule+'\n判定：只接受 allow 才放行；ask 立刻停下来问我，金额或收款方一变要重新复算；'
+    +'deny 直接拒绝。网络错误、读不到规则或任何异常一律 fail closed（拒绝）。\n'
+    +'你只做复算并给出 allow / ask / deny，不要替我转账。';
+  inner.innerHTML='<button class="ub-x" id="ubX" aria-label="关闭">✕</button>'
+    +'<span class="eyebrow" style="margin:0 0 8px">把这张卡真正用起来</span>'
+    +'<h3>怎么在 Binance Wallet / TapeID 里用</h3>'
+    +'<p class="sub">本站只是把规则铸成 NFT；真正拦付款要在 Binance Wallet 的 Agent ID / TapeID 里完成。</p>'
+    +'<ol>'
+    +'<li>打开 <b>Binance App → Wallet（Web3 钱包）→ NFT / Agent ID</b>，找到你刚流片出来的 <b>'+cname(c)+'</b> circuit NFT。</li>'
+    +'<li>点 <b>连接 / 用作支出规则（Attach Circuit）</b>；processor 地址填 <span class="mono">'+processorAddr()+'</span>。</li>'
+    +'<li>复制下面的提示词，发给你的 Agent（OpenClaw / Claude / ChatGPT 等），让它每次付款前先复算。</li>'
+    +'<li>判定只看 <b>allow / ask / deny</b>：allow 才放行，ask 先问你，deny 拒绝；读不到规则或网络出错一律 fail closed。</li>'
+    +'</ol>'
+    +'<div class="eyebrow" style="margin:0 0 8px">复制给 Agent 的提示词</div>'
+    +'<textarea id="ubPrompt" readonly>'+prompt.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</textarea>'
+    +'<div class="ub-actions">'
+    +'<button class="btn sm primary" id="ubCopy">复制提示词</button>'
+    +'<button class="btn sm ghost" id="ubDone">我已完成，标记为已装备</button>'
+    +'</div>'
+    +'<div class="ub-note">参考 TapeID 的规则：<b>Before any spend, call evaluate. Only allow proceeds; ask requires human approval; deny stops; errors fail closed.</b><br>'
+    +'复算本身不发交易、不转账。想先试一眼，可去 <a href="https://tapeid.xyz" target="_blank" rel="noopener">tapeid.xyz ↗</a>（TapeID 目前跑在 BSC Testnet，主网 NFT 用你自己的钱包地址绑定）。</div>';
+  $('#useBox').classList.add('on');
+  $('#ubX').onclick=()=>$('#useBox').classList.remove('on');
+  $('#ubCopy').onclick=async()=>{
+    const t=$('#ubPrompt');
+    try{await navigator.clipboard.writeText(t.value)}catch(e){t.select();try{document.execCommand('copy')}catch(_){}}
+    toast('提示词已复制，发给你的 Agent 即可',3200,'ok');
+  };
+  $('#ubDone').onclick=()=>{
+    S.equipped=c.id;S.mis.equip++;beep(660,.1);save();
+    $('#useBox').classList.remove('on');$('#mmodal').classList.remove('on');renderAll();
+    toast('已标记为装备：'+cname(c),3200,'ok');
+  };
+}
 function detail(id){
   const c=S.cards.find(x=>x.id===id);if(!c)return;
   const st=statsOf(c);
@@ -868,10 +908,6 @@ function detail(id){
           <div class="row" style="margin-top:8px;flex-wrap:wrap">
             <span class="chip" id="mTapePrice">价格加载中…</span>
             <button class="btn sm primary" id="mTapeChain" disabled>直接流片</button>
-          </div>
-          <div class="row" style="margin-top:8px;flex-wrap:wrap">
-            <input class="inp mono" id="evalIn" placeholder="eval 输入字节 0x…（低位在前）">
-            <button class="btn sm ghost" id="mEval">问电路</button>
           </div>
         </div>`:''}
         <div style="margin-top:10px"><button class="btn sm ghost" id="mTheater">亲眼看这条规则怎么判 →</button></div>
@@ -934,20 +970,6 @@ function detail(id){
       toast('⛔ 流片失败：'+errText(e),5200,'bad');
     }
   };
-  const me=$('#mEval');
-  if(me)me.onclick=async()=>{
-    try{
-      const hex=$('#evalIn').value.trim();
-      if(!/^0x([0-9a-fA-F]{2})*$/.test(hex))return toast('输入字节格式不对，例如 0x05');
-      const cid=await chainRead('cardCircuit',[c.id]);
-      if(Number(cid)===0)return toast('这张卡还没链上流片');
-      const p=await chainProvider();
-      const ret=await new ethers.Contract(processorAddr(),PROC_ABI,p).eval(cid,hex);
-      const b=Array.from(ethers.utils.arrayify(ret));
-      const v=b[0]||0;
-      cto.innerHTML='eval('+cid.toString()+', '+hex+') → <b style="color:var(--gold)">0x'+v.toString(16).padStart(2,'0')+'</b> · allow='+(v&1)+' ask='+((v>>1)&1);
-    }catch(e){cto.textContent='eval 失败：'+(e.reason||e.message||e)}
-  };
   const mt=$('#mTheater');
   if(mt)mt.onclick=()=>{$('#mmodal').classList.remove('on');switchTab('gate');setTimeout(()=>{const t=document.querySelector('#thStage');t&&t.scrollIntoView({behavior:'smooth',block:'center'})},80)};
   const ck=$('#chkBtn');
@@ -960,15 +982,16 @@ function detail(id){
     out.textContent=(ok?'PASS · ':'FAIL · ')+msg+'（$'+usd(amt)+'）';
   };
   $('#mEq').onclick=()=>{
-    if(S.equipped===c.id){S.equipped=0;toast('已脱下')}
-    else{S.equipped=c.id;S.mis.equip++;toast('已穿到 '+(S.name||'你的身份'))}
-    beep(660,.1);save();$('#mmodal').classList.remove('on');renderAll()};
+    if(S.equipped===c.id){S.equipped=0;toast('已脱下');beep(660,.1);save();$('#mmodal').classList.remove('on');renderAll()}
+    else showUseGuide(c);
+  };
   $('#mSell').onclick=()=>{
     S.cards=S.cards.filter(x=>x.id!==c.id);
     if(S.equipped===c.id)S.equipped=0;
     toast('已丢弃这张卡');save();$('#mmodal').classList.remove('on');renderAll()};
 }
 $('#mmodal').onclick=e=>{if(e.target.id==='mmodal')$('#mmodal').classList.remove('on')};
+$('#useBox').onclick=e=>{if(e.target.id==='useBox')$('#useBox').classList.remove('on')};
 $('#bRedeem').onclick=()=>{
   if(S.pts<500)return toast('积分不够（需 500）');
   S.pts-=500;S.mis.redeem++;
