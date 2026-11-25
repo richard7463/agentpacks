@@ -55,7 +55,8 @@ async function doPublicTape(rule,say){
     const sg=await vaultSigner();await ensureChain();
     const me=await sg.getAddress();
     const [bemCost,bnbCost]=await (new ethers.Contract(pubAddr(),PUB_ABI,readProvider())).quote(rule);
-    const bem=new ethers.Contract(bemAddr(),BEM_ABI,sg);
+    const pre=await preflightTape(sg,{bemCost,bnbCost});
+    const bem=pre.bem;
     const allowance=await bem.allowance(me,pubAddr());
     if(allowance.lt(bemCost)){
       say&&say('授权 '+ethers.utils.formatUnits(bemCost,8)+' BEM…');
@@ -68,7 +69,7 @@ async function doPublicTape(rule,say){
     recordTape(cid,rule,tx.hash);
     say&&say('✅ 已流片 circuit #'+cid);
     return cid;
-  }catch(e){const m=e.reason||e.message||String(e);say&&say('⛔ '+m);throw e}
+  }catch(e){const m=errText(e);say&&say('⛔ '+m);throw e}
 }
 function pktSay(t){
   const m=$('#pktMsg');if(!m)return;
@@ -169,7 +170,45 @@ if(S.day!==today()){
 /* ────────── 演示档每日限额 ────────── */
 const $=q=>document.querySelector(q), $$=q=>document.querySelectorAll(q);
 function toast(t,ms,kind){const el=$('#toast');el.textContent=t;el.className='toast'+(kind?' '+kind:'');void el.offsetWidth;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),ms||2600)}
-function errText(e){return (e&&(e.reason||e.shortMessage||e.message))||String(e)}
+/* 把 revert 的自定义错误翻成人话，避免给用户一串 0x… */
+function decodeRevert(raw){
+  if(!raw||typeof raw!=='string')return null;
+  const d=raw.startsWith('0x')?raw:('0x'+raw),sel=d.slice(0,10).toLowerCase(),arg='0x'+d.slice(10);
+  try{
+    if(sel==='0xe450d38c'){const a=ethers.utils.defaultAbiCoder.decode(['address','uint256','uint256'],arg);
+      return 'BEM 余额不足：当前 '+ethers.utils.formatUnits(a[1],8)+' BEM，需要 '+ethers.utils.formatUnits(a[2],8)+' BEM（≈$5）'}
+    if(sel==='0xfb8f41b2'){const a=ethers.utils.defaultAbiCoder.decode(['address','uint256','uint256'],arg);
+      return 'BEM 授权额度不足：当前 '+ethers.utils.formatUnits(a[1],8)+' BEM，需要 '+ethers.utils.formatUnits(a[2],8)+' BEM'}
+    const simple={
+      '0xca7c57d4':'规则编号无效（只能是 0~11）','0x0bba69fb':'BNB 费用不对',
+      '0xf4613fc4':'BEM 划转失败','0xb01d44fa':'处理器没配置','0x30cd7471':'不是合约 owner',
+      '0xd92e233d':'地址不能为 0'
+    };
+    if(simple[sel])return simple[sel];
+    if(sel==='0x08c379a0'){const a=ethers.utils.defaultAbiCoder.decode(['string'],arg);return a[0]}
+  }catch(e){}
+  return null;
+}
+function errText(e){
+  const base=(e&&(e.reason||e.shortMessage||e.message))||String(e);
+  const s=String(base);
+  const hits=s.match(/0x[0-9a-fA-F]{8,}/g)||[];
+  for(const h of hits){const d=decodeRevert(h);if(d)return d}
+  const data=e&&(e.data||(e.error&&e.error.data));
+  const d=decodeRevert(typeof data==='string'?data:(data&&data.data));
+  return d||s;
+}
+/* 发交易前先查钱包余额，别让用户白付 gas */
+async function preflightTape(sg,quote){
+  const me=await sg.getAddress();
+  const bem=new ethers.Contract(bemAddr(),BEM_ABI,sg);
+  const bal=await bem.balanceOf(me);
+  if(bal.lt(quote.bemCost))throw new Error('BEM 余额不足：当前 '+ethers.utils.formatUnits(bal,8)+' BEM，需要 '
+    +ethers.utils.formatUnits(quote.bemCost,8)+' BEM（≈$5）。先往这个钱包转入 BEM（合约 '+bemAddr()+'）再重试。');
+  const bnb=await sg.getBalance();
+  if(bnb.lt(quote.bnbCost))throw new Error('BNB 不足：需要 '+ethers.utils.formatEther(quote.bnbCost)+' BNB 付流片费。');
+  return {me,bem};
+}
 function recordTape(cid,rule,tx){try{const a=JSON.parse(localStorage.getItem('ap_tapeouts')||'[]');a.unshift({cid:Number(cid)||0,rule:Number(rule)||0,tx:tx||'',t:Date.now(),owner:chainAcc||''});localStorage.setItem('ap_tapeouts',JSON.stringify(a.slice(0,200)))}catch(e){}}
 function demoQuota(){
   if(S.demoDay!==today()){S.demoDay=today();S.demoToday=0}
@@ -903,7 +942,8 @@ function detail(id){
       if(!quote)return toast('价格还没加载好',3200,'bad');
       const sg=await vaultSigner();await ensureChain();
       const me=await sg.getAddress();chainAcc=me;
-      const bem=new ethers.Contract(bemAddr(),BEM_ABI,sg);
+      const pre=await preflightTape(sg,quote);
+      const bem=pre.bem;
       const allowance=await bem.allowance(me,pubAddr());
       if(allowance.lt(quote.bemCost)){
         cto.textContent='授权 '+ethers.utils.formatUnits(quote.bemCost,8)+' BEM…';
@@ -1578,7 +1618,8 @@ $('#bPubTape')&&($('#bPubTape').onclick=async()=>{
     if(!pubQuote)return toast('先查报价',3200,'bad');
     const sg=await vaultSigner();await ensureChain();
     const me=await sg.getAddress();chainAcc=me;
-    const bem=new ethers.Contract(bemAddr(),BEM_ABI,sg);
+    const pre=await preflightTape(sg,pubQuote);
+    const bem=pre.bem;
     const allowance=await bem.allowance(me,pubAddr());
     if(allowance.lt(pubQuote.bemCost)){
       po.textContent='授权 '+ethers.utils.formatUnits(pubQuote.bemCost,8)+' BEM…';
