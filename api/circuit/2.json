@@ -1,7 +1,11 @@
 {
   "schema": "kaling-circuit-v1",
   "generatedAt": "2026-11-25",
-  "network": { "name": "BNB Smart Chain mainnet", "chainId": 56, "rpc": "https://bsc-dataseed.bnbchain.org" },
+  "network": {
+    "name": "BNB Smart Chain mainnet",
+    "chainId": 56,
+    "rpc": "https://bsc-dataseed.bnbchain.org"
+  },
   "contract": {
     "address": "0xAdfDB520db78C252382E4bCdf62692fAD453035a",
     "name": "Kaling Circuit",
@@ -26,19 +30,36 @@
       "name": "0x06fdde03",
       "symbol": "0x95d89b41",
       "ownerOf2": "0x6352211e0000000000000000000000000000000000000000000000000000000000000002",
-      "balanceOf_0x3f66": "0x70a082310000000000000000000000003f665386b41fa15c5cccee983050a236e6a10108",
       "supportsInterfaceERC721": "0x01ffc9a780ac58cd00000000000000000000000000000000000000000000000000000000",
-      "tokenURI2": "0xc87b56dd0000000000000000000000000000000000000000000000000000000000000002"
+      "tokenURI2": "0xc87b56dd0000000000000000000000000000000000000000000000000000000000000002",
+      "balanceOf_owner": "0x70a0823199fc9652e21dd8b211af38d27c3b067f8c8ad9d3"
     },
-    "expected": { "name": "Kaling Circuit", "symbol": "KALC", "owner": "0x99Fc9652e21dd8B211Af38D27C3B067F8c8ad9d3", "balanceOf": 1, "isERC721": true }
+    "expected": {
+      "name": "Kaling Circuit",
+      "symbol": "KALC",
+      "owner": "0x99Fc9652e21dd8B211Af38D27C3B067F8c8ad9d3",
+      "balanceOf": 1,
+      "isERC721": true
+    }
   },
   "guard": {
     "policy": "allow -> proceed; ask -> stop and require human approval for the exact amount and payee; deny -> refuse; any error or unreadable state -> fail closed (deny)",
     "evaluateBeforeEverySpend": true,
     "readOnly": true,
     "agentMustNotTransfer": true,
-    "inputFields": ["amountUsd", "payee", "spentTodayUsd"],
-    "decisionEncoding": { "allow": "bit0 of eval return byte", "ask": "bit1 of eval return byte", "otherwise": "deny" }
+    "inputFields": [
+      "amountUsd",
+      "payee",
+      "spentTodayUsd"
+    ],
+    "decisionEncoding": {
+      "allow": "bit0 of eval return byte",
+      "ask": "bit1 of eval return byte",
+      "otherwise": "deny"
+    }
   },
-  "links": { "humanGuide": "https://agentid.cards/agent.txt", "bscScan": "https://bscscan.com/token/0xAdfDB520db78C252382E4bCdf62692fAD453035a?a=2" }
+  "links": {
+    "humanGuide": "https://agentid.cards/agent.txt",
+    "bscScan": "https://bscscan.com/token/0xAdfDB520db78C252382E4bCdf62692fAD453035a?a=2"
+  }
 }
