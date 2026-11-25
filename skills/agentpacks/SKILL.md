@@ -77,6 +77,7 @@ If discovery fails or the rule cannot be read → **fail closed (deny)**. Do not
 | “tape out this card / 流片” | `references/web-actions.md` → Tapeout |
 | “how do I see my NFT?” | `references/wallet-and-rules.md` |
 | “guard my agent's spending” | `references/guard.md` |
+| “Binance Agentic Wallet / how to use on BSC” | `references/binance-agentic-wallet.md` + `https://agentid.cards/agent-wallet.html` |
 | “equip/attach the circuit in Binance Wallet” | `references/guard.md` |
 
 Read the referenced file **before** taking the corresponding action.

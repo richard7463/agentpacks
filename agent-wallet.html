@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent 钱包接入 · 卡灵战争 Agent Packs</title>
+<link rel="icon" href="/favicon.ico?v=97" sizes="any">
+<link rel="stylesheet" href="ui.css?v=97">
+<style>
+  .aw-wrap{max-width:880px;margin:0 auto;padding:56px 22px 100px}
+  .aw-hero,.aw-card{padding:28px;border-radius:20px;background:var(--ink2);box-shadow:inset 0 0 0 1px var(--line2)}
+  .aw-hero h1{font-size:32px;margin:10px 0 12px}
+  .aw-hero p{color:var(--mist);line-height:1.85;max-width:680px}
+  .aw-card{margin-top:18px}
+  .aw-card h3{margin:0 0 12px;font-size:19px}
+  .aw-card ol{margin:0;padding-left:22px;color:var(--mist);line-height:2.1;font-size:14px}
+  .aw-card b{color:var(--paper)}
+  .aw-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .aw-box{padding:14px;border-radius:12px;background:var(--ink);font-size:12px;line-height:1.8;
+    word-break:break-all;color:var(--paper2);margin-top:12px}
+  .aw-box .k{color:var(--gold)}
+  .aw-note{font-size:12px;color:var(--mist2);line-height:1.85;margin-top:12px}
+  code{color:var(--gold)}
+  @media(max-width:640px){.aw-wrap{padding:30px 16px 80px}.aw-hero h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><div class="bg-glow"></div><div class="bg-noise"></div></div>
+<header class="topbar"><div class="tb">
+  <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"><i>卡</i></span><span class="brand-txt">卡灵战争<em>Agent Packs · 第 0 战季</em></span></a>
+  <nav class="tabs"><a class="tab" href="/">返回游戏</a><a class="tab" href="skill.html">Agent Skill</a><a class="tab on" href="agent-wallet.html">Agent 钱包</a></nav>
+  <div class="ver-badge">v97</div>
+</div></header>
+
+<main class="aw-wrap">
+  <div class="aw-hero">
+    <span class="eyebrow" style="margin:0">BINANCE AGENTIC WALLET · BSC 主网 56 · 原生支持</span>
+    <h1>让你的 Agent 读懂电路规则</h1>
+    <p>Binance Agentic Wallet 原生支持 <b>BNB Smart Chain（chainId 56）</b>，所以不用换链。装上币安的 Wallet Skill、登录，再让我们这个 Skill 被读到，Agent 就能发现自己钱包里的电路 NFT、读出对应规则，并在每次付款前给出 <code>allow / ask / deny</code>。读不到就 fail closed。</p>
+    <div class="aw-row">
+      <button class="btn primary" id="cpSkill">复制 Skill 链接</button>
+      <button class="btn ghost" id="cpLine">复制给 Agent 的一句话</button>
+      <a class="btn ghost" href="skills/agentpacks/SKILL.md" target="_blank">看 SKILL.md ↗</a>
+    </div>
+    <div class="aw-box" id="skillBox">https://agentid.cards/skills/agentpacks/SKILL.md</div>
+  </div>
+
+  <div class="aw-card">
+    <h3>① 装币安 Wallet Skill（一次）</h3>
+    <ol>
+      <li>需要 Node.js 18+ 和一个已创建 <b>MPC Wallet</b> 的币安账号（在 Binance App 里创建）。</li>
+      <li>让 Agent 执行：<code>npx skills add binance/binance-skills-hub/skills/binance-web3/binance-agentic-wallet</code></li>
+      <li>对 Agent 说：<code>Create my Binance Agentic Wallet</code> → 手机打开链接或扫码，在 App 里同意 Secure Auto Sign 并创建。</li>
+      <li>对 Agent 说：<code>Sign in to Binance Agentic Wallet</code> → 扫码、核对 6 位配对码、确认三项安全检查。</li>
+    </ol>
+  </div>
+
+  <div class="aw-card">
+    <h3>② 装上我们的 Skill</h3>
+    <ol>
+      <li>把上面的 Skill 链接发给 Agent，让它完整读一遍。</li>
+      <li>Agent 按意图读 references：抽卡/翻卡 → <code>web-actions.md</code>；钱包与电路 → <code>wallet-and-rules.md</code>；守门 → <code>guard.md</code>；币安接入 → <code>binance-agentic-wallet.md</code>。</li>
+      <li>让它先在「我的」页用<b>自己钱包的 BSC 地址</b>查询（<code>#meQueryAddr</code> + <code>#bMeQuery</code>），发现真正拥有的电路 token ID，再读那个 token 的规则。<b>不要写死 token #2。</b></li>
+    </ol>
+  </div>
+
+  <div class="aw-card">
+    <h3>③ 它拿到规则后怎么用</h3>
+    <ol>
+      <li>每次付款前，先取三项输入：金额、收款方、今天已花。</li>
+      <li>对照该电路的规则文本（例如「每天最多支出 $52；超出需人工放行」）给出结论。</li>
+      <li><b>allow</b> 才继续；<b>ask</b> 把金额+收款方原样交回给人审批；<b>deny</b> 拒绝；读不到就 fail closed。</li>
+      <li>复算是只读的，绝不能说成「已支付」，也不替人转账。</li>
+    </ol>
+    <p class="aw-note">提醒：Binance 自带的每日限额、代币白名单、收款地址簿是币安层面的保护，和我们的电路规则是两套东西，别混为一谈。</p>
+  </div>
+
+  <div class="aw-card">
+    <h3>诚实边界</h3>
+    <p class="aw-note">当前版本是 <b>Skill 层的规则执行</b>：Agent 读到规则并自觉遵守。它<b>不是</b>链上强制拦截——如果 Agent 直接用币安内置转账绕开 Skill，我们的电路拦不住。要做到「每笔付款都必须过电路」，需要额外的链上金库/合约闸门，属于后续版本。本页不承诺自动拦截。</p>
+  </div>
+</main>
+<script>
+(function(){
+  const line='先完整读 https://agentid.cards/skills/agentpacks/SKILL.md 并遵守它；用我钱包里实际拥有的电路 NFT 的 token ID 去读对应规则（不要写死 #2）；读不到 NFT 就读 api/rules.json 与 api/circuit/index.json；仍读不到就 fail closed。';
+  const $=id=>document.getElementById(id);
+  const cp=(id,txt)=>{$(id).onclick=async()=>{try{await navigator.clipboard.writeText(txt)}catch(e){}const b=$(id),o=b.textContent;b.textContent='✓ 已复制';setTimeout(()=>b.textContent=o,1600)}};
+  cp('cpSkill','https://agentid.cards/skills/agentpacks/SKILL.md');
+  cp('cpLine',line);
+})();
+</script>
+</body>
+</html>
