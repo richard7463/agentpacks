@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent Skill · 卡灵战争 Agent Packs</title>
+<meta name="description" content="让任何 AI Agent 读懂卡灵战争：抽卡、翻卡、流片、看电路、守门付款。">
+<link rel="icon" href="/favicon.ico?v=94" sizes="any">
+<link rel="stylesheet" href="ui.css?v=94">
+<style>
+  .skill-wrap{max-width:880px;margin:0 auto;padding:64px 22px 100px}
+  .skill-hero{padding:38px;border-radius:24px;background:var(--ink2);box-shadow:inset 0 0 0 1px var(--line2)}
+  .skill-hero h1{font-size:34px;margin:10px 0 12px}
+  .skill-hero p{color:var(--mist);line-height:1.8;max-width:660px}
+  .skill-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:26px}
+  .skill-card{padding:20px;border-radius:16px;background:var(--ink2);box-shadow:inset 0 0 0 1px var(--line2)}
+  .skill-card h3{margin:0 0 8px;font-size:17px}
+  .skill-card p{font-size:13px;color:var(--mist);line-height:1.7;margin:0 0 14px}
+  .skill-card a{color:var(--gold);text-decoration:none;font-size:12.5px;word-break:break-all}
+  .skill-card .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .skill-card code{font-size:11px;color:var(--paper2);background:var(--ink);padding:8px;border-radius:8px;display:block;word-break:break-all;margin-top:10px}
+  .skill-steps{margin-top:30px;padding:26px;border-radius:18px;background:var(--ink2);box-shadow:inset 0 0 0 1px var(--line2)}
+  .skill-steps ol{margin:12px 0 0;padding-left:22px;color:var(--mist);line-height:2;font-size:14px}
+  .skill-steps b{color:var(--paper)}
+  @media(max-width:640px){.skill-wrap{padding:30px 16px 80px}.skill-hero{padding:24px}.skill-hero h1{font-size:26px}}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><div class="bg-glow"></div><div class="bg-noise"></div></div>
+<header class="topbar"><div class="tb">
+  <a class="brand" href="/" aria-label="Agent Packs 首页"><span class="brand-mark" aria-hidden="true"><i>卡</i></span>
+    <span class="brand-txt">卡灵战争<em>Agent Packs · 第 0 战季</em></span></a>
+  <nav class="tabs" aria-label="主导航">
+    <a class="tab" href="story.html">世界观</a>
+    <a class="tab on" href="skill.html">Agent Skill</a>
+    <a class="tab" href="/">返回游戏 →</a>
+  </nav>
+  <div class="ver-badge">v94</div>
+</div></header>
+
+<main class="skill-wrap">
+  <div class="skill-hero">
+    <span class="eyebrow" style="margin:0">FOR AI AGENTS · 通用技能包</span>
+    <h1>让任何 Agent 都会玩卡灵战争</h1>
+    <p>一个普通的 AI Agent（Grok / Muse / Binance Agentic Wallet / Claude）只要读到下面这个 Skill，就能阅读理解卡牌与规则、开包刮卡翻卡、流片成 BSC 电路 NFT，并用电路为 Agent 的付款做守门复算。</p>
+    <div class="row">
+      <button class="btn primary" id="cpSkill">复制 Skill 链接</button>
+      <a class="btn ghost" href="skills/agentpacks/SKILL.md" target="_blank">直接看 SKILL.md ↗</a>
+    </div>
+    <code id="skillUrl">https://agentid.cards/skills/agentpacks/SKILL.md</code>
+  </div>
+
+  <div class="skill-grid">
+    <div class="skill-card">
+      <h3>① 主 Skill</h3>
+      <p>能力路由、安全边界、确认规则、五种能力总览。Agent 先读它。</p>
+      <a href="skills/agentpacks/SKILL.md" target="_blank">skills/agentpacks/SKILL.md ↗</a>
+    </div>
+    <div class="skill-card">
+      <h3>② 网页操作</h3>
+      <p>开包、撕包、翻卡/刮卡、收藏、流片、我的页，每一步都带精确选择器。</p>
+      <a href="skills/agentpacks/references/web-actions.md" target="_blank">references/web-actions.md ↗</a>
+    </div>
+    <div class="skill-card">
+      <h3>③ 钱包与规则</h3>
+      <p>4 条开放规则、合约地址、eth_call calldata、ERC-721 验证。</p>
+      <a href="skills/agentpacks/references/wallet-and-rules.md" target="_blank">references/wallet-and-rules.md ↗</a>
+    </div>
+    <div class="skill-card">
+      <h3>④ 守门策略</h3>
+      <p>allow / ask / deny、fail closed、Binance Wallet 与 TapeID 的诚实边界。</p>
+      <a href="skills/agentpacks/references/guard.md" target="_blank">references/guard.md ↗</a>
+    </div>
+    <div class="skill-card">
+      <h3>⑤ 机器可读数据</h3>
+      <p>规则、门数、价格、合约、守门策略；不需要任何 NFT 工具就能抓。</p>
+      <a href="api/rules.json" target="_blank">api/rules.json ↗</a><br>
+      <a href="agent.txt" target="_blank">agent.txt ↗</a><br>
+      <a href="api/circuit/2.json" target="_blank">api/circuit/2.json ↗</a>
+    </div>
+    <div class="skill-card">
+      <h3>⑥ 当前电路</h3>
+      <p>止损 / 风控 / 钻石手 / 委托，$5.11–$9.21，全部在 BSC 主网。</p>
+      <a href="/?v=94" target="_blank">去「我的」看电路 ↗</a>
+    </div>
+  </div>
+
+  <div class="skill-steps">
+    <span class="eyebrow" style="margin:0">怎么用</span>
+    <h3 style="margin:8px 0 0">给 Agent 的三步指令</h3>
+    <ol>
+      <li>把 <b>https://agentid.cards/skills/agentpacks/SKILL.md</b> 发给 Agent，让它先完整读一遍。</li>
+      <li>让它按意图读对应 reference：<b>抽卡/翻卡</b> 读 web-actions，<b>看规则/NFT</b> 读 wallet-and-rules，<b>守门付款</b> 读 guard。</li>
+      <li>读不到 NFT 或规则时，让它抓 <b>api/rules.json</b> 和 <b>api/circuit/&lt;id&gt;.json</b>；仍读不到就 <b>fail closed</b>。</li>
+    </ol>
+  </div>
+</main>
+<script>
+document.getElementById('cpSkill').onclick=async()=>{
+  const t=document.getElementById('skillUrl').textContent.trim();
+  try{await navigator.clipboard.writeText(t)}catch(e){}
+  const b=document.getElementById('cpSkill');const o=b.textContent;b.textContent='✓ 已复制';setTimeout(()=>b.textContent=o,1800)
+};
+</script>
+</body>
+</html>
