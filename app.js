@@ -1290,7 +1290,7 @@ const BEM_ABI=[
 const BEM_MAINNET='0x5ce033B2bFCa3Af30b3e8C8457DeaF776A8b695a';
 function bemAddr(){return BEM_MAINNET}
 const PROC_ABI=["function eval(uint256,bytes) view returns (bytes)"];
-let chainAcc=null,chainPending=null;
+let chainAcc=null,chainPending=null,meQueryAddr=null;
 try{chainPending=JSON.parse(localStorage.getItem('ap_pending')||'null')}catch(e){}
 const MAINNET_CORE='0xee7928436a480af5f93c3558a8ef27588c511d7b';
 const MAINNET_VAULT='0xa0fb1d7f76d4b1bc55a8060cdbcf773c1d8d8d3d';
@@ -1460,15 +1460,18 @@ const ME_PROC_ABI=[
 ];
 async function renderMe(){
   const box=$('#meBox');if(!box)return;
-  let acct=chainAcc;
+  let acct=meQueryAddr||chainAcc;
   if(!acct&&window.ethereum){try{acct=(await window.ethereum.request({method:'eth_accounts'}))[0]||null}catch(e){}}
-  if(acct)chainAcc=acct;
+  if(acct&&!meQueryAddr)chainAcc=acct;
   const setMe=body=>{
     box.innerHTML='<div class="chain-status '+(acct?'ok':'bad')+'">● '+(acct
         ?'钱包 <span class="mono">'+acct+'</span> · '+netName()
         :'还没连接钱包 —— 连接后这里会列出你亲手流片出来的电路 NFT。')+'</div>'
       +'<div class="chain-actions"><button class="btn primary" id="bMeConnect">'+(acct?'切换 / 重新连接钱包':'连接浏览器钱包')+'</button>'
       +'<button class="btn ghost" id="bMeRefresh">刷新</button></div>'
+      +'<div class="claim-row" style="margin-top:12px"><input class="inp mono" id="meQueryAddr" placeholder="输入任意地址查询电路 NFT（0x…）" value="'+(acct||'')+'">'
+      +'<button class="btn sm primary" id="bMeQuery">查询</button>'
+      +'<button class="btn sm ghost" id="bMeMyAddr">用我钱包地址</button></div>'
       +body+(acct?'':wcPanelHTML());
     bindWc();
     const bc=$('#bMeConnect');
@@ -1480,6 +1483,13 @@ async function renderMe(){
       }catch(e){toast('连接失败：'+errText(e),4200,'bad')}
     };
     const br=$('#bMeRefresh');if(br)br.onclick=renderMe;
+    const bq=$('#bMeQuery');
+    if(bq)bq.onclick=()=>{
+      const v=($('#meQueryAddr')||{}).value.trim();
+      if(!/^0x[0-9a-fA-F]{40}$/.test(v))return toast('地址格式不对（要 0x 开头 40 位）',3200,'bad');
+      meQueryAddr=v;renderMe();
+    };
+    const bm=$('#bMeMyAddr');if(bm)bm.onclick=()=>{meQueryAddr=null;renderMe()};
   };
   if(!acct)return setMe('<div class="banner">电路 NFT 是通过「收藏 → 点开电路卡 → 链上流片」或「实验室 ⑤ 公开流片」铸出来的，会直接进这个钱包。</div>');
   setMe('<div class="chain-status">正在读取链上电路…</div>');

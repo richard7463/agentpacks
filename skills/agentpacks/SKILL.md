@@ -38,6 +38,13 @@ Any agent with web fetch can read:
 
 If the agent cannot call `eth_call`, fetch these URLs. The JSON is a **snapshot**: tell the user to re-read `ownerOf` on-chain before trusting ownership.
 
+## CRITICAL: rule id ≠ circuit NFT token id
+
+- **Rule id** is `t0 / t2 / t7 / t11` (see `api/rules.json`). It identifies the logic.
+- **Circuit NFT token id** is `#2`, `#3`, … (see `api/circuit/<id>.json`). It is an owned ERC-721 token that *carries* one rule.
+- Circuit `#2` currently carries rule `t0` (止损, 36 gates, $9.21). It is **not** rule `t2`.
+- If sources disagree, trust `api/circuit/<tokenId>.json → token.ruleType / token.name / token.gates` for that specific circuit, and flag the conflict to the user.
+
 ## Route the request
 
 | User intent | Where to act |

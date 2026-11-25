@@ -35,14 +35,18 @@ HOW TO VERIFY OWNERSHIP WITH PLAIN eth_call
   If an agent cannot call eth_call, fetch https://agentid.cards/api/circuit/2.json
   for machine-readable rules, then apply the guard policy below.
 
-CURRENTLY OPEN CIRCUITS (4 rules)
-  #2 止损 / stop-loss     4 gates   daily cap, over-cap -> ask
-  #11 委托 / delegation   4 gates   payee allowlist + time window
-  #7 钻石手 / cooldown   31 gates   min gap between payments
-  #0 止损 / stop-loss    36 gates   daily cap, over-cap -> ask
+IMPORTANT: rule id (t0/t2/t7/t11) is NOT the same as circuit NFT token id (#2).
+  A circuit NFT can carry any rule: circuit #2 currently carries rule t0 (止损).
 
-  Example (circuit #2 snapshot): daily spending cap $52; over the cap requires
-  human approval. Actual parameter scales with card rarity and star:
+CURRENTLY OPEN RULES (by rule id)
+  t2 风控 / security      4 gates   $5.11   Agent ID allowlist
+  t11 委托 / delegation   4 gates   $5.11   payee allowlist + time window
+  t7 钻石手 / cooldown   31 gates   $7.96   min gap between payments
+  t0 止损 / stop-loss    36 gates   $9.21   daily cap, over-cap -> ask
+
+  Example: circuit NFT #2 carries rule t0 (止损, 36 gates).
+  Its snapshot: daily spending cap $52; over the cap requires human approval.
+  Actual parameter scales with card rarity and star:
   cap = $20 * (100 + rarity*40 + star*20) / 100.
 
 DECISION POLICY (TapeID-compatible)

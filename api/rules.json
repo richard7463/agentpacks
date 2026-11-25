@@ -19,5 +19,6 @@
   ],
   "priceFormula": "bemRaw = clamp(gates * 1734000 * 1.5 + 1000000, 52030000, 123700000); priceUsd = bemRaw / 1e8 * 9.61 + 0.0002 * 560.67",
   "guardPolicy": "allow -> proceed; ask -> require human approval for exact amount+payee; deny -> refuse; errors -> fail closed",
-  "note": "Only these 4 rules are open. Other 8 rule ids revert in PublicTapeOut.quote()."
+  "note": "Only these 4 rules are open. Other 8 rule ids revert in PublicTapeOut.quote().",
+  "ruleIdVsTokenId": "Rule ids here are t0/t2/t7/t11. Circuit NFT token ids are separate (#2, #3...). Circuit #2 carries rule t0 (36 gates, $9.21), NOT rule t2."
 }
