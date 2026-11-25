@@ -41,7 +41,7 @@ IMPORTANT: rule id (t0/t2/t7/t11) is NOT the same as circuit NFT token id (#2).
   A circuit NFT can carry any rule: circuit #2 currently carries rule t0 (止损).
 
 CURRENTLY OPEN RULES (by rule id)
-  t2 风控 / security      4 gates   $5.11   Agent ID allowlist
+  t2 白名单 / security    4 gates   $5.11   卡面名「风控电路」，规则=只付持有 Agent ID 的地址
   t11 委托 / delegation   4 gates   $5.11   payee allowlist + time window
   t7 钻石手 / cooldown   31 gates   $7.96   min gap between payments
   t0 止损 / stop-loss    36 gates   $9.21   daily cap, over-cap -> ask

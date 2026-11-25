@@ -12,7 +12,7 @@ and never hardcode `#2` for a different wallet.
 
 | rule id | name (zh) | gates | approx user price |
 |---|---|---|---|
-| 2 | 风控 | 4 | $5.11 |
+| 2 | 白名单（卡面名：风控电路） | 4 | $5.11 |
 | 11 | 委托 | 4 | $5.11 |
 | 7 | 钻石手 | 31 | $7.96 |
 | 0 | 止损 | 36 | $9.21 |

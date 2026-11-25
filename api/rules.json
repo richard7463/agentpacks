@@ -12,7 +12,7 @@
   },
   "rarity": ["普通", "精良", "稀有", "史诗", "传说", "神话", "至尊"],
   "rules": [
-    { "id": 2, "name": "风控", "family": "安全 / Security", "gates": 4, "priceUsd": 5.11, "description": "收款方必须持有官方 Agent ID；本地演示里 4 门规则用于最低档守门。" },
+    { "id": 2, "name": "白名单（卡面名：风控电路）", "family": "安全 / Security", "gates": 4, "priceUsd": 5.11, "description": "收款方必须持有官方 Agent ID；本地演示里 4 门规则用于最低档守门。" },
     { "id": 11, "name": "委托", "family": "协作 / Trust", "gates": 4, "priceUsd": 5.11, "description": "限时只付指定收款方。" },
     { "id": 7, "name": "钻石手", "family": "风控 / Lockdown", "gates": 31, "priceUsd": 7.96, "description": "两笔支付之间必须有冷却间隔。" },
     { "id": 0, "name": "止损", "family": "交易 / Trade", "gates": 36, "priceUsd": 9.21, "description": "每天最多支出 $20 × 档位倍率；超出需人工放行。" }
