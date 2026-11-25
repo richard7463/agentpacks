@@ -338,6 +338,41 @@ h1,h2,.u-copy h2,.sec-head h2{text-wrap:balance}
 .cg .skill.ruleline{color:var(--paper2)}
 .cg .nums{display:flex;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1);font-size:10.5px;color:var(--mist2)}
 .cg .nums b{font-family:var(--f-disp);font-stretch:112%;color:var(--paper);font-weight:800;font-size:12px;margin-left:2px;font-variant-numeric:tabular-nums}
+/* ── 七档稀有度外观（纯 CSS，越强越亮） ── */
+.cg .rarity-fx{position:absolute;inset:0;border-radius:10px;pointer-events:none;z-index:1}
+/* C 普通：哑光灰，无装饰 */
+.cg.r0 .rarity-fx{background:linear-gradient(165deg,rgba(142,138,168,.16),transparent 62%)}
+/* UC 精良：细银拉丝 */
+.cg.r1 .rarity-fx{background:repeating-linear-gradient(118deg,rgba(255,255,255,.055) 0 2px,transparent 2px 7px),
+  linear-gradient(165deg,rgba(201,198,220,.18),transparent 60%)}
+/* R 稀有：青色电路纹 */
+.cg.r2 .rarity-fx{background:linear-gradient(165deg,rgba(111,227,255,.2),transparent 55%),
+  repeating-linear-gradient(90deg,transparent 0 17px,rgba(111,227,255,.09) 17px 18px),
+  repeating-linear-gradient(0deg,transparent 0 17px,rgba(111,227,255,.07) 17px 18px)}
+/* SR 史诗：紫色斜向晶纹 */
+.cg.r3 .rarity-fx{background:conic-gradient(from 215deg at 28% 18%,transparent,rgba(180,155,255,.26),transparent 38%),
+  repeating-linear-gradient(45deg,transparent 0 11px,rgba(180,155,255,.11) 11px 12px)}
+/* SSR 传说：粉紫镭射流动 */
+.cg.r4 .rarity-fx{background:linear-gradient(125deg,rgba(255,122,217,.34),transparent 42%,rgba(183,155,255,.3));
+  background-size:220% 100%;mix-blend-mode:screen;animation:holoSweep 6s linear infinite}
+/* UR 神话：金箔扫光 */
+.cg.r5 .rarity-fx{background:linear-gradient(120deg,transparent 18%,rgba(255,255,255,.42) 44%,transparent 66%),
+  linear-gradient(165deg,rgba(245,196,81,.38),transparent 62%);
+  background-size:260% 100%,100% 100%;mix-blend-mode:screen;animation:holoSweep 4s linear infinite}
+/* LR 至尊：彩虹棱镜全闪 */
+.cg.r6 .rarity-fx{background:var(--foil-l);background-size:320% 100%;mix-blend-mode:color-dodge;opacity:.62;
+  animation:holoSweep 3s linear infinite}
+@keyframes holoSweep{0%{background-position:220% 0,0 0}100%{background-position:-120% 0,0 0}}
+/* 稀有度角标：越高越像徽章 */
+.cg .rar{padding:3px 0}
+.cg.r3 .rar,.cg.r4 .rar{padding:3px 9px;border-radius:99px;background:rgba(10,8,25,.6);box-shadow:inset 0 0 0 1px var(--rc)}
+.cg.r5 .rar,.cg.r6 .rar{padding:3px 10px;border-radius:99px;color:var(--ink);background:var(--foil-l);background-size:200% 100%;
+  box-shadow:0 0 16px -4px var(--rc);animation:markShift 4s linear infinite}
+/* 高稀有度持续外发光 */
+.cg.r4{box-shadow:0 0 0 1px var(--rc),0 0 26px -8px var(--rc),0 18px 30px -18px rgba(0,0,0,.9)}
+.cg.r5{box-shadow:0 0 0 1px var(--rc),0 0 34px -6px var(--rc),0 18px 30px -18px rgba(0,0,0,.9)}
+.cg.r6{box-shadow:0 0 0 2px var(--rc),0 0 48px -6px var(--rc),0 18px 30px -18px rgba(0,0,0,.9);animation:r6Pulse 2.6s ease-in-out infinite}
+@keyframes r6Pulse{50%{box-shadow:0 0 0 2px var(--rc),0 0 70px -4px var(--rc),0 18px 30px -18px rgba(0,0,0,.9)}}
 /* 镭射层：UR / LR，跟随指针 */
 .cg.holo::after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:10px;
   background:var(--foil);mix-blend-mode:color-dodge;opacity:.28;

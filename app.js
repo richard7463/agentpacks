@@ -237,7 +237,7 @@ async function preflightTape(sg,quote){
   if(bnb.lt(quote.bnbCost))throw new Error('BNB 不足：需要 '+ethers.utils.formatEther(quote.bnbCost)+' BNB 付流片费。');
   return {me,bem};
 }
-function recordTape(cid,rule,tx){try{const a=JSON.parse(localStorage.getItem('ap_tapeouts')||'[]');a.unshift({cid:Number(cid)||0,rule:Number(rule)||0,r:Number((window.__tapeCard||{}).r)||0,star:Number((window.__tapeCard||{}).star)||0,tx:tx||'',t:Date.now(),owner:chainAcc||''});localStorage.setItem('ap_tapeouts',JSON.stringify(a.slice(0,200)))}catch(e){}}
+function recordTape(cid,rule,tx){try{const a=JSON.parse(localStorage.getItem('ap_tapeouts')||'[]');a.unshift({cid:Number(cid)||0,rule:Number(rule)||0,cardId:Number((window.__tapeCard||{}).id)||0,r:Number((window.__tapeCard||{}).r)||0,star:Number((window.__tapeCard||{}).star)||0,tx:tx||'',t:Date.now(),owner:chainAcc||''});localStorage.setItem('ap_tapeouts',JSON.stringify(a.slice(0,200)))}catch(e){}}
 function demoQuota(){
   if(S.demoDay!==today()){S.demoDay=today();S.demoToday=0}
   return Math.max(0,dailyCap()-(S.demoToday||0));
@@ -632,6 +632,7 @@ function cardHTML(c){
     ${c.kind===1?faceHTML(c):heroHTML(c)}
     <div class="scrim"></div>
     <div class="frame"></div>
+    <div class="rarity-fx"></div>
     <div class="top"><span class="rar">${RAR[c.r]}</span>${c.star?`<span class="stars">${'★'.repeat(c.star)}</span>`:''}</div>
     ${c.kind===1?'<span class="idt">.ai 身份</span>':''}
     ${eq?'<span class="eqd">已穿上</span>':''}
@@ -807,7 +808,7 @@ function dealCards(){
         $('#ovl').classList.remove('on');opening=null;detail(c.id);
       };
       const pb=d.querySelector('.pkt');
-      if(pb)pb.onclick=ev=>{ev.stopPropagation();window.__pkt(Number(pb.dataset.rule),pb)};
+      if(pb)pb.onclick=ev=>{ev.stopPropagation();window.__tapeCard=c;window.__pkt(Number(pb.dataset.rule),pb)};
       $('#slots').appendChild(d);
     });
     $('#bAll').style.display='';
@@ -1010,6 +1011,7 @@ function detail(id){
         toast('正在授权 BEM，请在钱包里确认',3200);
         const a=await bem.approve(pubAddr(),quote.bemCost);await a.wait();
       }
+      window.__tapeCard=c;
       const tx=await new ethers.Contract(pubAddr(),PUB_ABI,sg).tapeoutRaw(quote.rule,{value:quote.bnbCost});
       cto.textContent='流片交易 '+tx.hash.slice(0,12)+'… 等待确认';
       toast('流片交易已发出，等待链上确认…',3200);
@@ -1598,8 +1600,11 @@ async function renderMe(){
     const h=byId[id]||{},t=Number(h.rule||0);
     const name=HOUSE[t]?HOUSE[t].n:'规则 t'+t;
     const gates=(NETLIST_META[t]||{}).g;
-    return '<div class="me-nft">'
+    const rar=h.r!=null&&RAR[h.r]?RAR[h.r]:'—';
+    return '<div class="me-nft r'+Number(h.r||0)+'">'
       +'<div class="me-nft-top"><b>circuit #'+id+'</b><span class="chip gold">'+name+(gates?' · '+gates+' 门':'')+'</span></div>'
+      +'<div class="me-nft-meta">来源卡稀有度 <b style="color:var(--r'+Number(h.r||0)+')">'+rar+'</b>'
+      +(h.star?' ★'+h.star:'')+'</div>'
       +'<div class="me-nft-meta"><a href="'+chainScan()+'/token/'+processorAddr()+'?a='+id+'" target="_blank" style="color:var(--gold)">BscScan ↗</a>'
       +(h.tx?' · <a href="'+chainScan()+'/tx/'+h.tx+'" target="_blank" style="color:var(--gold)">流片交易 ↗</a>':'')
       +(h.t?' <span class="sub">· '+new Date(h.t).toLocaleString()+'</span>':'')+'</div>'
@@ -1624,7 +1629,10 @@ async function renderMe(){
   const uriCall='0xc87b56dd'+pad(token0);
   const verifyJson=JSON.stringify({chain:'BNB Smart Chain',chainId:56,rpc:'https://bsc-dataseed.bnbchain.org',
     contract:addr,tokenId:token0,expectedOwner:acct,balanceOf:ids.length,
-    name:nm,symbol:sym,isERC721:is721,tokenURI:uri||'(empty, normal)'},null,2);
+    name:nm,symbol:sym,isERC721:is721,tokenURI:uri||'(empty, normal)',
+    sourceCard:(byId[token0]||{}).cardId||null,
+    rarity:(byId[token0]||{}).r!=null?RAR[Number((byId[token0]||{}).r)]||'—':'—',
+    star:Number((byId[token0]||{}).star||0)},null,2);
   const verifyPrompt='补充验证指引（请照做，不要再用市场数据接口查 '+sym+'）：\n'
     +sym+' 是 ERC-721 NFT 集合，没有行情，市场数据接口返回空是预期行为。\n'
     +'正确合约：'+addr+'，Token ID：'+token0+'，链：BSC 主网 56，RPC：https://bsc-dataseed.bnbchain.org\n'
@@ -1733,6 +1741,7 @@ $('#bPubTape')&&($('#bPubTape').onclick=async()=>{
       const a=await bem.approve(pubAddr(),pubQuote.bemCost);await a.wait();
     }
     const rule=Number($('#pubRule').value);
+    window.__tapeCard=null; // 实验室流片不来自某张卡
     const tx=await new ethers.Contract(pubAddr(),PUB_ABI,sg).tapeoutRaw(rule,{value:pubQuote.bnbCost});
     po.textContent='流片交易 '+tx.hash.slice(0,12)+'… 等待确认';
     toast('流片交易已发出，等待链上确认…',3200);
