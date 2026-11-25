@@ -51,6 +51,14 @@ CURRENTLY OPEN RULES (by rule id)
   Actual parameter scales with card rarity and star:
   cap = $20 * (100 + rarity*40 + star*20) / 100.
 
+USER-CONFIGURABLE NUMBERS (TapeID model — circuit unchanged, numbers mutable)
+  RuleConfig contract (BSC mainnet): 0xc02722543e54f2e5fe049e6f3696c75e28b72910
+  getOverride(address who,uint256 rule) -> (uint256 value,uint64 at); value=0 means no override.
+  Units: t0/t2 = cents, t7 = seconds, t11 = seconds.
+  Effective number = override if >0, else the card-tier default from the snapshot.
+  User changes it on the website (card detail -> 数字参数) with a wallet signature.
+  Never change the circuit; never sign a config change for the user.
+
 DECISION POLICY (TapeID-compatible)
   Before any spend: re-read the circuit and evaluate amount, payee, spent-today.
   allow -> proceed

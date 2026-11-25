@@ -8,6 +8,13 @@ const RAR=['普通','精良','稀有','史诗','传说','神话','至尊'];
 /* 当前只开放 4 条电路规则（四个家族各一条），价格收窄到 $5~$12 */
 const ACTIVE_RULES=[0,2,7,11];
 const cardRule=c=>ACTIVE_RULES[c.ref%ACTIVE_RULES.length];
+/* TapeID 同款：电路不变，用户可签名的数字参数 */
+const RULECFG='0xc02722543e54f2e5fe049e6f3696c75e28b72910';
+const RULECFG_ABI=[
+ 'function setOverride(uint256 rule,uint256 value)',
+ 'function getOverride(address who,uint256 rule) view returns (uint256 value,uint64 at)'
+];
+let ruleOverrides={};
 const ODDS=[464,300,150,60,20,5,1];
 const SELL=[1,2,4,10,30,120,600];
 const RCOL=['#8E8AA8','#C9C6DC','#6FE3FF','#B49BFF','#FF7AD9','#F5C451','#FFE9A8'];
@@ -412,8 +419,16 @@ function famOf(c){return RULE_DEF[ruleDerived(c).t].f}
 // 主网对应 setRuleConfig(cardId, cfg)——只有卡主能改，电路字节永不变。
 function ruleParams(c){
   const d=ruleDerived(c);
-  if(c.ovr!=null&&d.t!==2&&d.t!==8)d.p1=c.ovr;
+  if(ruleOverrides[d.t]!=null)d.p1=ruleOverrides[d.t];
+  else if(c.ovr!=null&&d.t!==2&&d.t!==8)d.p1=c.ovr;
   return d;
+}
+async function loadRuleOverride(t){
+  if(!chainAcc||!window.ethereum)return;
+  try{
+    const v=await new ethers.Contract(RULECFG,RULECFG_ABI,readProvider()).getOverride(chainAcc,t);
+    if(v.value&&v.value.gt(0))ruleOverrides[t]=Number(v.value);else delete ruleOverrides[t];
+  }catch(e){}
 }
 function ruleRange(c){ // 数值可调范围：[下限, 卡档位上限]
   const {t,p1}=ruleDerived(c);
@@ -424,8 +439,12 @@ function ruleRange(c){ // 数值可调范围：[下限, 卡档位上限]
 function fmtParam(t,v){
   if(t===4)return v+' 笔';
   if(t===7)return Math.round(v/60)+' 分钟';
+  if(t===11)return Math.round(v/3600)+' 小时';
   return '$'+usd(v);
 }
+function rcUnit(t){return t===7?'分钟（×60 秒）':t===11?'小时（×3600 秒）':'美元（×100 美分）'}
+function rcToValue(t,x){return t===7?Math.round(x*60):t===11?Math.round(x*3600):Math.round(x*100)}
+function rcFromValue(t,v){return t===7?v/60:t===11?v/3600:v/100}
 function parseRuleSentence(t,txt){
   if(!txt)return null;
   const m=String(txt).replace(/,/g,'').match(/(\d+(?:\.\d+)?)\s*(美元|美金|刀|块|usd|\$|笔|次|小时|分钟|秒)/i);
@@ -902,6 +921,13 @@ function detail(id){
         </div>
         <div class="rb-out" id="chkOut">按卡上参数复算一笔支付，不产生交易。</div>
         <div class="rb-note">equip() 后生效 · 任何人可调用 checkPayment() 复算</div>
+        ${c.kind===0?`<div class="rb-ed" style="margin-top:12px">
+          <div class="rb-ed-head"><span class="eyebrow" style="margin:0">数字参数 · 电路不变</span><span class="chip gold">链上可改 · 仅你能改</span></div>
+          <p class="rb-desc">像 TapeID：电路字节永不改变，你只能改自己的数字（额度 / 冷却 / 窗口）。保存到链上 RuleConfig，Agent 读到你改后的值。</p>
+          <div class="rb-test"><input class="inp" id="rcVal" type="number" min="0" step="any" placeholder="新数值" value="${rcFromValue(edT,ruleParams(c).p1)}">
+            <button class="btn sm cut" id="rcSave">保存（需钱包签名）</button></div>
+          <div class="rb-out" id="rcOut">当前 <b id="rcCur">${fmtParam(edT,ruleParams(c).p1)}</b> · 单位 ${rcUnit(edT)}</div>
+        </div>`:''}
         ${c.kind===0?`<div class="rb-test" style="margin-top:12px;display:block">
           <span class="eyebrow" style="margin:0 0 8px">链上流片 · TAPE OUT</span>
           <div class="rb-out" id="chainTapeOut">读 tapeNandCost()/tapeCost() 拿真实 NAND（BEM）+ tapeout（BNB）报价；先授权 BEM 再流片，电路 NFT 归你。</div>
@@ -980,6 +1006,29 @@ function detail(id){
     const out=$('#chkOut');
     out.className='rb-out '+(ok?'ok':'bad');
     out.textContent=(ok?'PASS · ':'FAIL · ')+msg+'（$'+usd(amt)+'）';
+  };
+  loadRuleOverride(edT).then(()=>{
+    const el=$('#rcCur');if(el)el.textContent=fmtParam(edT,ruleParams(c).p1);
+    const ri=$('#rcVal');if(ri&&!ri.dataset.touched)ri.value=rcFromValue(edT,ruleParams(c).p1);
+  });
+  const rsv=$('#rcSave');
+  if(rsv)rsv.onclick=async()=>{
+    const ri=$('#rcVal'),raw=parseFloat(ri&&ri.value);
+    if(!(raw>0))return toast('请输入大于 0 的数字',3200,'bad');
+    if(ri)ri.dataset.touched='1';
+    const val=rcToValue(edT,raw),out=$('#rcOut');
+    try{
+      const sg=await vaultSigner();await ensureChain();
+      chainAcc=await sg.getAddress();
+      out.textContent='交易已发出，等待链上确认…';
+      const tx=await new ethers.Contract(RULECFG,RULECFG_ABI,sg).setOverride(edT,val);
+      await tx.wait();
+      ruleOverrides[edT]=val;
+      out.innerHTML='<b style="color:var(--pass)">✓ 已上链保存</b> · '+fmtParam(edT,val)+' · '
+        +'<a href="'+chainScan()+'/tx/'+tx.hash+'" target="_blank" style="color:var(--gold)">交易 ↗</a>';
+      toast('规则数字已保存：'+fmtParam(edT,val),4200,'ok');
+      renderAll();
+    }catch(e){out.innerHTML='<b style="color:var(--red)">保存失败：'+errText(e)+'</b>';toast('保存失败：'+errText(e),4200,'bad')}
   };
   $('#mEq').onclick=()=>{
     if(S.equipped===c.id){S.equipped=0;toast('已脱下');beep(660,.1);save();$('#mmodal').classList.remove('on');renderAll()}

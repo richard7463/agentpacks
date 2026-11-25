@@ -19,6 +19,13 @@
   ],
   "priceFormula": "bemRaw = clamp(gates * 1734000 * 1.5 + 1000000, 52030000, 123700000); priceUsd = bemRaw / 1e8 * 9.61 + 0.0002 * 560.67",
   "guardPolicy": "allow -> proceed; ask -> require human approval for exact amount+payee; deny -> refuse; errors -> fail closed",
+  "ruleConfig": {
+    "contract": "0xc02722543e54f2e5fe049e6f3696c75e28b72910",
+    "getter": "getOverride(address who,uint256 rule) view returns (uint256 value,uint64 at)",
+    "units": { "t0": "cents", "t2": "cents", "t7": "seconds", "t11": "seconds" },
+    "effectiveValue": "on-chain override if value > 0, otherwise card-tier default",
+    "note": "Circuit bytes never change; only user-owned numbers do (TapeID model)."
+  },
   "note": "Only these 4 rules are open. Other 8 rule ids revert in PublicTapeOut.quote().",
   "ruleIdVsTokenId": "Rule ids here are t0/t2/t7/t11. Circuit NFT token ids are separate and must be discovered from the user's wallet. The published example circuit #2 carries rule t0 (36 gates, $9.21), NOT rule t2. Never hardcode a token id."
 }

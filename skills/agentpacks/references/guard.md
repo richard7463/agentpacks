@@ -8,6 +8,8 @@
    “Wallet-centric discovery”：我的页地址查询 / eth_getLogs / Multicall3），
    绝不写死任何 token ID（#2 只是例子）。
 1. 读取该 token 对应的规则，并复算：金额、收款方、今天已花。
+   注意：RuleConfig(0xc02722543e54f2e5fe049e6f3696c75e28b72910).getOverride(我的地址, 规则ID)
+   若返回 value>0，优先用它作为数字参数（单位：t0/t2=美分，t7/t11=秒）；value=0 才用快照默认值。
 
 规则来源（按优先级）：
 1. 我钱包里那个 token 的 https://agentid.cards/api/circuit/<discoveredTokenId>.json

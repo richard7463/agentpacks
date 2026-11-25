@@ -60,6 +60,19 @@ rule attached to that NFT*. Follow this order, and stop as soon as a step works.
 
 If discovery fails or the rule cannot be read → **fail closed (deny)**. Do not fall back to a hardcoded token or rule.
 
+## User-configurable numbers (TapeID model)
+
+The circuit bytes are immutable, but the **numbers** are user-owned and mutable:
+- `RuleConfig` contract (BSC mainnet): `0xc02722543e54f2e5fe049e6f3696c75e28b72910`
+- `getOverride(address who, uint256 rule) view returns (uint256 value, uint64 at)`.
+  `value = 0` means "no override" → use the card-tier default.
+  Units: t0/t2 = cents, t7 = seconds, t11 = seconds.
+- The user can change a number on the website: card detail → 「数字参数 · 电路不变」 →
+  enter value → wallet signature. Example: daily cap $50 → $100.
+- **Effective value = on-chain override if > 0, otherwise the base value from
+  `api/circuit/<tokenId>.json` / card tier.** Always check for an override before judging.
+- Never change the circuit, and never sign a config change on the user's behalf.
+
 ## CRITICAL: rule id ≠ circuit NFT token id
 
 - **Rule id** is `t0 / t2 / t7 / t11` (see `api/rules.json`). It identifies the logic.

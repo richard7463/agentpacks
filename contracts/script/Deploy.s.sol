@@ -6,6 +6,7 @@ import {MockTapeProcessor} from "../test/mocks/MockTapeProcessor.sol";
 import {AgentPackCore} from "../src/AgentPackCore.sol";
 import {GuardVault} from "../src/GuardVault.sol";
 import {PublicTapeOut} from "../src/PublicTapeOut.sol";
+import {RuleConfig} from "../src/RuleConfig.sol";
 import {MockAgentIdRegistry} from "../test/AgentPackCore.t.sol";
 
 /// @notice 本地 Anvil / BSC 测试网：先部署 Mock 注册表，再部署主合约 + 金库
@@ -64,6 +65,15 @@ contract DeployMainnet is Script {
 }
 
 /// @notice 公开流片入口：任何钱包可直接把 12 条官方规则之一流片成 circuit NFT
+/// @notice 用户可签名的规则参数（TapeID 同款：电路不变、数字可改）
+contract DeployRuleConfig is Script {
+    function run() external returns (RuleConfig c) {
+        vm.startBroadcast(vm.envUint("DEPLOY_PK"));
+        c = new RuleConfig();
+        vm.stopBroadcast();
+    }
+}
+
 contract DeployPublicTapeOut is Script {
     address constant CORE = 0xEE7928436a480af5F93c3558a8ef27588C511d7b;
     address constant PROC = 0xAdfDB520db78C252382E4bCdf62692fAD453035a;
