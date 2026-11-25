@@ -1,0 +1,44 @@
+{
+  "schema": "kaling-circuit-v1",
+  "generatedAt": "2026-11-25",
+  "network": { "name": "BNB Smart Chain mainnet", "chainId": 56, "rpc": "https://bsc-dataseed.bnbchain.org" },
+  "contract": {
+    "address": "0xAdfDB520db78C252382E4bCdf62692fAD453035a",
+    "name": "Kaling Circuit",
+    "symbol": "KALC",
+    "standard": "ERC-721",
+    "supportsInterfaceERC721": "0x80ac58cd"
+  },
+  "token": {
+    "id": 2,
+    "ownerSnapshot": "0x99Fc9652e21dd8B211Af38D27C3B067F8c8ad9d3",
+    "name": "止损电路",
+    "ruleType": 0,
+    "family": "交易 / Trade",
+    "gates": 36,
+    "ruleText": "每天最多支出 $52；超出需人工放行。",
+    "parameterFormula": "capUsd = 20 * (100 + rarity*40 + star*20) / 100",
+    "tokenURI": ""
+  },
+  "verification": {
+    "note": "Static snapshot. Re-read ownerOnChain with eth_call before trusting.",
+    "ethCall": {
+      "name": "0x06fdde03",
+      "symbol": "0x95d89b41",
+      "ownerOf2": "0x6352211e0000000000000000000000000000000000000000000000000000000000000002",
+      "balanceOf_0x3f66": "0x70a082310000000000000000000000003f665386b41fa15c5cccee983050a236e6a10108",
+      "supportsInterfaceERC721": "0x01ffc9a780ac58cd00000000000000000000000000000000000000000000000000000000",
+      "tokenURI2": "0xc87b56dd0000000000000000000000000000000000000000000000000000000000000002"
+    },
+    "expected": { "name": "Kaling Circuit", "symbol": "KALC", "owner": "0x99Fc9652e21dd8B211Af38D27C3B067F8c8ad9d3", "balanceOf": 1, "isERC721": true }
+  },
+  "guard": {
+    "policy": "allow -> proceed; ask -> stop and require human approval for the exact amount and payee; deny -> refuse; any error or unreadable state -> fail closed (deny)",
+    "evaluateBeforeEverySpend": true,
+    "readOnly": true,
+    "agentMustNotTransfer": true,
+    "inputFields": ["amountUsd", "payee", "spentTodayUsd"],
+    "decisionEncoding": { "allow": "bit0 of eval return byte", "ask": "bit1 of eval return byte", "otherwise": "deny" }
+  },
+  "links": { "humanGuide": "https://agentid.cards/agent.txt", "bscScan": "https://bscscan.com/token/0xAdfDB520db78C252382E4bCdf62692fAD453035a?a=2" }
+}

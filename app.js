@@ -1484,18 +1484,21 @@ async function renderMe(){
   if(!acct)return setMe('<div class="banner">电路 NFT 是通过「收藏 → 点开电路卡 → 链上流片」或「实验室 ⑤ 公开流片」铸出来的，会直接进这个钱包。</div>');
   setMe('<div class="chain-status">正在读取链上电路…</div>');
   const p=readProvider(),ids=[];
+  // processor 不是 ERC721Enumerable，tokenOfOwnerByIndex 会 revert → 直接用 Multicall3 批量读 ownerOf
   try{
-    const c=new ethers.Contract(processorAddr(),ME_PROC_ABI,p);
-    const bal=await c.balanceOf(acct);
-    const n=Math.min(Number(bal),80);
-    for(let i=0;i<n;i++)ids.push(Number(await c.tokenOfOwnerByIndex(acct,i)));
-  }catch(e){ids.length=0}
-  // processor 不是 ERC721Enumerable，tokenOfOwnerByIndex 会 revert → 改逐个 ownerOf 扫描
-  if(!ids.length)try{
-    const c2=new ethers.Contract(processorAddr(),ME_PROC_ABI,p);
-    const found=await Promise.all(Array.from({length:64},(_,i)=>
-      c2.ownerOf(i+1).then(o=>[i+1,String(o)]).catch(()=>null)));
-    found.forEach(x=>{if(x&&x[1].toLowerCase()===acct.toLowerCase()&&!ids.includes(x[0]))ids.push(x[0])});
+    // 用 Multicall3 一次 RPC 批量读 ownerOf(1..16)，绕开 tokenOfOwnerByIndex 缺失 + 公有 RPC 限流
+    const iface=new ethers.utils.Interface(ME_PROC_ABI);
+    const mc=new ethers.Contract('0xcA11bde05977b3631167028862bE2a173976CA11',[
+      'function aggregate3((address target,bool allowFailure,bytes callData)[] calls) view returns ((bool success,bytes returnData)[] returnData)'
+    ],p);
+    const calls=Array.from({length:16},(_,i)=>({target:processorAddr(),allowFailure:true,
+      callData:iface.encodeFunctionData('ownerOf',[i+1])}));
+    const res=await mc.callStatic.aggregate3(calls);
+    res.forEach((r,i)=>{
+      if(!r.success)return;
+      try{const o=iface.decodeFunctionResult('ownerOf',r.returnData)[0];
+        if(String(o).toLowerCase()===acct.toLowerCase())ids.push(i+1)}catch(e){}
+    });
   }catch(e){}
   let hist=[];try{hist=JSON.parse(localStorage.getItem('ap_tapeouts')||'[]')}catch(e){}
   for(const h of hist){
@@ -1516,7 +1519,50 @@ async function renderMe(){
       +'<button class="btn sm cut" data-me-eval="'+id+'">问电路</button><span class="me-out" id="meOut-'+id+'"></span></div>'
       +'</div>';
   }).join('');
-  setMe('<div class="me-sum">共 <b>'+ids.length+'</b> 条电路 NFT · 每条都能免费 eval 复算</div><div class="me-list">'+cards+'</div>');
+  /* 给 Agent 的一键验证信息（全部动态生成，不写死任何地址） */
+  const token0=ids[0],addr=processorAddr();
+  let nm='Kaling Circuit',sym='KALC',uri='',is721=true;
+  try{
+    const vc=new ethers.Contract(addr,[
+      'function name() view returns (string)','function symbol() view returns (string)',
+      'function tokenURI(uint256) view returns (string)','function supportsInterface(bytes4) view returns (bool)'
+    ],p);
+    const r=await Promise.all([vc.name(),vc.symbol(),vc.tokenURI(token0),vc.supportsInterface('0x80ac58cd')]);
+    nm=r[0];sym=r[1];uri=r[2];is721=r[3];
+  }catch(e){}
+  const pad=n=>ethers.utils.hexZeroPad(ethers.utils.hexlify(n),32).slice(2);
+  const ownerCall='0x6352211e'+pad(token0);
+  const balCall='0x70a08231'+acct.slice(2).toLowerCase().padStart(64,'0');
+  const uriCall='0xc87b56dd'+pad(token0);
+  const verifyJson=JSON.stringify({chain:'BNB Smart Chain',chainId:56,rpc:'https://bsc-dataseed.bnbchain.org',
+    contract:addr,tokenId:token0,expectedOwner:acct,balanceOf:ids.length,
+    name:nm,symbol:sym,isERC721:is721,tokenURI:uri||'(empty, normal)'},null,2);
+  const verifyPrompt='补充验证指引（请照做，不要再用市场数据接口查 '+sym+'）：\n'
+    +sym+' 是 ERC-721 NFT 集合，没有行情，市场数据接口返回空是预期行为。\n'
+    +'正确合约：'+addr+'，Token ID：'+token0+'，链：BSC 主网 56，RPC：https://bsc-dataseed.bnbchain.org\n'
+    +'请用 eth_call 直接读以下方法验证（to = 合约地址，data 如下）：\n'
+    +'- name() 0x06fdde03 → 期望 "'+nm+'"\n'
+    +'- symbol() 0x95d89b41 → 期望 "'+sym+'"\n'
+    +'- ownerOf('+token0+') '+ownerCall+' → 期望 '+acct+'\n'
+    +'- balanceOf(我的地址) '+balCall+' → 期望 ≥1\n'
+    +'- supportsInterface(0x80ac58cd) 0x01ffc9a780ac58cd00000000000000000000000000000000000000000000000000000000 → 期望 true\n'
+    +'- tokenURI('+token0+') '+uriCall+' → 返回空字符串是正常的（这份 NFT 没放 metadata）\n'
+    +'判定：只要 ownerOf('+token0+') 返回我的地址且 balanceOf ≥ 1，就确认我持有这张电路 NFT。\n'
+    +'在确认之前继续 fail closed 是对的；确认之后按守门提示词执行复算。复算仍只读，不转账。';
+  const guardPrompt='在 BSC 主网用我的 circuit #'+token0+'（合约 '+addr+'，'+nm+'，规则 '+ruleLong({r:0,star:0,kind:0,ref:Number((byId[token0]||{}).rule||0)})+') 守门：每次付款前先复算金额/收款方/今天已花；只有 allow 才放行，ask 先问我，deny 拒绝；读不到规则或出错一律拒绝。你只复算，不转账。';
+  const verifyBlock='<div class="block me-verify"><div class="me-nft-top"><b>给 Agent 的验证信息</b><span class="chip gold">只读 · 动态生成</span></div>'
+    +'<div class="me-nft-meta">合约 '+addr+' · token #'+token0+' · owner '+acct+'</div>'
+    +'<pre id="meVerifyJson">'+verifyJson.replace(/</g,'&lt;')+'</pre>'
+    +'<div class="ub-actions"><button class="btn sm primary" id="meCopyVerify">复制验证指引</button>'
+    +'<button class="btn sm ghost" id="meCopyGuard">复制守门提示词</button>'
+    +'<button class="btn sm ghost" id="meCopyUrl">复制 Agent 说明链接</button></div>'
+    +'<div class="ub-note">把上面任意一段发给你的 Agent；所有地址和 Token ID 都按当前钱包实时生成。</div></div>';
+  setMe('<div class="me-sum">共 <b>'+ids.length+'</b> 条电路 NFT · 每条都能免费 eval 复算</div><div class="me-list">'+cards+'</div>'+verifyBlock);
+  const cp=(id,txt)=>{const b=$(id);if(b)b.onclick=async()=>{
+    try{await navigator.clipboard.writeText(txt)}catch(e){toast('复制失败，请手动选择文本',3200,'bad');return}
+    toast('已复制，发给你的 Agent 即可',3200,'ok')}};
+  cp('#meCopyVerify',verifyPrompt);cp('#meCopyGuard',guardPrompt);
+  cp('#meCopyUrl','https://agentid.cards/agent.txt\nhttps://agentid.cards/api/circuit/'+token0+'.json');
   $$('[data-me-eval]').forEach(b=>b.onclick=async()=>{
     const id=b.dataset.meEval,hex=$('#meIn-'+id).value.trim(),out=$('#meOut-'+id);
     if(!/^0x([0-9a-fA-F]{2})*$/.test(hex))return toast('输入格式不对，例如 0x05',3200,'bad');

@@ -661,6 +661,11 @@ h1,h2,.u-copy h2,.sec-head h2{text-wrap:balance}
 .me-nft-eval{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
 .me-nft-eval .inp{flex:1 1 150px;min-width:0}
 .me-out{font-size:11.5px;color:var(--mist);word-break:break-all}
+.me-verify{margin-top:14px;padding:16px;border-radius:14px;background:var(--ink2);box-shadow:inset 0 0 0 1px var(--line2)}
+.me-verify pre{max-height:220px;overflow:auto;margin:12px 0 0;padding:12px;border-radius:10px;background:var(--ink);
+  color:var(--paper2);font-size:11px;line-height:1.6;white-space:pre-wrap;word-break:break-all}
+.me-verify pre::-webkit-scrollbar{width:4px}
+.me-verify pre::-webkit-scrollbar-thumb{background:var(--line2);border-radius:4px}
 .redeem{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-top:40px;padding:26px 28px;border-radius:20px;background:var(--ink2);box-shadow:inset 0 0 0 1px var(--line)}
 .redeem h3{font-size:20px;margin-bottom:4px}
 

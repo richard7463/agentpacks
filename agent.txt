@@ -1,0 +1,63 @@
+KALING WAR / AGENT PACKS — AGENT READABLE CIRCUIT GUIDE
+=========================================================
+
+This file is for AI agents (e.g. Binance Agentic Wallet) that need to read a
+user's on-chain spending circuit. No special NFT tool or market-data API is
+required. KALC is an ERC-721 collection, NOT a tradable token — market-data
+queries return empty by design.
+
+NETWORK
+  chain: BNB Smart Chain mainnet
+  chainId: 56
+  public RPC: https://bsc-dataseed.bnbchain.org
+
+CONTRACTS
+  Circuit NFT (ERC-721, "Kaling Circuit" / KALC):
+    0xAdfDB520db78C252382E4bCdf62692fAD453035a
+  AgentPackCore (rule params / checkPayment):
+    0xEE7928436a480af5F93c3558a8Ef27588C511d7b
+  Tapeout processor = the Circuit NFT contract above.
+
+HOW TO VERIFY OWNERSHIP WITH PLAIN eth_call
+  to:   0xAdfDB520db78C252382E4bCdf62692fAD453035a
+  calls:
+    name()                 0x06fdde03
+    symbol()               0x95d89b41
+    ownerOf(2)             0x6352211e0000000000000000000000000000000000000000000000000000000000000002
+    balanceOf(<address>)   0x70a08231 + 32-byte padded address
+    supportsInterface(bytes4) 0x01ffc9a7 + 0x80ac58cd padded right → true means ERC-721
+    tokenURI(2)            0xc87b56dd0000000000000000000000000000000000000000000000000000000000000002
+                           (empty string is NORMAL: this NFT has no metadata/image)
+
+  Owner of circuit #2 at snapshot time (after user transferred it into Binance Wallet):
+    0x99Fc9652e21dd8B211Af38D27C3B067F8c8ad9d3
+  Always re-read ownerOf on-chain before trusting; the static file is a snapshot.
+  If an agent cannot call eth_call, fetch https://agentid.cards/api/circuit/2.json
+  for machine-readable rules, then apply the guard policy below.
+
+CURRENTLY OPEN CIRCUITS (4 rules)
+  #2 止损 / stop-loss     4 gates   daily cap, over-cap -> ask
+  #11 委托 / delegation   4 gates   payee allowlist + time window
+  #7 钻石手 / cooldown   31 gates   min gap between payments
+  #0 止损 / stop-loss    36 gates   daily cap, over-cap -> ask
+
+  Example (circuit #2 snapshot): daily spending cap $52; over the cap requires
+  human approval. Actual parameter scales with card rarity and star:
+  cap = $20 * (100 + rarity*40 + star*20) / 100.
+
+DECISION POLICY (TapeID-compatible)
+  Before any spend: re-read the circuit and evaluate amount, payee, spent-today.
+  allow -> proceed
+  ask   -> stop and ask the human for THIS exact amount + payee; re-evaluate on any change
+  deny  -> refuse, do not sign or broadcast
+  error / unreadable / missing input -> fail closed = deny
+
+  Re-evaluation is READ-ONLY. Never describe it as a completed payment.
+  The agent must never transfer funds on its own.
+
+MACHINE-READABLE SNAPSHOT
+  https://agentid.cards/api/circuit/2.json
+
+HUMAN PAGE
+  https://agentid.cards/  → 「我的」 (profile) lists your circuits and can copy
+  the verification prompt / guard prompt for your wallet address.
