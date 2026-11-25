@@ -694,7 +694,22 @@ h1,h2,.u-copy h2,.sec-head h2{text-wrap:balance}
 .me-sum{margin-top:14px;font-size:13px;color:var(--mist)}
 .me-sum b{color:var(--gold)}
 .me-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;margin-top:12px}
-.me-nft{padding:14px 16px;border-radius:14px;background:var(--ink2);box-shadow:inset 0 0 0 1px var(--line2)}
+.me-nft{position:relative;overflow:hidden;padding:14px 16px;border-radius:14px;background:var(--ink2);box-shadow:inset 0 0 0 1px var(--line2)}
+/* 电路 NFT 继承来源卡稀有度：边框、光晕、纹理与卡面一致 */
+.me-nft.r0{--rc:var(--r0)}.me-nft.r1{--rc:var(--r1)}.me-nft.r2{--rc:var(--r2)}.me-nft.r3{--rc:var(--r3)}
+.me-nft.r4{--rc:var(--r4)}.me-nft.r5{--rc:var(--r5)}.me-nft.r6{--rc:var(--r6)}
+.me-nft.r2,.me-nft.r3,.me-nft.r4,.me-nft.r5,.me-nft.r6{box-shadow:inset 0 0 0 1px var(--rc),0 10px 30px -18px var(--rc)}
+.me-nft.r4{box-shadow:inset 0 0 0 1px var(--rc),0 0 26px -10px var(--rc)}
+.me-nft.r5{box-shadow:inset 0 0 0 1px var(--rc),0 0 34px -8px var(--rc)}
+.me-nft.r6{box-shadow:inset 0 0 0 2px var(--rc),0 0 46px -8px var(--rc);animation:r6Pulse 2.6s ease-in-out infinite}
+.me-nft::before{content:'';position:absolute;inset:0;pointer-events:none;border-radius:14px}
+.me-nft.r1::before{background:repeating-linear-gradient(118deg,rgba(255,255,255,.04) 0 2px,transparent 2px 7px)}
+.me-nft.r2::before{background:repeating-linear-gradient(90deg,transparent 0 17px,rgba(111,227,255,.07) 17px 18px)}
+.me-nft.r3::before{background:repeating-linear-gradient(45deg,transparent 0 11px,rgba(180,155,255,.08) 11px 12px)}
+.me-nft.r4::before{background:linear-gradient(125deg,rgba(255,122,217,.16),transparent 42%,rgba(183,155,255,.16));background-size:220% 100%;animation:holoSweep 6s linear infinite}
+.me-nft.r5::before{background:linear-gradient(120deg,transparent 18%,rgba(255,255,255,.22) 44%,transparent 66%),linear-gradient(165deg,rgba(245,196,81,.2),transparent 62%);background-size:260% 100%,100% 100%;animation:holoSweep 4s linear infinite}
+.me-nft.r6::before{background:var(--foil-l);background-size:320% 100%;mix-blend-mode:color-dodge;opacity:.35;animation:holoSweep 3s linear infinite}
+.me-nft .me-nft-top,.me-nft .me-nft-meta,.me-nft .me-nft-eval{position:relative;z-index:1}
 .me-nft-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .me-nft-top b{font-size:14px;color:var(--paper)}
 .me-nft-meta{margin-top:8px;font-size:11.5px;color:var(--mist2);word-break:break-all}
