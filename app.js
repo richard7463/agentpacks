@@ -5,6 +5,9 @@
 /* ────────── 常量 ────────── */
 /* 稀有度用中文名显示（不再出现 C/UC/R 这类缩写） */
 const RAR=['普通','精良','稀有','史诗','传说','神话','至尊'];
+/* 当前只开放 4 条电路规则（四个家族各一条），价格收窄到 $5~$12 */
+const ACTIVE_RULES=[0,2,7,11];
+const cardRule=c=>ACTIVE_RULES[c.ref%ACTIVE_RULES.length];
 const ODDS=[464,300,150,60,20,5,1];
 const SELL=[1,2,4,10,30,120,600];
 const RCOL=['#8E8AA8','#C9C6DC','#6FE3FF','#B49BFF','#FF7AD9','#F5C451','#FFE9A8'];
@@ -48,8 +51,9 @@ const DEMO_NAMES=[
 /* 12 条真网表元数据（TapeForge 铸造 · 全输入穷举验证，tools/mint12.mjs）*/
 const NETLIST_META={"0":{"g":36,"d":13,"cases":128},"1":{"g":22,"d":10,"cases":64},"2":{"g":4,"d":2,"cases":2},"3":{"g":39,"d":15,"cases":256},"4":{"g":22,"d":11,"cases":64},"5":{"g":20,"d":9,"cases":32},"6":{"g":125,"d":19,"cases":1024},"7":{"g":31,"d":14,"cases":256},"8":{"g":15,"d":8,"cases":32},"9":{"g":189,"d":25,"cases":8192},"10":{"g":90,"d":23,"cases":4096},"11":{"g":4,"d":2,"cases":4}};
 
-/* 与主网 PublicTapeOut 报价同式：BEM 部分有 $5 下限，BNB tapeout 费另计 */
-function ruleUSD(t){const g=(NETLIST_META[t]||{}).g||36;return Math.max((g*0.01734+0.01)*9.61,5)+(0.0002*560.67)}
+/* 与主网 PublicTapeOut 同式：NAND 按 1.5×门价 = $0.25/门，收窄到 $5~$12（含 BNB 费） */
+function ruleUSD(t){const g=(NETLIST_META[t]||{}).g||36;const raw=g*1734000*1.5+1000000;
+  const c=Math.max(52030000,Math.min(123700000,raw));return c/1e8*9.61+0.0002*560.67}
 async function doPublicTape(rule,say){
   try{
     const sg=await vaultSigner();await ensureChain();
@@ -387,7 +391,7 @@ const RULE_DEF=[
 function usd(cents){const v=cents/100;return Number.isInteger(v)?v.toFixed(0):v.toFixed(2)}
 function ruleDerived(c){
   if(c.kind===1){const p=S.pool[c.ref];return{t:12,p1:p?p.name:'—',p2:0}}
-  const mult=100+c.r*40+c.star*20,t=c.ref%12;let p1=0,p2=0;
+  const mult=100+c.r*40+c.star*20,t=cardRule(c);let p1=0,p2=0;
   if(t===0)p1=2000*mult/100;
   else if(t===1)p1=5000*mult/100;
   else if(t===3){p1=3000*mult/100;p2=2}
@@ -520,13 +524,13 @@ function artSVG(c,w=200,h=286){
   </svg>`;
 }
 function makeCard(r){
-  let kind=0,ref=Math.floor(Math.random()*12);
+  let kind=0,ref=ACTIVE_RULES[Math.floor(Math.random()*ACTIVE_RULES.length)];
   const act=S.pool.filter(p=>p.active);
   if(r>=3&&act.length&&Math.random()<0.6){const p=act[Math.floor(Math.random()*act.length)];
     kind=1;ref=S.pool.indexOf(p);p.pulls=(p.pulls||0)+1;}
   return{id:S.nextId++,r,star:0,kind,ref};
 }
-function cname(c){return c.kind===1?S.pool[c.ref].name:HOUSE[c.ref%12].n}
+function cname(c){return c.kind===1?S.pool[c.ref].name:HOUSE[cardRule(c)].n}
 /// 电路卡英雄徽章：每种规则一个形象（heroes/t0..t11），电路纹 artSVG 垫底兜底
 function heroHTML(c,size){
   const t=ruleDerived(c).t;
@@ -544,8 +548,8 @@ function faceHTML(c){
     <span class="face-tag">${f.tag}</span>
   </div>`;
 }
-function cskill(c){return HOUSE[c.ref%12].s}
-function cdesc(c){return HOUSE[c.ref%12].d}
+function cskill(c){return HOUSE[cardRule(c)].s}
+function cdesc(c){return HOUSE[cardRule(c)].d}
 function open5(){
   const out=[];
   const idSlot=Math.floor(Math.random()*5);   // 每包必出 1 张名人身份卡
@@ -744,7 +748,7 @@ function dealCards(){
             ${c.kind===1?`<div class="fi">身份卡 · ${fmtN(S.pool[c.ref].name)}</div>`:''}
             <div class="fst">ATK ${st.atk} · DEF ${st.def} · RAT ${st.rat}</div>
           </div>
-          ${c.kind===0?`<button class="pkt" data-rule="${c.ref%12}" style="position:absolute;top:8px;right:8px;z-index:8;padding:5px 10px;border-radius:99px;border:1px solid rgba(242,193,78,.75);background:rgba(10,8,25,.9);color:#F2C14E;font-size:10.5px;font-weight:800">⚡ 流片</button>`:''}
+          ${c.kind===0?`<button class="pkt" data-rule="${cardRule(c)}" style="position:absolute;top:8px;right:8px;z-index:8;padding:5px 10px;border-radius:99px;border:1px solid rgba(242,193,78,.75);background:rgba(10,8,25,.9);color:#F2C14E;font-size:10.5px;font-weight:800">⚡ 流片</button>`:''}
         </div>
       </div>`;
       d.onclick=()=>{
@@ -1032,7 +1036,7 @@ $('#mmodal').onclick=e=>{if(e.target.id==='mmodal')$('#mmodal').classList.remove
 $('#bRedeem').onclick=()=>{
   if(S.pts<500)return toast('积分不够（需 500）');
   S.pts-=500;S.mis.redeem++;
-  S.cards.push({id:S.nextId++,r:3,star:0,kind:0,ref:Math.floor(Math.random()*12)});
+  S.cards.push({id:S.nextId++,r:3,star:0,kind:0,ref:ACTIVE_RULES[Math.floor(Math.random()*ACTIVE_RULES.length)]});
   beep(784,.2,'triangle',.08);toast('兑换成功：1 张保底史诗');save();renderAll();
 };
 
@@ -1086,12 +1090,12 @@ function startChapter(ch){
   S.team=myCards;
   const mk=(c,side)=>{
     const st=statsOf(c);
-    return{n:side==='me'?cname(c):'野生·'+HOUSE[Math.floor(Math.random()*12)].n,
+    return{n:side==='me'?cname(c):'野生·'+HOUSE[ACTIVE_RULES[Math.floor(Math.random()*ACTIVE_RULES.length)]].n,
       mhp:Math.round(side==='me'?100:66+ch.lvl*8),hp:0,atk:Math.max(3,Math.round(st.atk*(side==='me'?1:0.5+ch.lvl*0.1))),
-      sk:(c.kind===1?c.ref%8:c.ref%12),side,alive:true,buff:0,r:c.r};};
+      sk:(c.kind===1?c.ref%8:cardRule(c)),side,alive:true,buff:0,r:c.r};};
   const team=myCards.map(id=>mk(S.cards.find(c=>c.id===id),'me'));
   B={ch,team,wave:1,boss:false,log:[],over:false};
-  B.foes=()=>[0,1,2].map(()=>mk({r:Math.min(5,Math.floor(Math.random()*4)+1),ref:Math.floor(Math.random()*12),kind:0,star:0},'en'));
+  B.foes=()=>[0,1,2].map(()=>mk({r:Math.min(5,Math.floor(Math.random()*4)+1),ref:ACTIVE_RULES[Math.floor(Math.random()*ACTIVE_RULES.length)],kind:0,star:0},'en'));
   B.me=team.map(u=>({...u,hp:u.mhp}));
   $('#arena').classList.add('on');
   $('#arenaCh').textContent=ch.y+' · '+ch.t;
@@ -1592,8 +1596,8 @@ const PUB_ABI=[
  "function quote(uint8) view returns (uint256,uint256,uint256,uint32)",
  "function tapeoutRaw(uint8) payable returns (uint256)"
 ];
-/* v83：带 $5 BEM 计价下限的新 PublicTapeOut（旧 0xfbe8… 已作废） */
-const PUB_MAINNET='0x682de09159baedde84733cc54f04e000b457578c';
+/* v86：只开放 4 条规则、$5~$12 收窄价、差额自动进 treasury（旧 0x682de0… 已作废） */
+const PUB_MAINNET='0x6714b52c342e5889d35344b9bbec4a70737f2a64';
 function pubAddr(){return PUB_MAINNET}
 let pubQuote=null;
 async function autoPubQuote(){

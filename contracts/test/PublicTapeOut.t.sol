@@ -15,6 +15,7 @@ contract PublicTapeOutTest is Test {
     PublicTapeOut internal pub;
 
     address internal carol = makeAddr("carol"); // 没有 .ai 的普通钱包
+    address internal treasury = makeAddr("treasury");
 
     function setUp() public {
         reg = new MockAgentIdRegistry();
@@ -22,8 +23,9 @@ contract PublicTapeOutTest is Test {
         proc = new MockTapeProcessor(address(bem));
         core = new CoreHarness(address(reg), makeAddr("prize"), address(proc), address(bem));
         pub = new PublicTapeOut(address(core), address(proc), address(bem));
-        // 桩的 BEM 计价是 1e14/门（主网是 1.734e6/门），下限同比例抬高
-        pub.setMinBemCost(700_000_000_000_000);
+        // 桩的 BEM 计价是 1e14/门（主网是 1.734e6/门），上下限同比例抬高
+        pub.setPriceBounds(800_000_000_000_000, 8_000_000_000_000_000);
+        pub.setTreasury(treasury);
         vm.deal(carol, 10 ether);
     }
 
@@ -32,8 +34,7 @@ contract PublicTapeOutTest is Test {
         (uint256 bemCost, uint256 bnbCost, uint256 gates, uint32 nIn) = pub.quote(2);
         assertEq(gates, 4);
         assertEq(nIn, 1);
-        assertGt(bemCost, 0);
-        assertGt(bnbCost, 0);
+        assertEq(bemCost, pub.minBemCost());
 
         bem.mint(carol, bemCost);
         vm.startPrank(carol);
@@ -45,51 +46,65 @@ contract PublicTapeOutTest is Test {
         assertEq(proc.ownerOf(cid), carol, "circuit NFT goes to any wallet");
         assertEq(bem.balanceOf(carol), 0, "buyer paid BEM");
         uint256 actual = 4 * proc.mintPrice() + proc.protocolFee();
-        assertEq(bem.balanceOf(address(pub)), bemCost - actual, "price floor retained for sweep");
+        assertEq(bem.balanceOf(address(pub)), 0, "no BEM retained in contract");
         assertEq(bem.balanceOf(address(proc)), actual, "transistor got real NAND cost");
+        assertEq(bem.balanceOf(treasury), bemCost - actual, "extra auto-forwarded to treasury");
         assertEq(proc.eval(cid, hex"00"), hex"00", "eval works");
     }
 
-    function test_PriceFloorAppliesToCheapRules() public {
-        (uint256 bem2, , uint256 gates2, ) = pub.quote(2);
-        (uint256 bem9, , uint256 gates9, ) = pub.quote(9);
-        (uint256 bem6, , uint256 gates6, ) = pub.quote(6);
-        assertEq(gates2, 4);
-        assertLt(gates2 * proc.mintPrice() + proc.protocolFee(), pub.minBemCost(), "mock raw price below floor");
-        assertEq(bem2, pub.minBemCost(), "cheap rule lifted to $5 floor");
-        assertEq(bem9, 189 * proc.mintPrice() + proc.protocolFee(), "expensive rule keeps real cost");
-        assertEq(bem6, 125 * proc.mintPrice() + proc.protocolFee());
-        assertLt(bem2, bem6);
-        assertLt(bem6, bem9);
+    function test_PriceRangeIsNarrowAndOnlyFourRulesOpen() public {
+        (uint256 bem2, , , ) = pub.quote(2);
+        (uint256 bem0, , uint256 gates0, ) = pub.quote(0);
+        (uint256 bem7, , , ) = pub.quote(7);
+        (uint256 bem11, , , ) = pub.quote(11);
+        assertEq(gates0, 36);
+        assertEq(bem2, pub.minBemCost(), "cheap rule lifted to floor");
+        assertEq(bem11, pub.minBemCost(), "4-gate rule lifted to floor");
+        assertEq(bem7, 31 * proc.mintPrice() * 3 / 2 + proc.protocolFee());
+        assertEq(bem0, 36 * proc.mintPrice() * 3 / 2 + proc.protocolFee());
+        assertLt(bem2, bem7);
+        assertLt(bem7, bem0);
+        assertLe(bem0, pub.maxBemCost());
+
+        vm.expectRevert(PublicTapeOut.BadRule.selector);
+        pub.quote(9); // 189 门太贵，暂不开放
+        vm.expectRevert(PublicTapeOut.BadRule.selector);
+        pub.quote(6);
     }
 
-    function test_OwnerCanSetFloorAndSweep() public {
+    function test_OwnerCanChangeBoundsTreasuryAndSweep() public {
         (uint256 bemCost, uint256 bnbCost, , ) = pub.quote(2);
         bem.mint(carol, bemCost);
         vm.startPrank(carol);
         bem.approve(address(pub), bemCost);
         pub.tapeoutRaw{value: bnbCost}(2);
         vm.stopPrank();
-        uint256 extra = bem.balanceOf(address(pub));
+        uint256 extra = bem.balanceOf(treasury);
         assertGt(extra, 0);
 
         vm.expectRevert(PublicTapeOut.NotOwner.selector);
         vm.prank(carol);
         pub.sweepBem(carol, extra);
 
-        pub.setMinBemCost(800_000_000_000_000);
-        assertEq(pub.minBemCost(), 800_000_000_000_000);
+        pub.setPriceBounds(900_000_000_000_000, 9_000_000_000_000_000);
+        assertEq(pub.minBemCost(), 900_000_000_000_000);
         (uint256 newCost, , , ) = pub.quote(2);
-        assertEq(newCost, 800_000_000_000_000);
+        assertEq(newCost, 900_000_000_000_000);
+        pub.setTreasury(makeAddr("treasury2"));
+        assertEq(pub.treasury(), makeAddr("treasury2"));
 
-        pub.sweepBem(makeAddr("treasury"), extra);
-        assertEq(bem.balanceOf(makeAddr("treasury")), extra);
+        bem.mint(address(pub), extra);
+        pub.sweepBem(makeAddr("treasury2"), extra);
+        assertEq(bem.balanceOf(makeAddr("treasury2")), extra);
+        assertEq(bem.balanceOf(treasury), extra);
         assertEq(bem.balanceOf(address(pub)), 0);
     }
 
     function test_BadRuleReverts() public {
         vm.expectRevert(PublicTapeOut.BadRule.selector);
         pub.quote(12);
+        vm.expectRevert(PublicTapeOut.BadRule.selector);
+        pub.quote(1); // 未开放的规则也不能直接流片
     }
 
     function test_WrongBnbReverts() public {

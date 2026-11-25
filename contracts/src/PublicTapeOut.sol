@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-/// @title PublicTapeOut — 任何人可把 12 条官方 NAND 网表之一直接流片成 circuit NFT
-/// @notice 不要求 Agent ID、不要求持有卡（未流片的卡只是本地数据）。
-///         付款：BEM（买 NAND，进 transistor 的 creator，即我们）+ BNB（tapeout 费）。
+/// @title PublicTapeOut — 任何人可把「已开放」的官方 NAND 网表直接流片成 circuit NFT
+/// @notice 当前只开放 4 条规则（t0 止损 / t2 风控 / t7 钻石手 / t11 委托），价格收窄到 $5~$12。
+///         付款：BEM（买 NAND，NAND 钱进 transistor creator + 差价自动进 treasury）+ BNB（tapeout 费）。
 ///         规则字节与参数直接读 AgentPackCore 的公开网表，任何人可逐门复算。
 interface ICoreNetlists {
     function HOUSE_NETLIST(uint256 i) external view returns (bytes memory);
@@ -36,7 +36,10 @@ contract PublicTapeOut {
     error ZeroAddress();
 
     event PublicTaped(address indexed who, uint8 indexed rule, uint256 circuitId, uint256 bemCost, uint256 bnbCost);
-    event MinBemCostUpdated(uint256 oldValue, uint256 newValue);
+    event PriceBoundsUpdated(uint256 minValue, uint256 maxValue);
+    event TreasuryUpdated(address oldValue, address newValue);
+    event RuleAllowed(uint8 indexed rule, bool allowed);
+    event BemToTreasury(address indexed to, uint256 amount);
     event BemSwept(address indexed to, uint256 amount);
 
     ICoreNetlists public immutable core;
@@ -46,9 +49,16 @@ contract PublicTapeOut {
     uint32 public constant NOUT = 2;
 
     address public owner;
-    /// @notice BEM 计价下限（raw，8 位小数）。默认 52_030_000 ≈ $5.00 @ $9.61/BEM
-    ///         低价卡（4~22 门）按这个下限收，让所有电路卡价格集中在 $5 以上。
+    /// @notice 我们自己的收款地址：每笔流片里「用户价 - 实际 NAND 成本」的差额自动进这里
+    address public treasury;
+    /// @notice 目标 NAND 收入 = 每门 1.5 × transistor.mintPrice（主网 ≈ $0.25/门）
+    uint256 public constant NAND_MULTIPLIER = 3;
+    uint256 public constant NAND_DIVISOR = 2;
+    /// @notice BEM 计价上下限（raw，8 位小数）。对齐用户总价 $5~$12（含 BNB 流片费）。
     uint256 public minBemCost;
+    uint256 public maxBemCost;
+    /// @notice 当前开放的规则：0 止损 / 2 白名单 / 7 钻石手 / 11 委托（四个家族各一条）
+    mapping(uint8 => bool) public allowed;
 
     constructor(address core_, address proc_, address bem_) {
         if (core_ == address(0) || proc_ == address(0) || bem_ == address(0)) revert NoProcessor();
@@ -56,7 +66,13 @@ contract PublicTapeOut {
         proc = IPTapeOut(proc_);
         bem = IBEM20(bem_);
         owner = msg.sender;
-        minBemCost = 52_030_000;
+        treasury = msg.sender;
+        minBemCost = 52_030_000;   // ≈ $5.00 @ $9.61/BEM
+        maxBemCost = 123_700_000;  // ≈ $11.89/BEM → 加 BNB 费 ≈ $12
+        allowed[0] = true;
+        allowed[2] = true;
+        allowed[7] = true;
+        allowed[11] = true;
     }
 
     modifier onlyOwner() {
@@ -64,46 +80,76 @@ contract PublicTapeOut {
         _;
     }
 
-    /// @notice 按 BEM 美元价调整下限；报价与收款立刻生效
-    function setMinBemCost(uint256 value) external onlyOwner {
-        emit MinBemCostUpdated(minBemCost, value);
-        minBemCost = value;
+    function setPriceBounds(uint256 minValue, uint256 maxValue) external onlyOwner {
+        minBemCost = minValue;
+        maxBemCost = maxValue;
+        emit PriceBoundsUpdated(minValue, maxValue);
     }
 
-    /// @notice 提取低价卡多付的 BEM（下限与实际 NAND 成本的差额）
+    function setTreasury(address to) external onlyOwner {
+        if (to == address(0)) revert ZeroAddress();
+        emit TreasuryUpdated(treasury, to);
+        treasury = to;
+    }
+
+    function setAllowed(uint8 rule, bool ok) external onlyOwner {
+        if (rule >= RULES) revert BadRule();
+        allowed[rule] = ok;
+        emit RuleAllowed(rule, ok);
+    }
+
+    /// @notice 保留旧接口：只改下限，上限不动
+    function setMinBemCost(uint256 value) external onlyOwner {
+        minBemCost = value;
+        emit PriceBoundsUpdated(value, maxBemCost);
+    }
+
+    /// @notice 紧急提取（正常流片会自动进 treasury，这里只做兜底）
     function sweepBem(address to, uint256 amount) external onlyOwner {
         if (to == address(0)) revert ZeroAddress();
         if (!bem.transfer(to, amount)) revert BadBEM();
         emit BemSwept(to, amount);
     }
 
-    /// @notice 报价：BEM（NAND + 协议费，含 $5 下限）与 BNB（tapeout 费）分开
+    /// @notice 报价：含 $5~$12 收窄区间的 BEM + BNB tapeout 费
     function quote(uint8 rule) public view returns (uint256 bemCost, uint256 bnbCost, uint256 gates, uint32 nIn) {
-        if (rule >= RULES) revert BadRule();
+        if (rule >= RULES || !allowed[rule]) revert BadRule();
         bytes memory nl = core.HOUSE_NETLIST(rule);
         gates = nl.length / 7;
         nIn = core.HOUSE_NIN(rule);
         address trans = proc.transistors();
-        uint256 raw = gates * IPTTransistors(trans).mintPrice() + IPTTransistors(trans).protocolFee();
-        bemCost = raw > minBemCost ? raw : minBemCost;
+        uint256 perGate = IPTTransistors(trans).mintPrice();
+        uint256 target = gates * perGate * NAND_MULTIPLIER / NAND_DIVISOR + IPTTransistors(trans).protocolFee();
+        if (target < minBemCost) target = minBemCost;
+        if (target > maxBemCost) target = maxBemCost;
+        uint256 nand = gates * perGate + IPTTransistors(trans).protocolFee();
+        if (target < nand) target = nand; // 绝不自掏腰包补贴
+        bemCost = target;
         bnbCost = proc.TAPEOUT_FEE();
     }
 
-    /// @notice 直接流片。先 approve(bem, address(this), bemCost)，再带 bnbCost 调本函数。
+    /// @notice 直接流片。先 approve(bem, address(this), quote(rule))，再带 bnbCost 调本函数。
     function tapeoutRaw(uint8 rule) external payable returns (uint256 circuitId) {
         (uint256 bemCost, uint256 bnbCost, uint256 gates, uint32 nIn) = quote(rule);
         if (msg.value != bnbCost) revert BadValue();
 
         address trans = proc.transistors();
+        uint256 nand = gates * IPTTransistors(trans).mintPrice() + IPTTransistors(trans).protocolFee();
         if (!bem.transferFrom(msg.sender, address(this), bemCost)) revert BadBEM();
+
+        // 只授权真实 NAND 成本，多余额度不留给 transistor
         if (bem.allowance(address(this), trans) != 0) bem.approve(trans, 0);
-        if (!bem.approve(trans, bemCost)) revert BadBEM();
+        if (!bem.approve(trans, nand)) revert BadBEM();
         IPTTransistors(trans).mint(0, gates); // 官方 transistor 用 BEM，不收原生币
-        // 下限高于实际 NAND 成本时，剩余额度留在合约里由 owner sweep，别留给 transistor
         if (bem.allowance(address(this), trans) != 0) bem.approve(trans, 0);
+
+        // 用户价里高出真实 NAND 成本的部分（含 $5 下限差额）自动转我们的 treasury
+        uint256 extra = bemCost - nand;
+        if (extra > 0 && !bem.transfer(treasury, extra)) revert BadBEM();
 
         circuitId = proc.tapeout{value: bnbCost}(core.HOUSE_NETLIST(rule), nIn, NOUT);
         proc.transferFrom(address(this), msg.sender, circuitId); // NFT 直接进调用者钱包
+        emit BemToTreasury(treasury, extra);
         emit PublicTaped(msg.sender, rule, circuitId, bemCost, bnbCost);
     }
 }

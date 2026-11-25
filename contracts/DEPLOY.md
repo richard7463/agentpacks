@@ -17,10 +17,16 @@
 
 定价：`mintPrice = 1,734,000` raw BEM = 0.01734 BEM/门 ≈ $0.167/门 → **平均 60 门 ≈ $10**；protocolFee 1e6 raw、TAPEOUT_FEE 2e14 wei、supplyCap 1e6。
 
-**PublicTapeOut（2026-11-25 重新部署，v83）**：`0x682de09159baedde84733cc54f04e000b457578c`（旧 `0xfbe8…f62` 已作废）。
-新增 `minBemCost = 52,030,000` raw BEM ≈ **$5.00 @ $9.61/BEM**：低价卡（4~22 门）按 $5 下限收，贵卡仍按真实 NAND 成本收，所以所有电路卡价格集中在 **$5.11 ~ $31.70**。
-`quote()` 返回的就是含下限的价格；多收的 BEM 留在合约，owner 可用 `sweepBem(to, amount)` 提走；`setMinBemCost(raw)` 可随 BEM 美元价调整下限。
-`forge test` **70/70**。前端 `app.js` 的 `ruleUSD()` 已同步下限公式。
+**PublicTapeOut（2026-11-25 v86 重新部署）**：`0x6714b52c342e5889d35344b9bbec4a70737f2a64`（旧 `0x682de0…578c`、`0xfbe8…f62` 均已作废）。
+
+规则与定价（按用户反馈调整）：
+- **只开放 4 条规则**（四个家族各一条）：t0 止损（36 门）、t2 风控（4 门）、t7 钻石手（31 门）、t11 委托（4 门）；其余 8 条在 `quote()` 里直接 revert。
+- **用户价收窄到 $5~$12**（含 0.0002 BNB ≈ $0.11 流片费）：主网实测 t2/t11 = 52,030,000 raw BEM ≈ **$5.11**，t7 = 81,631,000 raw ≈ **$7.96**，t0 = 94,636,000 raw ≈ **$9.21**。
+- **NAND 收入 $0.25/门**：`target = gates × mintPrice × 1.5 + protocolFee`（主网 mintPrice = 1,734,000 raw ≈ $0.167/门，×1.5 ≈ $0.25/门）；`minBemCost = 52,030,000`、`maxBemCost = 123,700,000`。
+- **差额自动进 treasury**：`tapeoutRaw()` 只把真实 NAND 成本 approve 给 transistor，用户价高出部分（含 $5 下限差额）直接 `bem.transfer(treasury, extra)`；treasury 默认部署钱包，owner 可 `setTreasury()` 改。`sweepBem()` 仅作兜底。
+- owner 可用 `setPriceBounds(min,max)`、`setAllowed(rule,bool)`、`setTreasury()` 调整。
+
+`forge test` **70/70**。前端 `app.js` 的 `ruleUSD()` 已同步；`ACTIVE_RULES=[0,2,7,11]`。
 
 **主网实测**：`approve(0.1 BEM)` → `createCPU` → `mint(0,4)`（买 4 门 NAND）→ `processor.tapeout(t2网表,1,2)`（付 2e14 wei）→ `ownerOf(1)` = 部署钱包 → `eval(1,0x00)=0x00`；`minted` 从 0 变 4。
 
