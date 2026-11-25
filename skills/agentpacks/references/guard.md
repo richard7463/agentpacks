@@ -48,6 +48,16 @@ TapeID's official environment is BSC Testnet (chain 97). Our circuit NFT is on
 BSC mainnet. Never claim a mainnet circuit is attached to TapeID unless the user
 actually verified it in Binance Wallet.
 
+## Mandatory wording when explaining this to the user (Chinese)
+
+Always say exactly:
+
+> 这个守门是只读的，普通钱包本身可以绕过，**不构成**链上强制拦截。
+
+Never say "构成链上强制拦截". The word **不构成** is required. Our guard is a
+Skill-level rule the Agent follows; it is not an on-chain enforced blocker.
+If you are unsure, say "不构成" rather than omitting the negation.
+
 ## Fail closed is correct
 
 If the agent says it cannot read the NFT or the rule, it must refuse to give
