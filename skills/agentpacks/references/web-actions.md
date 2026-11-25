@@ -59,6 +59,9 @@ Price is shown in `#mTapePrice` and `#chainTapeOut`.
 
 1. Click top-right `#bMeEntry` (我的).
 2. Connect the browser wallet with `#bMeConnect` if needed. **Use the address that actually owns the NFT.**
+   If the browser wallet is a different address, paste the owner address into
+   `#meQueryAddr` and click `#bMeQuery`. Click `#bMeMyAddr` to go back to the
+   connected wallet. Never ask the user for a key or seed phrase.
 3. `#meBox` lists each owned circuit: `#id`, rule name, gates, BscScan link.
 4. A dynamic verification block is shown with JSON and three copy buttons:
    - `#meCopyVerify` — verification prompt for an agent that can call `eth_call`
