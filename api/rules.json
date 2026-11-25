@@ -3,29 +3,86 @@
   "generatedAt": "2026-11-25",
   "site": "https://agentid.cards",
   "skill": "https://agentid.cards/skills/agentpacks/SKILL.md",
-  "network": { "name": "BNB Smart Chain mainnet", "chainId": 56, "rpc": "https://bsc-dataseed.bnbchain.org" },
+  "network": {
+    "name": "BNB Smart Chain mainnet",
+    "chainId": 56,
+    "rpc": "https://bsc-dataseed.bnbchain.org"
+  },
   "contracts": {
     "circuitNft": "0xAdfDB520db78C252382E4bCdf62692fAD453035a",
     "core": "0xEE7928436a480af5F93c3558a8Ef27588C511d7b",
     "publicTapeOut": "0x9c7fdbef499458e4546eecef009cf01a510235ce",
     "bem": "0x5ce033B2bFCa3Af30b3e8C8457DeaF776A8b695a"
   },
-  "rarity": ["普通", "精良", "稀有", "史诗", "传说", "神话", "至尊"],
+  "rarity": [
+    "普通",
+    "精良",
+    "稀有",
+    "史诗",
+    "传说",
+    "神话",
+    "至尊"
+  ],
   "rules": [
-    { "id": 2, "name": "白名单（卡面名：风控电路）", "family": "安全 / Security", "gates": 4, "priceUsd": 5.11, "description": "收款方必须持有官方 Agent ID；本地演示里 4 门规则用于最低档守门。" },
-    { "id": 11, "name": "委托", "family": "协作 / Trust", "gates": 4, "priceUsd": 5.11, "description": "限时只付指定收款方。" },
-    { "id": 7, "name": "钻石手", "family": "风控 / Lockdown", "gates": 31, "priceUsd": 7.96, "description": "两笔支付之间必须有冷却间隔。" },
-    { "id": 0, "name": "止损", "family": "交易 / Trade", "gates": 36, "priceUsd": 9.21, "description": "每天最多支出 $20 × 档位倍率；超出需人工放行。" }
+    {
+      "id": 2,
+      "name": "白名单（卡面名：风控电路）",
+      "family": "安全 / Security",
+      "gates": 4,
+      "priceUsd": 5.11,
+      "description": "收款方必须持有官方 Agent ID；本地演示里 4 门规则用于最低档守门。",
+      "baseValue": null,
+      "baseUnit": null,
+      "ruleText": "只允许付给持有 Binance Agent ID 的地址，其余一律拒绝。"
+    },
+    {
+      "id": 11,
+      "name": "委托",
+      "family": "协作 / Trust",
+      "gates": 4,
+      "priceUsd": 5.11,
+      "description": "限时只付指定收款方。",
+      "baseValue": 43200,
+      "baseUnit": "seconds",
+      "ruleText": "只在时间窗口内、只付给指定收款方。"
+    },
+    {
+      "id": 7,
+      "name": "钻石手",
+      "family": "风控 / Lockdown",
+      "gates": 31,
+      "priceUsd": 7.96,
+      "description": "两笔支付之间必须有冷却间隔。",
+      "baseValue": 3600,
+      "baseUnit": "seconds",
+      "ruleText": "两笔支付之间至少间隔 N 分钟。"
+    },
+    {
+      "id": 0,
+      "name": "止损",
+      "family": "交易 / Trade",
+      "gates": 36,
+      "priceUsd": 9.21,
+      "description": "每天最多支出 $20 × 档位倍率；超出需人工放行。",
+      "baseValue": 5200,
+      "baseUnit": "cents",
+      "ruleText": "每天最多支出 $N；超出需人工放行。"
+    }
   ],
   "priceFormula": "bemRaw = clamp(gates * 1734000 * 1.5 + 1000000, 52030000, 123700000); priceUsd = bemRaw / 1e8 * 9.61 + 0.0002 * 560.67",
   "guardPolicy": "allow -> proceed; ask -> require human approval for exact amount+payee; deny -> refuse; errors -> fail closed",
   "ruleConfig": {
     "contract": "0xc02722543e54f2e5fe049e6f3696c75e28b72910",
     "getter": "getOverride(address who,uint256 rule) view returns (uint256 value,uint64 at)",
-    "units": { "t0": "cents", "t2": "cents", "t7": "seconds", "t11": "seconds" },
+    "units": {
+      "t0": "cents",
+      "t2": "cents",
+      "t7": "seconds",
+      "t11": "seconds"
+    },
     "effectiveValue": "on-chain override if value > 0, otherwise card-tier default",
     "note": "Circuit bytes never change; only user-owned numbers do (TapeID model)."
   },
-  "note": "Only these 4 rules are open. Other 8 rule ids revert in PublicTapeOut.quote().",
+  "note": "Only these 4 rules are open. Other 8 rule ids revert in PublicTapeOut.quote(). Static circuit JSON files are optional examples; derive rule from on-chain netlist for any token ID.",
   "ruleIdVsTokenId": "Rule ids here are t0/t2/t7/t11. Circuit NFT token ids are separate and must be discovered from the user's wallet. The published example circuit #2 carries rule t0 (36 gates, $9.21), NOT rule t2. Never hardcode a token id."
 }

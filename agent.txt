@@ -74,8 +74,10 @@ AGENT SKILL (recommended — gives any plain AI agent the full playbook)
   references: web-actions.md, wallet-and-rules.md, guard.md
   machine-readable rule list: https://agentid.cards/api/rules.json
 
-MACHINE-READABLE SNAPSHOT (replace <discoveredTokenId> with a token ID found
-from the user's wallet; #2 is only a published example)
+MACHINE-READABLE DATA (rule list + base values; works for ANY token ID)
+  https://agentid.cards/api/rules.json
+OPTIONAL SNAPSHOT FILES (only examples exist; a 404 for a new token is NORMAL —
+derive the rule from the on-chain netlist instead, see SKILL.md):
   https://agentid.cards/api/circuit/<discoveredTokenId>.json
   https://agentid.cards/api/circuit/index.json
 

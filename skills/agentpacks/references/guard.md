@@ -12,11 +12,17 @@
    若返回 value>0，优先用它作为数字参数（单位：t0/t2=美分，t7/t11=秒）；value=0 才用快照默认值。
 
 规则来源（按优先级）：
-1. 我钱包里那个 token 的 https://agentid.cards/api/circuit/<discoveredTokenId>.json
-   的 token.ruleText 与 guard 段；若没有静态文件，用网站「我的」页复制的动态 JSON
-2. https://agentid.cards/agent.txt 的 DECISION POLICY
-3. 链上 processor.eval(discoveredTokenId, inputs) 或 Core.checkPayment(...)，
-   只有在能正确编码输入时才用；否则 fail closed
+1. 链上认规则（任何 token ID 都可用，不依赖我们写的说明书）：
+   processor.netlist(tokenId) 的 bytes 与 Core.HOUSE_NETLIST(0..11) 逐个比对，
+   相等的那个 i 就是规则 ID；gates = 字节数/7；ownerOf(tokenId) 查当前 owner。
+   细节见 SKILL.md → "On-chain rule identification"。
+2. https://agentid.cards/api/rules.json 里该规则的 ruleText / baseValue
+   （baseValue 用于没有用户覆盖值时；t0=5200 美分，t7=3600 秒，t11=43200 秒）
+3. 可选便利：https://agentid.cards/api/circuit/<discoveredTokenId>.json 或
+   网站「我的」页复制的动态 JSON。**404 是正常的**（新流片的卡没有说明书），
+   绝不能因为静态文件 404 就 fail closed —— 按第 1 条从链上读。
+4. 用户数字覆盖：RuleConfig.getOverride(owner, ruleId)>0 时优先用它。
+5. 只有在 RPC 完全读不到、或网表跟任何官方规则都不匹配时才 fail closed。
 
 判定只认三种结果：
 - allow：允许继续。

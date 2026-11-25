@@ -1,0 +1,34 @@
+{
+  "schema": "kaling-circuit-v1",
+  "generatedAt": "2026-11-25",
+  "network": { "name": "BNB Smart Chain mainnet", "chainId": 56, "rpc": "https://bsc-dataseed1.bnbchain.org" },
+  "contract": {
+    "address": "0xAdfDB520db78C252382E4bCdf62692fAD453035a",
+    "name": "Kaling Circuit",
+    "symbol": "KALC",
+    "standard": "ERC-721"
+  },
+  "token": {
+    "id": 1,
+    "ownerSnapshot": "0x1b616B1F305C64570D4B096Aa7De46fAa09472f4",
+    "name": "白名单电路",
+    "ruleType": "t2",
+    "family": "安全 / Security",
+    "gates": 4,
+    "ruleText": "只允许付给持有 Binance Agent ID 的地址，其余一律拒绝。",
+    "tokenURI": ""
+  },
+  "verification": {
+    "note": "Static example. Always re-read ownerOf / netlist on-chain — see SKILL.md 'On-chain rule identification'.",
+    "ethCall": {
+      "ownerOf1": "0x6352211e0000000000000000000000000000000000000000000000000000000000000001",
+      "netlist1": "0x3fc4be5600000000000000000000000000000000000000000000000000000000000000001"
+    }
+  },
+  "guard": {
+    "policy": "allow -> proceed; ask -> require human approval for exact amount+payee; deny -> refuse; any error or unreadable state -> fail closed",
+    "evaluateBeforeEverySpend": true,
+    "readOnly": true,
+    "agentMustNotTransfer": true
+  }
+}

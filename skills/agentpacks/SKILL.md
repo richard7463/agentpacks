@@ -39,7 +39,37 @@ Any agent with web fetch can read:
 
 **`<tokenId>` must be DISCOVERED from the user's wallet — never hardcode `2` or any other number.** See "Wallet-centric discovery" below. `#2` only appears in examples as a sample.
 
-If the agent cannot call `eth_call`, fetch these URLs. The JSON is a **snapshot**: tell the user to re-read `ownerOf` on-chain before trusting ownership.
+**Static files are a convenience, NOT the source of truth.** They only exist for
+a couple of示例 tokens. A freshly tape-out token will have no static file.
+The authoritative way to read ANY circuit NFT is on-chain — see the next section.
+
+If the agent has no RPC but can fetch URLs, use the static files; if a static
+file 404s, derive the rule on-chain instead. Never fail closed merely because a
+static JSON is missing.
+
+## On-chain rule identification (works for ANY token ID, including brand-new ones)
+
+Every circuit NFT stores its NAND netlist on-chain. Identify the rule by comparing
+it with the official netlists — no static JSON required.
+
+RPC: `https://bsc-dataseed1.bnbchain.org`, chain 56.
+Processor / circuit NFT: `0xAdfDB520db78C252382E4bCdf62692fAD453035a`.
+Core: `0xEE7928436a480af5F93c3558a8Ef27588C511d7b`.
+
+1. `ownerOf(tokenId)` — selector `0x6352211e` + 32-byte tokenId → current owner.
+2. `netlist(tokenId)` — selector `0x3fc4be56` + 32-byte tokenId → raw netlist bytes.
+   `gates = (byteLength of returned bytes) / 7`.
+3. For `i = 0..11`, call `HOUSE_NETLIST(i)` on Core — selector `0x44eda2fa` +
+   32-byte i. The `i` whose bytes **exactly equal** the netlist is the rule id.
+   Only `0 / 2 / 7 / 11` are open for public tapeout; anything else is a legacy card.
+4. Effective numeric parameter = `RuleConfig.getOverride(owner, ruleId)` if
+   `value > 0`; otherwise the rule's base default in `api/rules.json`
+   (`t0 = 5200 cents ($52)`, `t7 = 3600 s (60 min)`, `t11 = 43200 s (12 h)`, `t2` = none).
+5. Apply `guard.md` with that rule text + effective number.
+
+A 404 on `api/circuit/<tokenId>.json` is normal for a new token. Do **not** treat
+it as unreadable state; derive from chain as above. Only fail closed if the RPC
+itself is unreachable or the netlist matches none of the official ones.
 
 ## Wallet-centric discovery (start here for guard tasks)
 

@@ -1,8 +1,17 @@
 {
   "schema": "kaling-circuit-index-v1",
   "note": "Published static snapshots only. Your wallet may own token IDs not listed here — discover them from the wallet first (see SKILL.md 'Wallet-centric discovery') and read api/circuit/<tokenId>.json when available, otherwise use the dynamic JSON copied from the site's 「我的」 page.",
-  "publishedTokenIds": [2],
+  "publishedTokenIds": [1, 2],
   "snapshots": [
+    {
+      "tokenId": 1,
+      "url": "https://agentid.cards/api/circuit/1.json",
+      "ruleType": "t2",
+      "ruleName": "白名单电路",
+      "gates": 4,
+      "ownerSnapshot": "0x1b616B1F305C64570D4B096Aa7De46fAa09472f4",
+      "exampleOnly": true
+    },
     {
       "tokenId": 2,
       "url": "https://agentid.cards/api/circuit/2.json",
