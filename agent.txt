@@ -51,6 +51,14 @@ CURRENTLY OPEN RULES (by rule id)
   Actual parameter scales with card rarity and star:
   cap = $52 (fixed for all rarities; user-editable via RuleConfig).
 
+CIRCUIT RARITY + FULL METADATA (on-chain since v114)
+  PublicTapeOut 0xf86a0d9164554957bc59c91cfa46b818ebda1cee
+  getMeta(tokenId) -> rarity, star, sourceCardId, cardName, rule, family,
+  gates, nIn, nOut, netlistHash, bemCost, bnbCost, nandCost, treasuryExtra,
+  paramValue, paramValue2, paramUnit, approvals, printType, printEdition,
+  series, campaignId, referrer, payeeRoot, flags, timestamp.
+  Older circuits (#1, #2) have no on-chain meta; use api/circuit/<tokenId>.json for those only.
+
 USER-CONFIGURABLE NUMBERS (TapeID model — circuit unchanged, numbers mutable)
   RuleConfig contract (BSC mainnet): 0xc02722543e54f2e5fe049e6f3696c75e28b72910
   getOverride(address who,uint256 rule) -> (uint256 value,uint64 at); value=0 means no override.

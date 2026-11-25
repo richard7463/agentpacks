@@ -18,7 +18,9 @@
 
 定价：`mintPrice = 1,734,000` raw BEM = 0.01734 BEM/门 ≈ $0.167/门 → **平均 60 门 ≈ $10**；protocolFee 1e6 raw、TAPEOUT_FEE 2e14 wei、supplyCap 1e6。
 
-**PublicTapeOut（2026-11-25 v89 重新部署）**：`0x9c7fdbef499458e4546eecef009cf01a510235ce`（旧 `0x6714bd…2a64`、`0x682de0…578c`、`0xfbe8…f62` 均已作废）。
+**PublicTapeOut（2026-11-25 v114 重新部署）**：`0xf86a0d9164554957bc59c91cfa46b818ebda1cee`（旧 `0x9c7fdb…35ce`、`0x6714bd…2a64`、`0x682de0…578c` 均已作废）。
+
+v114：`tapeoutWithMeta(rule, MetaInput)` 在流片时把完整元数据写进链上，`getMeta(tokenId)` 可读：originalOwner / processor / version / rule / family / rarity / star / sourceCardId / cardName / gates / nIn / nOut / netlistHash / bemCost / bnbCost / nandCost / treasuryExtra / paramValue / paramValue2 / paramUnit / approvals / printType / printEdition / series / campaignId / referrer / payeeRoot / flags / timestamp。`forge test` **76/76**。
 
 v89 修复：官方 transistor 把 NAND（ERC-1155）铸给调用者，本合约原先没实现 `onERC1155Received`，导致 `ERC1155InvalidReceiver` revert。现已加 ERC-1155 接收器，并在 BSC 主网 fork 上端到端跑通（cast: circuit #2 铸出）。
 

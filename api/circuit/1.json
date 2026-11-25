@@ -1,7 +1,11 @@
 {
   "schema": "kaling-circuit-v1",
   "generatedAt": "2026-11-25",
-  "network": { "name": "BNB Smart Chain mainnet", "chainId": 56, "rpc": "https://bsc-dataseed1.bnbchain.org" },
+  "network": {
+    "name": "BNB Smart Chain mainnet",
+    "chainId": 56,
+    "rpc": "https://bsc-dataseed1.bnbchain.org"
+  },
   "contract": {
     "address": "0xAdfDB520db78C252382E4bCdf62692fAD453035a",
     "name": "Kaling Circuit",
@@ -16,7 +20,10 @@
     "family": "安全 / Security",
     "gates": 4,
     "ruleText": "只允许付给持有 Binance Agent ID 的地址，其余一律拒绝。",
-    "tokenURI": ""
+    "tokenURI": "",
+    "rarity": "普通",
+    "rarityIndex": 0,
+    "rarityNote": "Example circuit; rarity inherited from source card at tapeout, not stored on-chain."
   },
   "verification": {
     "note": "Static example. Always re-read ownerOf / netlist on-chain — see SKILL.md 'On-chain rule identification'.",

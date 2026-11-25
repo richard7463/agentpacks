@@ -34,7 +34,76 @@ contract PublicTapeOut {
     error NoProcessor();
     error NotOwner();
     error ZeroAddress();
+    error BadMeta();
 
+    /// @notice 用户/前端提供的元数据（一次写全，避免以后改合约）
+    struct MetaInput {
+        string cardName;        // 来源卡名，如「止损电路」
+        uint8 rarity;           // 0..6
+        uint8 star;             // 0..5
+        uint32 sourceCardId;    // 0 = 实验室直接流片
+        uint256 paramValue;     // 用户设定的数字（额度/冷却/窗口）
+        uint256 paramValue2;    // 第二参数（会签人数/试付金额等）
+        uint8 paramUnit;        // 0 无 / 1 美分 / 2 秒 / 3 笔
+        uint8 approvals;        // 需要的批准人数
+        uint8 printType;        // 0 无 / 1 Gold / 2 Black / 3 Genesis
+        uint32 printEdition;    // 印次编号
+        uint16 series;          // 战季/系列
+        uint16 campaignId;      // 活动 id
+        address referrer;       // 邀请人 / KOL
+        bytes32 payeeRoot;      // 收款方白名单根
+        uint32 flags;           // 位标记（failClosed 等）
+    }
+
+    /// @notice 链上永久保存的完整元数据
+    struct CircuitMeta {
+        address originalOwner;  // 流片者（NFT 可转手，这个不变）
+        address processor;      // 流片用的 processor
+        uint8 version;          // 元数据版本
+        uint8 rule;             // 规则 id
+        uint8 family;           // 0 交易 1 风控 2 安全 3 协作
+        uint8 rarity;           // 来源卡稀有度
+        uint8 star;             // 来源卡星级
+        uint32 sourceCardId;
+        string cardName;
+        uint32 gates;
+        uint32 nIn;
+        uint32 nOut;
+        bytes32 netlistHash;
+        uint256 bemCost;        // 用户付的 BEM raw
+        uint256 bnbCost;        // 用户付的 BNB wei
+        uint256 nandCost;       // 实际 NAND 成本
+        uint256 treasuryExtra;  // 下限多收进 treasury 的部分
+        uint256 paramValue;
+        uint256 paramValue2;
+        uint8 paramUnit;
+        uint8 approvals;
+        uint8 printType;
+        uint32 printEdition;
+        uint16 series;
+        uint16 campaignId;
+        address referrer;
+        bytes32 payeeRoot;
+        uint32 flags;
+        uint64 timestamp;
+    }
+
+    struct TapeResult {
+        uint256 cid;
+        uint256 bemCost;
+        uint256 bnbCost;
+        uint256 nandCost;
+        uint256 extra;
+        uint256 gates;
+        uint32 nIn;
+    }
+
+    mapping(uint256 => CircuitMeta) public meta;
+
+    function getMeta(uint256 circuitId) external view returns (CircuitMeta memory) { return meta[circuitId]; }
+
+    event CircuitMetaSet(uint256 indexed circuitId, address indexed who, uint8 rarity, uint8 star,
+        uint8 rule, uint8 printType, address referrer);
     event PublicTaped(address indexed who, uint8 indexed rule, uint256 circuitId, uint256 bemCost, uint256 bnbCost);
     event PriceBoundsUpdated(uint256 minValue, uint256 maxValue);
     event TreasuryUpdated(address oldValue, address newValue);
@@ -142,28 +211,88 @@ contract PublicTapeOut {
         return id == 0x01ffc9a7 || id == 0x4e2312e0; // ERC-165 / ERC-1155Receiver
     }
 
-    /// @notice 直接流片。先 approve(bem, address(this), quote(rule))，再带 bnbCost 调本函数。
-    function tapeoutRaw(uint8 rule) external payable returns (uint256 circuitId) {
-        (uint256 bemCost, uint256 bnbCost, uint256 gates, uint32 nIn) = quote(rule);
-        if (msg.value != bnbCost) revert BadValue();
+    function _family(uint8 rule) internal pure returns (uint8) {
+        if (rule == 0) return 0;       // 交易
+        if (rule == 7) return 1;       // 风控
+        if (rule == 2) return 2;       // 安全
+        if (rule == 11) return 3;      // 协作
+        return 0;
+    }
+
+    function _tape(uint8 rule) internal returns (TapeResult memory r) {
+        (r.bemCost, r.bnbCost, r.gates, r.nIn) = quote(rule);
+        if (msg.value != r.bnbCost) revert BadValue();
 
         address trans = proc.transistors();
-        uint256 nand = gates * IPTTransistors(trans).mintPrice() + IPTTransistors(trans).protocolFee();
-        if (!bem.transferFrom(msg.sender, address(this), bemCost)) revert BadBEM();
+        r.nandCost = r.gates * IPTTransistors(trans).mintPrice() + IPTTransistors(trans).protocolFee();
+        if (!bem.transferFrom(msg.sender, address(this), r.bemCost)) revert BadBEM();
 
-        // 只授权真实 NAND 成本，多余额度不留给 transistor
         if (bem.allowance(address(this), trans) != 0) bem.approve(trans, 0);
-        if (!bem.approve(trans, nand)) revert BadBEM();
-        IPTTransistors(trans).mint(0, gates); // 官方 transistor 用 BEM，不收原生币
+        if (!bem.approve(trans, r.nandCost)) revert BadBEM();
+        IPTTransistors(trans).mint(0, r.gates);
         if (bem.allowance(address(this), trans) != 0) bem.approve(trans, 0);
 
-        // 用户价里高出真实 NAND 成本的部分（含 $5 下限差额）自动转我们的 treasury
-        uint256 extra = bemCost - nand;
-        if (extra > 0 && !bem.transfer(treasury, extra)) revert BadBEM();
+        r.extra = r.bemCost - r.nandCost;
+        if (r.extra > 0 && !bem.transfer(treasury, r.extra)) revert BadBEM();
 
-        circuitId = proc.tapeout{value: bnbCost}(core.HOUSE_NETLIST(rule), nIn, NOUT);
-        proc.transferFrom(address(this), msg.sender, circuitId); // NFT 直接进调用者钱包
-        emit BemToTreasury(treasury, extra);
-        emit PublicTaped(msg.sender, rule, circuitId, bemCost, bnbCost);
+        r.cid = proc.tapeout{value: r.bnbCost}(core.HOUSE_NETLIST(rule), r.nIn, NOUT);
+        proc.transferFrom(address(this), msg.sender, r.cid);
+        emit BemToTreasury(treasury, r.extra);
+        emit PublicTaped(msg.sender, rule, r.cid, r.bemCost, r.bnbCost);
+    }
+
+    function _writeMeta(uint256 cid, uint8 rule, TapeResult memory r, MetaInput memory m) internal {
+        meta[cid] = CircuitMeta({
+            originalOwner: msg.sender,
+            processor: address(proc),
+            version: 1,
+            rule: rule,
+            family: _family(rule),
+            rarity: m.rarity,
+            star: m.star,
+            sourceCardId: m.sourceCardId,
+            cardName: m.cardName,
+            gates: uint32(r.gates),
+            nIn: r.nIn,
+            nOut: NOUT,
+            netlistHash: keccak256(core.HOUSE_NETLIST(rule)),
+            bemCost: r.bemCost,
+            bnbCost: r.bnbCost,
+            nandCost: r.nandCost,
+            treasuryExtra: r.extra,
+            paramValue: m.paramValue,
+            paramValue2: m.paramValue2,
+            paramUnit: m.paramUnit,
+            approvals: m.approvals,
+            printType: m.printType,
+            printEdition: m.printEdition,
+            series: m.series,
+            campaignId: m.campaignId,
+            referrer: m.referrer,
+            payeeRoot: m.payeeRoot,
+            flags: m.flags,
+            timestamp: uint64(block.timestamp)
+        });
+        emit CircuitMetaSet(cid, msg.sender, m.rarity, m.star, rule, m.printType, m.referrer);
+    }
+
+    /// @notice 兼容旧接口：不传元数据的流片
+    function tapeoutRaw(uint8 rule) external payable returns (uint256 circuitId) {
+        TapeResult memory r = _tape(rule);
+        _writeMeta(r.cid, rule, r, MetaInput({
+            cardName: "", rarity: 0, star: 0, sourceCardId: 0,
+            paramValue: 0, paramValue2: 0, paramUnit: 0, approvals: 0,
+            printType: 0, printEdition: 0, series: 0, campaignId: 0,
+            referrer: address(0), payeeRoot: bytes32(0), flags: 0
+        }));
+        return r.cid;
+    }
+
+    /// @notice 完整流片：来源卡稀有度/星级/参数/印次/邀请人等全部写进链上
+    function tapeoutWithMeta(uint8 rule, MetaInput calldata m) external payable returns (uint256 circuitId) {
+        if (m.rarity > 6 || m.star > 5 || m.printType > 3 || m.paramUnit > 3) revert BadMeta();
+        TapeResult memory r = _tape(rule);
+        _writeMeta(r.cid, rule, r, m);
+        return r.cid;
     }
 }

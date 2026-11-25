@@ -74,7 +74,7 @@ async function doPublicTape(rule,say){
       const a=await bem.approve(pubAddr(),bemCost);await a.wait();
     }
     say&&say('流片签名中…');
-    const tx=await new ethers.Contract(pubAddr(),PUB_ABI,sg).tapeoutRaw(rule,{value:bnbCost});
+    const tx=await new ethers.Contract(pubAddr(),PUB_ABI,sg).tapeoutWithMeta(rule,metaInput(null,rule),{value:bnbCost});
     const rc=await tx.wait();
     let cid='?';try{const ev=rc.events&&rc.events[0];cid=ev&&ev.args&&ev.args[2]}catch(e){}
     recordTape(cid,rule,tx.hash);
@@ -1011,7 +1011,7 @@ function detail(id){
         const a=await bem.approve(pubAddr(),quote.bemCost);await a.wait();
       }
       window.__tapeCard=c;
-      const tx=await new ethers.Contract(pubAddr(),PUB_ABI,sg).tapeoutRaw(quote.rule,{value:quote.bnbCost});
+      const tx=await new ethers.Contract(pubAddr(),PUB_ABI,sg).tapeoutWithMeta(quote.rule,metaInput(c,quote.rule),{value:quote.bnbCost});
       cto.textContent='流片交易 '+tx.hash.slice(0,12)+'… 等待确认';
       toast('流片交易已发出，等待链上确认…',3200);
       const rc=await tx.wait();
@@ -1691,10 +1691,25 @@ $('#bTogChain').onclick=()=>{
 /* ══════════ 公开流片：任何钱包直接把官方网表流片成 NFT ══════════ */
 const PUB_ABI=[
  "function quote(uint8) view returns (uint256,uint256,uint256,uint32)",
- "function tapeoutRaw(uint8) payable returns (uint256)"
+ "function tapeoutRaw(uint8) payable returns (uint256)",
+ "function tapeoutWithMeta(uint8, tuple(string cardName,uint8 rarity,uint8 star,uint32 sourceCardId,uint256 paramValue,uint256 paramValue2,uint8 paramUnit,uint8 approvals,uint8 printType,uint32 printEdition,uint16 series,uint16 campaignId,address referrer,bytes32 payeeRoot,uint32 flags) m) payable returns (uint256)",
+ "function getMeta(uint256) view returns (tuple(address originalOwner,address processor,uint8 version,uint8 rule,uint8 family,uint8 rarity,uint8 star,uint32 sourceCardId,string cardName,uint32 gates,uint32 nIn,uint32 nOut,bytes32 netlistHash,uint256 bemCost,uint256 bnbCost,uint256 nandCost,uint256 treasuryExtra,uint256 paramValue,uint256 paramValue2,uint8 paramUnit,uint8 approvals,uint8 printType,uint32 printEdition,uint16 series,uint16 campaignId,address referrer,bytes32 payeeRoot,uint32 flags,uint64 timestamp))"
 ];
-/* v89：支持 ERC-1155 NAND 接收（修 ERC1155InvalidReceiver），旧 0x6714bd… 已作废 */
-const PUB_MAINNET='0x9c7fdbef499458e4546eecef009cf01a510235ce';
+const ZERO_ADDR='0x0000000000000000000000000000000000000000';
+const ZERO_B32='0x0000000000000000000000000000000000000000000000000000000000000000';
+/* 流片时一次性写全元数据，稀有度/星级/来源卡/参数/印次/邀请人全部上链 */
+function metaInput(c,rule){
+  const card=c||window.__tapeCard||null;
+  const r=Number((card||{}).r)||0,star=Number((card||{}).star)||0;
+  const p1=card?ruleParams(card).p1:0;
+  const unit=(rule===7||rule===11)?2:1;
+  return {cardName:card?cname(card):'',rarity:r,star,sourceCardId:Number((card||{}).id)||0,
+    paramValue:p1,paramValue2:0,paramUnit:p1?unit:0,approvals:0,printType:0,printEdition:0,
+    series:0,campaignId:0,referrer:/^0x[0-9a-fA-F]{40}$/.test(refAddr||'')?refAddr:ZERO_ADDR,
+    payeeRoot:ZERO_B32,flags:1};
+}
+/* v114：元数据完整上链（旧 0x9c7fdb… 已作废） */
+const PUB_MAINNET='0xf86a0d9164554957bc59c91cfa46b818ebda1cee';
 function pubAddr(){return PUB_MAINNET}
 let pubQuote=null;
 async function autoPubQuote(){
@@ -1729,7 +1744,7 @@ $('#bPubTape')&&($('#bPubTape').onclick=async()=>{
     }
     const rule=Number($('#pubRule').value);
     window.__tapeCard=null; // 实验室流片不来自某张卡
-    const tx=await new ethers.Contract(pubAddr(),PUB_ABI,sg).tapeoutRaw(rule,{value:pubQuote.bnbCost});
+    const tx=await new ethers.Contract(pubAddr(),PUB_ABI,sg).tapeoutWithMeta(rule,metaInput(null,rule),{value:pubQuote.bnbCost});
     po.textContent='流片交易 '+tx.hash.slice(0,12)+'… 等待确认';
     toast('流片交易已发出，等待链上确认…',3200);
     const rc=await tx.wait();

@@ -95,6 +95,26 @@ rule attached to that NFT*. Follow this order, and stop as soon as a step works.
 
 If discovery fails or the rule cannot be read → **fail closed (deny)**. Do not fall back to a hardcoded token or rule.
 
+## Rarity of a circuit NFT (on-chain since v114)
+
+For circuits taped out through the current PublicTapeOut
+`0xf86a0d9164554957bc59c91cfa46b818ebda1cee`, ALL metadata is on-chain. Call
+`getMeta(tokenId)` on that contract (auto getter also available as `meta(tokenId)`):
+
+- `originalOwner`, `processor`, `version`, `rule`, `family`
+- `rarity` (0..6), `star` (0..5), `sourceCardId`, `cardName`
+- `gates`, `nIn`, `nOut`, `netlistHash`
+- `bemCost`, `bnbCost`, `nandCost`, `treasuryExtra`
+- `paramValue`, `paramValue2`, `paramUnit`, `approvals`
+- `printType`, `printEdition`, `series`, `campaignId`
+- `referrer`, `payeeRoot`, `flags`, `timestamp`
+
+Rarity is read from `getMeta(tokenId).rarity`, not from any website file.
+Circuits minted by OLDER PublicTapeOut versions (#1, #2) have no on-chain meta —
+for those only, fall back to `api/circuit/<tokenId>.json` or the profile JSON,
+and say clearly the rarity came from a website snapshot, not from chain.
+Rarity does not affect the rule or its numbers.
+
 ## User-configurable numbers (TapeID model)
 
 The circuit bytes are immutable, but the **numbers** are user-owned and mutable:

@@ -22,7 +22,12 @@
     "gates": 36,
     "ruleText": "每天最多支出 $52；超出需人工放行。",
     "parameterFormula": "capUsd = 52 (fixed for all rarities; user-editable via RuleConfig)",
-    "tokenURI": ""
+    "tokenURI": "",
+    "rarity": "传说",
+    "rarityIndex": 4,
+    "star": 0,
+    "sourceCard": 5,
+    "rarityNote": "Inherited from the source card at tapeout. Not stored on-chain; read this JSON or the profile JSON."
   },
   "verification": {
     "note": "Static snapshot. Re-read ownerOnChain with eth_call before trusting.",

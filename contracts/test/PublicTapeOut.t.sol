@@ -109,6 +109,50 @@ contract PublicTapeOutTest is Test {
         assertTrue(pub.supportsInterface(0x4e2312e0));
     }
 
+    function test_TapeoutWithMetaWritesFullMetadata() public {
+        (uint256 cost, uint256 fee, , ) = pub.quote(2);
+        bem.mint(carol, cost);
+        vm.startPrank(carol);
+        bem.approve(address(pub), cost);
+        PublicTapeOut.MetaInput memory m = PublicTapeOut.MetaInput({
+            cardName: unicode"测试卡", rarity: 4, star: 2, sourceCardId: 5,
+            paramValue: 10000, paramValue2: 2, paramUnit: 1, approvals: 2,
+            printType: 3, printEdition: 7, series: 1, campaignId: 9,
+            referrer: makeAddr("kol"), payeeRoot: bytes32(0), flags: 1
+        });
+        uint256 cid = pub.tapeoutWithMeta{value: fee}(2, m);
+        vm.stopPrank();
+
+        PublicTapeOut.CircuitMeta memory cm = pub.getMeta(cid);
+        assertEq(cm.rarity, 4);
+        assertEq(cm.star, 2);
+        assertEq(cm.sourceCardId, 5);
+        assertEq(cm.rule, 2);
+        assertEq(cm.gates, 4);
+        assertEq(cm.paramValue, 10000);
+        assertEq(cm.printType, 3);
+        assertEq(cm.referrer, makeAddr("kol"));
+        assertEq(cm.originalOwner, carol);
+        assertGt(cm.timestamp, 0);
+        assertEq(cm.netlistHash, keccak256(core.HOUSE_NETLIST(2)));
+    }
+
+    function test_BadMetaReverts() public {
+        (uint256 cost, uint256 fee, , ) = pub.quote(2);
+        bem.mint(carol, cost);
+        vm.startPrank(carol);
+        bem.approve(address(pub), cost);
+        PublicTapeOut.MetaInput memory m = PublicTapeOut.MetaInput({
+            cardName: "", rarity: 9, star: 0, sourceCardId: 0,
+            paramValue: 0, paramValue2: 0, paramUnit: 0, approvals: 0,
+            printType: 0, printEdition: 0, series: 0, campaignId: 0,
+            referrer: address(0), payeeRoot: bytes32(0), flags: 0
+        });
+        vm.expectRevert(PublicTapeOut.BadMeta.selector);
+        pub.tapeoutWithMeta{value: fee}(2, m);
+        vm.stopPrank();
+    }
+
     function test_BadRuleReverts() public {
         vm.expectRevert(PublicTapeOut.BadRule.selector);
         pub.quote(12);
