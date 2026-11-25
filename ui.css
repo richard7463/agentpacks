@@ -144,6 +144,22 @@ a{color:inherit;text-decoration:none}
 .stat em{font-style:normal;font-size:10.5px;color:var(--mist2);white-space:nowrap}
 .stat.pts b{color:var(--r5)}
 .stat.agent b{font-family:var(--f-body);font-stretch:100%;font-size:14px;font-weight:700;color:var(--pass);max-width:140px;overflow:hidden;text-overflow:ellipsis}
+/* 右上角「我的」入口 */
+.tb-me{flex:0 0 auto}
+.me-entry{display:flex;align-items:center;gap:10px;height:40px;padding:0 14px 0 6px;border-radius:99px;
+  border:1px solid var(--line2);background:rgba(255,255,255,.02);transition:.2s}
+.me-entry:hover{border-color:rgba(242,193,78,.55);background:rgba(242,193,78,.07)}
+.me-entry.on{border-color:rgba(242,193,78,.75);background:rgba(242,193,78,.1)}
+.me-avatar{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:0 0 28px;
+  font-family:'STHeiti','PingFang SC',sans-serif;font-weight:900;font-size:13px;color:var(--ink);
+  background:var(--foil-l);background-size:200% 100%}
+.me-entry-txt{display:flex;flex-direction:column;line-height:1.1;text-align:left;min-width:0}
+.me-entry-txt i{font-style:normal;font-size:10.5px;color:var(--mist2)}
+.me-entry-txt b{font-family:var(--f-body);font-size:13px;font-weight:700;color:var(--paper);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 「我的」页里的数据条 */
+.me-stats-block{padding:0}
+.me-stats{display:flex;align-items:center;gap:36px;padding:18px 22px;border-radius:16px;background:var(--ink2)}
+.me-stats .stat{min-width:70px}
 
 /* ── 容器 ── */
 .wrap{position:relative;z-index:1;max-width:var(--w);margin:0 auto;padding:0 28px 110px}

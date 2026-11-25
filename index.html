@@ -4,23 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0F0C24">
-<link rel="icon" href="/favicon.ico?v=83" sizes="any">
-<link rel="icon" type="image/png" href="/favicon-32.png?v=83">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=83">
+<link rel="icon" href="/favicon.ico?v=84" sizes="any">
+<link rel="icon" type="image/png" href="/favicon-32.png?v=84">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=84">
 <meta name="description" content="Agent Packs：开出带真实 .ai 身份的 Agent 卡，每张卡是一条任何人都能在链上复算的支出规则。">
 <title>卡灵战争 Agent Packs · 你抽到的不是英雄，是一条规则</title>
 <meta property="og:type" content="website">
 <meta property="og:title" content="卡灵战争 · 你抽到的不是英雄，是一条规则">
 <meta property="og:description" content="开包开出一个有名字的 AI。每张卡是一条链上可复算的支出规则，名人照片直接上卡面。">
-<meta property="og:image" content="https://agentid.cards/og/game.jpg?v=83">
+<meta property="og:image" content="https://agentid.cards/og/game.jpg?v=84">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="卡灵战争 · 你抽到的不是英雄，是一条规则">
 <meta name="twitter:description" content="开包开出一个有名字的 AI · 名人照片上卡 · 规则链上可验">
-<meta name="twitter:image" content="https://agentid.cards/og/game.jpg?v=83">
+<meta name="twitter:image" content="https://agentid.cards/og/game.jpg?v=84">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="ui.css?v=83">
+<link rel="stylesheet" href="ui.css?v=84">
 </head>
 <body>
 <a class="skip" href="#main">跳到内容</a>
@@ -37,17 +37,17 @@
       <a class="tab" href="story.html">世界观</a>
       <button class="tab" data-v="open">开包</button>
       <button class="tab" data-v="cards">收藏</button>
-      <button class="tab" data-v="me">我的</button>
       <button class="tab" data-v="gate">实验室<span class="tab-new">新</span></button>
       <button class="tab" data-v="shop">补给</button>
       <button class="tab" data-v="tasks">任务</button>
       <button class="tab" data-v="verify">卡池</button>
     </nav>
 
-    <div class="tb-stats">
-      <div class="stat"><i>卡包</i><b id="chPacks">0/12</b><em id="chRf">已满</em></div>
-      <div class="stat pts"><i>积分</i><b id="chPts">0</b></div>
-      <div class="stat agent"><i>身份</i><b id="chName">游客</b></div>
+    <div class="tb-stats tb-me">
+      <button class="me-entry" id="bMeEntry" aria-label="打开我的">
+        <span class="me-avatar" id="meAvatar">游</span>
+        <span class="me-entry-txt"><i>我的</i><b id="chName">游客</b></span>
+      </button>
     </div>
   </div>
 </header>
@@ -92,7 +92,7 @@
       <div class="slab" data-tilt>
         <div class="slab-label">
           <div><span class="sl-k">规则证书</span><b id="slabCert">#000042</b></div>
-          <div class="sl-grade"><span>SSR</span><b>★1</b></div>
+          <div class="sl-grade"><span>传说</span><b>★1</b></div>
         </div>
         <div class="slab-well"><div class="slab-card" id="slabCard"></div></div>
         <div class="slab-foot mono">ruleOf(42) → (0, 2800, 0)</div>
@@ -126,7 +126,7 @@
       <div class="story-stage" aria-hidden="true">
         <div class="story-glow"></div>
         <div class="story-card" id="storyCard">
-          <div class="sc-face sc-back"><span class="sc-r">SSR</span><span class="sc-b">Agent Packs</span><span class="foil"></span></div>
+          <div class="sc-face sc-back"><span class="sc-r">传说</span><span class="sc-b">Agent Packs</span><span class="foil"></span></div>
           <div class="sc-face sc-front" id="storyFront"></div>
         </div>
         <ol class="story-pay" id="storyPay">
@@ -138,7 +138,7 @@
       <div class="story-copy">
         <h2 id="storyH" class="sr-only">一张卡怎么变成一条规则</h2>
         <ol class="story-steps">
-          <li data-step="0"><span class="step-n">1</span><h3>开包</h3><p>免费包会自己回满。新手第一包保底 SSR，连续 10 张没出 SR 就强制给一张。</p></li>
+          <li data-step="0"><span class="step-n">1</span><h3>开包</h3><p>免费包会自己回满。新手第一包保底传说，连续 10 张没出史诗就强制给一张。</p></li>
           <li data-step="1"><span class="step-n">2</span><h3>翻面就是规则</h3><p>卡背印着一条支出规则。稀有度和星级越高，额度越大，参数在链上任何人都读得到。</p></li>
           <li data-step="2"><span class="step-n">3</span><h3>穿上就生效</h3><p>把卡穿到你的 Agent ID 上，每一笔付款都能拿它复算：通过、要人工确认，还是拦截。想先试试，带 3 张去「守门人」拦骗局。</p></li>
         </ol>
@@ -185,8 +185,8 @@
     <div class="panel-head"><h3>概率与保底</h3><span class="chip">链上常量</span></div>
     <div id="oddsLadder2"></div>
     <ul class="rules">
-      <li>新手第一包的第 5 张，保底 SSR 或更高。</li>
-      <li>连续 10 张没出 SR，下一张强制 SR 或更高。</li>
+      <li>新手第一包的第 5 张，保底传说或更高。</li>
+      <li>连续 10 张没出史诗，下一张强制史诗或更高。</li>
       <li>演示档和 <span class="mono">AgentPackCore.sol</span> 用同一套规则，可以在 BscScan 核对。</li>
     </ul>
   </div>
@@ -220,8 +220,8 @@
 
   <div class="redeem">
     <div>
-      <h3>用积分换一张 SR</h3>
-      <p class="sub">500 分换 1 张保底 SR。积分只能在站内用，不能提现。</p>
+      <h3>用积分换一张史诗</h3>
+      <p class="sub">500 分换 1 张保底史诗。积分只能在站内用，不能提现。</p>
     </div>
     <button class="btn primary" id="bRedeem">花 500 分兑换</button>
   </div>
@@ -232,6 +232,13 @@
   <div class="page-head">
     <div><h2>我的</h2><p class="ph-sub">连上钱包，看你亲手流片出来的电路 NFT · 每条都能在 BscScan 上免费 eval 复算。</p></div>
     <span class="call">真电路 · 归你钱包</span>
+  </div>
+  <div class="block me-stats-block">
+    <div class="me-stats">
+      <div class="stat"><i>卡包</i><b id="chPacks">0/12</b><em id="chRf">已满</em></div>
+      <div class="stat pts"><i>积分</i><b id="chPts">0</b></div>
+      <div class="stat agent"><i>身份</i><b id="meName">游客</b></div>
+    </div>
   </div>
   <div class="block">
     <div id="meBox" class="chainbox"><div class="chain-status">正在读取钱包…</div></div>
@@ -448,13 +455,13 @@
     <article class="tier">
       <h3>单包</h3>
       <div class="price">0.002<em>BNB</em></div>
-      <ul><li>1 个包 = 5 张卡</li><li>单包价，随买随开</li><li>第 5 张保底 SR+</li></ul>
+      <ul><li>1 个包 = 5 张卡</li><li>单包价，随买随开</li><li>第 5 张保底史诗+</li></ul>
       <button class="btn ghost wide" data-buy="0">开 1 包</button>
     </article>
     <article class="tier">
       <h3>十连</h3>
       <div class="price">0.02<em>BNB</em></div>
-      <ul><li>10 个包 = 50 张卡</li><li>单包价 ×10，不涨价</li><li>积分 +50，兑 SR 提速</li></ul>
+      <ul><li>10 个包 = 50 张卡</li><li>单包价 ×10，不涨价</li><li>积分 +50，兑史诗提速</li></ul>
       <button class="btn ghost wide" data-buy="1">开 10 包</button>
     </article>
     <article class="tier featured">
@@ -480,7 +487,7 @@
   <div class="block streak-panel">
     <div class="panel-head">
       <h3>连续登录第 <span id="streakN">1</span> 天</h3>
-      <span class="sub" id="streakD">每天回来一次，第 7 天保底 SSR 包。</span>
+      <span class="sub" id="streakD">每天回来一次，第 7 天保底传说包。</span>
     </div>
     <div id="streakBox" class="streak"></div>
   </div>
@@ -538,10 +545,10 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js" defer></script>
-<script src="privy-widget.js?v=83" defer></script>
-<script src="i18n.js?v=83" defer></script>
-<script src="app.js?v=83" defer></script>
-<script src="fx.js?v=83" defer></script>
-<div class="ver-badge">v83</div>
+<script src="privy-widget.js?v=84" defer></script>
+<script src="i18n.js?v=84" defer></script>
+<script src="app.js?v=84" defer></script>
+<script src="fx.js?v=84" defer></script>
+<div class="ver-badge">v84</div>
 </body>
 </html>

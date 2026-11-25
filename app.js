@@ -3,7 +3,8 @@
    ═══════════════════════════════════════════════════ */
 
 /* ────────── 常量 ────────── */
-const RAR=['C','UC','R','SR','SSR','UR','LR'];
+/* 稀有度用中文名显示（不再出现 C/UC/R 这类缩写） */
+const RAR=['普通','精良','稀有','史诗','传说','神话','至尊'];
 const ODDS=[464,300,150,60,20,5,1];
 const SELL=[1,2,4,10,30,120,600];
 const RCOL=['#8E8AA8','#C9C6DC','#6FE3FF','#B49BFF','#FF7AD9','#F5C451','#FFE9A8'];
@@ -130,8 +131,8 @@ const MS_DEF=[
   {k:'open5', n:'开 5 个包', g:5, rw:2, t:'包'},
   {k:'open15',n:'开 15 个包', g:15, rw:3, t:'包'},
   {k:'open50',n:'开 50 个包', g:50, rw:2, t:'包'},
-  {k:'sr',    n:'抽到 SR 以上 ×3', g:3, rw:2, t:'包'},
-  {k:'ssr',   n:'抽到 SSR 以上 ×1', g:1, rw:3, t:'包'},
+  {k:'sr',    n:'抽到史诗以上 ×3', g:3, rw:2, t:'包'},
+  {k:'ssr',   n:'抽到传说以上 ×1', g:1, rw:3, t:'包'},
   {k:'equip', n:'穿 1 张卡', g:1, rw:1, t:'包'},
   {k:'star',  n:'升星 1 次', g:1, rw:1, t:'包'},
   {k:'sell',  n:'卖卡 ×5', g:5, rw:10, t:'分'},
@@ -139,7 +140,7 @@ const MS_DEF=[
   {k:'gate',  n:'守门 1 局', g:1, rw:2, t:'包'},
   {k:'battle',n:'打 1 局自走棋', g:1, rw:1, t:'包'},
   {k:'clear', n:'通关任意一章', g:1, rw:3, t:'包'},
-  {k:'redeem',n:'兑换 1 次 SR', g:1, rw:1, t:'包'},
+  {k:'redeem',n:'兑换 1 次史诗', g:1, rw:1, t:'包'},
   {k:'streak',n:'连续登录（自动）', g:1, rw:1, t:'包'},
 ];
 
@@ -148,7 +149,7 @@ const SKEY='apacks_v5';
 let S=null;
 const DEMO_DAILY_CAP=20; // 游客演示档每天最多 20 包（=100 张卡）；所有演示发放走 grantPacks()
 function fresh(){return{v:5,name:null,pts:0,packs:[],freeCap:20,lastRegen:Date.now(),
-  cards:[],nextId:1,equipped:0,firstPack:false,sinceSR:0,
+  cards:[],nextId:1,equipped:0,firstPack:false,sinceSSR:0,
   pool:[],myInPool:false,sort:'r',w:0,l:0,team:[],chCleared:{},
   day:null,mis:{},claimed:{},streak:1,lastDay:Date.now(),followed:false,
   demoDay:null,demoToday:0};}
@@ -249,7 +250,7 @@ function shareURL(c){
   if(chainAcc&&/^0x[0-9a-fA-F]{40}$/.test(chainAcc))u+='&ref='+chainAcc; // 受邀人开满 15 包 → 双方各得 1 包（链上）
   return u;
 }
-const RAR_CN=['普通','进阶','稀有','超稀有','史诗','传说','神话'];
+const RAR_CN=RAR; // 兼容旧引用
 function shareText(c){
   // 关键：卡名不带 .ai 后缀（.ai 是真实 TLD，X 会链接化）；稀有度用中文（UC 看不懂）
   const n=cname(c).replace('.ai','');
@@ -513,8 +514,8 @@ function open5(){
   for(let i=0;i<5;i++){
     let r=rollR();
     if((!S.firstPack||S.ssrNext)&&i===4){if(r<4)r=4;S.ssrNext=false}
-    else if(S.firstPack&&S.sinceSR+1>=10&&r<3)r=3;
-    if(r>=3)S.sinceSR=0;else S.sinceSR++;
+    else if(S.firstPack&&S.sinceSSR+1>=10&&r<3)r=3;
+    if(r>=3)S.sinceSSR=0;else S.sinceSSR++;
     if(r>=3)S.mis.sr++; if(r>=4)S.mis.ssr++;
     if(i===idSlot){
       const act=S.pool.filter(p=>p.active);
@@ -565,6 +566,7 @@ function regenFree(){
 function switchTab(v){
   $('#mmodal').classList.remove('on');
   $$('.tab').forEach(t=>t.classList.toggle('on',t.dataset.v===v));
+  const meBtn=$('#bMeEntry');if(meBtn)meBtn.classList.toggle('on',v==='me');
   $$('.view').forEach(x=>x.classList.remove('on'));
   $('#v-'+v).classList.add('on');
   $('#land').style.display='none';
@@ -577,7 +579,10 @@ function switchTab(v){
 }
 function renderAll(){regenFree();
   $('#chPts').textContent=S.pts;
-  $('#chName').textContent=(S.name||'游客')+(S.myInPool?' · 在池':'');
+  const who=(S.name||'游客')+(S.myInPool?' · 在池':'');
+  $('#chName').textContent=who;
+  const mn=$('#meName');if(mn)mn.textContent=who;
+  const av=$('#meAvatar');if(av)av.textContent=(S.name||'游').trim().charAt(0)||'游';
   $('#pkN').textContent=S.packs.length+' 包';
   $('#rec').textContent='战绩 '+S.w+' / '+S.l;
   $('#streakN').textContent=S.streak;
@@ -596,7 +601,7 @@ function renderPk(){
 }
 function renderStreak(){
   const box=$('#streakBox');if(!box)return;
-  const RW=['1 包','2 包','3 包','4 包','5 包','6 包','SSR 包 ×1'];
+  const RW=['1 包','2 包','3 包','4 包','5 包','6 包','传说包 ×1'];
   box.innerHTML=RW.map((rw,i)=>{
     const n=i+1,on=S.streak>=n,next=n===S.streak+1;
     return `<div class="sday${on?' on':''}${n===7?' bonus':''}${next?' next':''}">
@@ -700,7 +705,7 @@ function dealCards(){
             ${c.kind===1?`<div class="fi">身份卡 · ${fmtN(S.pool[c.ref].name)}</div>`:''}
             <div class="fst">ATK ${st.atk} · DEF ${st.def} · RAT ${st.rat}</div>
           </div>
-          ${c.kind===0?`<button class="pkt" data-rule="${c.ref%12}" style="position:absolute;top:8px;right:8px;z-index:8;padding:5px 10px;border-radius:99px;border:1px solid rgba(242,193,78,.75);background:rgba(10,8,25,.9);color:#F2C14E;font-size:10.5px;font-weight:800">⚡ 流片 ≈ $${ruleUSD(c.ref%12).toFixed(2)}</button>`:''}
+          ${c.kind===0?`<button class="pkt" data-rule="${c.ref%12}" style="position:absolute;top:8px;right:8px;z-index:8;padding:5px 10px;border-radius:99px;border:1px solid rgba(242,193,78,.75);background:rgba(10,8,25,.9);color:#F2C14E;font-size:10.5px;font-weight:800">⚡ 流片</button>`:''}
         </div>
       </div>`;
       d.onclick=()=>{
@@ -757,9 +762,9 @@ function renderCards(){
   fb.forEach(b=>b.classList.toggle('on',+b.dataset.fam===S.famF));
   if(!S.cards.length){
     g.innerHTML=`<div class="empty" style="grid-column:1/-1">
-      <div class="e-fan"><div class="e-card c0">C</div><div class="e-card c1">LR</div><div class="e-card c2">SR</div></div>
+      <div class="e-fan"><div class="e-card c0">普通</div><div class="e-card c1">至尊</div><div class="e-card c2">史诗</div></div>
       <h4>收藏还是空的</h4>
-      <p>第一包的第 5 张保底 SSR。开出的 .ai 身份卡和电路卡都会出现在这里，挑一张穿到你的 Agent ID 上。</p>
+      <p>第一包的第 5 张保底传说。开出的 .ai 身份卡和电路卡都会出现在这里，挑一张穿到你的 Agent ID 上。</p>
       <button class="btn primary xl" id="eOpen">开第一包</button>
       <span class="e-link" id="eOdds">先看概率与保底</span>
     </div>`;
@@ -988,7 +993,7 @@ $('#bRedeem').onclick=()=>{
   if(S.pts<500)return toast('积分不够（需 500）');
   S.pts-=500;S.mis.redeem++;
   S.cards.push({id:S.nextId++,r:3,star:0,kind:0,ref:Math.floor(Math.random()*12)});
-  beep(784,.2,'triangle',.08);toast('兑换成功：1 张保底 SR');save();renderAll();
+  beep(784,.2,'triangle',.08);toast('兑换成功：1 张保底史诗');save();renderAll();
 };
 
 /* ══════════ 自走棋 ══════════ */
@@ -1138,8 +1143,8 @@ function renderMis(){
       <div class="sbar"><i style="width:${(claimedN/total*100).toFixed(0)}%"></i></div></div>
     <div class="scard"><div class="k">可以领取</div><div class="v">${ready}<span> 份奖励</span></div>
       <div class="n">${ready?'在下面的任务里点「领取」':'做完任意一项就能领'}</div></div>
-    <div class="scard gold"><div class="k">全部做完</div><div class="v">SSR 包 ×1</div>
-      <div class="n">${total} 项全清，保底 SSR</div></div>`;
+    <div class="scard gold"><div class="k">全部做完</div><div class="v">传说包 ×1</div>
+      <div class="n">${total} 项全清，保底传说</div></div>`;
 
   const b=$('#misBox');if(!b)return;b.innerHTML='';
   MS_DEF.forEach(m=>{
@@ -1167,10 +1172,10 @@ function renderMis(){
   const allDone=claimedN>=total;
   if(foot)foot.innerHTML=`<span class="fname">做完今天全部 ${total} 项任务</span>
     <span class="fp">${claimedN} / ${total}</span>
-    <button class="btn sm ${allDone&&!S.claimed.__all?'primary':'ghost'}" id="bAllMis" ${allDone&&!S.claimed.__all?'':'disabled'}>${S.claimed.__all?'已领取':'领取 SSR 包'}</button>`;
+    <button class="btn sm ${allDone&&!S.claimed.__all?'primary':'ghost'}" id="bAllMis" ${allDone&&!S.claimed.__all?'':'disabled'}>${S.claimed.__all?'已领取':'领取传说包'}</button>`;
   const am=$('#bAllMis');
   if(am&&allDone&&!S.claimed.__all)am.onclick=()=>{S.claimed.__all=true;grantPacks(1,'全任务');S.ssrNext=true;
-    beep(784,.2,'triangle',.08);toast('全清奖励：1 个 SSR 保底包');save();renderAll()};
+    beep(784,.2,'triangle',.08);toast('全清奖励：1 个传说保底包');save();renderAll()};
 }
 
 /* ══════════ 卡池 ══════════ */
@@ -1240,11 +1245,13 @@ $('#bOpen5').onclick=()=>{if(S.packs.length<5)return toast('至少要 5 个包�
 $('#bLandOpen').onclick=()=>{if(!S.packs.length&&!grantPacks(1,'落地页'))return toast('今日演示额度已用完，明天再来');switchTab('open');S.packs.pop();save();startOpen()};
 $('#bLandPool').onclick=()=>switchTab('verify');
 $$('.tab').forEach(t=>t.onclick=()=>switchTab(t.dataset.v));
+$('#bMeEntry').onclick=()=>switchTab('me');
 $('#heroPackWrap').onclick=()=>$('#bLandOpen').click();
 $('#brandHome').onclick=e=>{
   e.preventDefault();
   $$('.view').forEach(x=>x.classList.remove('on'));
   $$('.tab').forEach(t=>t.classList.remove('on'));
+  const meBtn=$('#bMeEntry');if(meBtn)meBtn.classList.remove('on');
   $('#land').style.display='';
   window.scrollTo({top:0,behavior:'instant'});
   renderAll();
@@ -1982,7 +1989,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#mmodal').classLi
 /* ══════════ 主循环 ══════════ */
 if(S.day===today()&&S.cards.length&&S.name){switchTab('open')}
 $('#heroPack').innerHTML=packArt('hp');
-/* 落地页卡砖：一张示例 SSR 止损电路卡，参数与合约 ruleOf 同算法 */
+/* 落地页卡砖：一张示例传说止损电路卡，参数与合约 ruleOf 同算法 */
 (function(){
   const demo={id:42,r:4,star:1,kind:0,ref:0};
   const {t,p1,p2}=ruleParams(demo);

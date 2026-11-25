@@ -9,6 +9,9 @@
     '世界观': 'Story', '开包': 'Open', '收藏': 'Collection', '实验室': 'Lab',
     '补给': 'Supply', '任务': 'Quests', '卡池': 'Pool',
     '卡包': 'Packs', '已满': 'Full', '积分': 'Points', '身份': 'ID', '游客': 'Guest',
+    '普通': 'Common', '精良': 'Uncommon', '稀有': 'Rare', '史诗': 'Epic',
+    '传说': 'Legendary', '神话': 'Mythic', '至尊': 'Ultimate',
+    '我的': 'Mine', '打开我的': 'Open my profile',
     '第 0 战季开放中：每个卡灵就是一条链上规则 · Binance Agent ID 做身份，TapeOut 电路做魂':
       'Season 0 is live: every Kaling is an on-chain rule · Binance Agent ID as identity, TapeOut circuits as soul',
     '开包开出的': 'A pack does not hold', '不是图片，': 'an image — it holds',
@@ -36,8 +39,8 @@
     '超上限，要人工确认': 'Over cap, needs a human',
     '「紧急退款」陌生地址': '"Urgent refund" from a stranger', '拦截': 'BLOCKED',
     '一张卡怎么变成一条规则': 'How a card becomes a rule',
-    '免费包会自己回满。新手第一包保底 SSR，连续 10 张没出 SR 就强制给一张。':
-      'Free packs regenerate. Your first pack guarantees SSR; 10 cards without SR force one.',
+    '免费包会自己回满。新手第一包保底传说，连续 10 张没出史诗就强制给一张。':
+      'Free packs regenerate. Your first pack guarantees a Legendary; 10 cards without an Epic forces one.',
     '翻面就是规则': 'Flip it, read the rule',
     '卡背印着一条支出规则。稀有度和星级越高，额度越大，参数在链上任何人都读得到。':
       'The back prints a spending rule. Higher rarity and stars mean higher caps; anyone can read the params on-chain.',
@@ -50,15 +53,15 @@
     '，开包结果由合约的提交-揭示流程决定。': ', decided by on-chain commit-reveal.',
     '待开的包': 'Pending packs', '0 包': '0 packs',
     '概率与保底': 'Odds & pity', '链上常量': 'On-chain constants',
-    '新手第一包的第 5 张，保底 SSR 或更高。': 'Card 5 of your first pack is SSR or better.',
-    '连续 10 张没出 SR，下一张强制 SR 或更高。': '10 cards without SR forces SR or better.',
+    '新手第一包的第 5 张，保底传说或更高。': 'Card 5 of your first pack is Legendary or better.',
+    '连续 10 张没出史诗，下一张强制史诗或更高。': '10 cards without an Epic forces Epic or better.',
     '演示档和': 'Demo mode and ', '用同一套规则，可以在 BscScan 核对。': ' use the same rules — verify on BscScan.',
     '点一张卡，可以穿上、升星或卖掉。': 'Tap a card to equip, star up or sell it.',
     '按稀有度': 'By rarity', '按获得时间': 'By date', '按攻击力': 'By ATK',
     '全部': 'All', '交易': 'Trade', '风控': 'Lockdown', '安全': 'Security', '协作': 'Trust',
-    '用积分换一张 SR': 'Redeem points for an SR',
-    '500 分换 1 张保底 SR。积分只能在站内用，不能提现。':
-      '500 points for a guaranteed SR. Points are in-game only, never cashable.',
+    '用积分换一张史诗': 'Redeem points for an Epic',
+    '500 分换 1 张保底史诗。积分只能在站内用，不能提现。':
+      '500 points for a guaranteed Epic. Points are in-game only, never cashable.',
     '花 500 分兑换': 'Redeem 500 points',
     '三步走：① 拨开关看懂电路怎么判 ② 亲自守 10 笔付款 ③ 连真钱包上链验证。':
       'Three steps: ① flip switches to see the circuit judge ② guard 10 payments ③ connect a wallet to verify on-chain.',
