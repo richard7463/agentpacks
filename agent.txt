@@ -55,6 +55,11 @@ DECISION POLICY (TapeID-compatible)
   Re-evaluation is READ-ONLY. Never describe it as a completed payment.
   The agent must never transfer funds on its own.
 
+AGENT SKILL (recommended — gives any plain AI agent the full playbook)
+  https://agentid.cards/skills/agentpacks/SKILL.md
+  references: web-actions.md, wallet-and-rules.md, guard.md
+  machine-readable rule list: https://agentid.cards/api/rules.json
+
 MACHINE-READABLE SNAPSHOT
   https://agentid.cards/api/circuit/2.json
 

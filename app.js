@@ -1555,14 +1555,16 @@ async function renderMe(){
     +'<pre id="meVerifyJson">'+verifyJson.replace(/</g,'&lt;')+'</pre>'
     +'<div class="ub-actions"><button class="btn sm primary" id="meCopyVerify">复制验证指引</button>'
     +'<button class="btn sm ghost" id="meCopyGuard">复制守门提示词</button>'
-    +'<button class="btn sm ghost" id="meCopyUrl">复制 Agent 说明链接</button></div>'
+    +'<button class="btn sm ghost" id="meCopyUrl">复制 Agent 说明链接</button>'
+    +'<button class="btn sm ghost" id="meCopySkill">复制 Agent Skill 链接</button></div>'
     +'<div class="ub-note">把上面任意一段发给你的 Agent；所有地址和 Token ID 都按当前钱包实时生成。</div></div>';
   setMe('<div class="me-sum">共 <b>'+ids.length+'</b> 条电路 NFT · 每条都能免费 eval 复算</div><div class="me-list">'+cards+'</div>'+verifyBlock);
   const cp=(id,txt)=>{const b=$(id);if(b)b.onclick=async()=>{
     try{await navigator.clipboard.writeText(txt)}catch(e){toast('复制失败，请手动选择文本',3200,'bad');return}
     toast('已复制，发给你的 Agent 即可',3200,'ok')}};
   cp('#meCopyVerify',verifyPrompt);cp('#meCopyGuard',guardPrompt);
-  cp('#meCopyUrl','https://agentid.cards/agent.txt\nhttps://agentid.cards/api/circuit/'+token0+'.json');
+  cp('#meCopyUrl','https://agentid.cards/agent.txt\nhttps://agentid.cards/api/circuit/'+token0+'.json\nhttps://agentid.cards/api/rules.json');
+  cp('#meCopySkill','https://agentid.cards/skills/agentpacks/SKILL.md');
   $$('[data-me-eval]').forEach(b=>b.onclick=async()=>{
     const id=b.dataset.meEval,hex=$('#meIn-'+id).value.trim(),out=$('#meOut-'+id);
     if(!/^0x([0-9a-fA-F]{2})*$/.test(hex))return toast('输入格式不对，例如 0x05',3200,'bad');
