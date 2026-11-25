@@ -1554,3 +1554,19 @@ kbd{border-radius:2px;border-color:rgba(201,162,39,.45);font-family:var(--f-seri
   .armory-h{font-size:15px}
   .armory-h::before{flex-basis:26px;height:26px}
 }
+
+/* ── 游戏 · 概念预告（COMING SOON） ── */
+.game-soon{position:relative;max-width:760px;margin:24px auto 0;padding:54px 32px 44px;text-align:center;
+  border-radius:16px;background:linear-gradient(180deg,rgba(201,162,39,.08),transparent 42%),var(--ink2);
+  box-shadow:inset 0 0 0 1px var(--line2),0 40px 90px -50px #000}
+.game-soon::before{content:'';position:absolute;inset:8px;border-radius:10px;border:1px solid rgba(201,162,39,.18);pointer-events:none}
+.game-soon .gs-sigil{width:88px;height:88px;margin:0 auto 22px;color:var(--gold);
+  filter:drop-shadow(0 0 20px rgba(201,162,39,.45))}
+.game-soon .gs-sigil svg{width:100%;height:100%;display:block;animation:gsFloat 4s ease-in-out infinite}
+@keyframes gsFloat{50%{transform:translateY(-7px)}}
+.game-soon h3{font-family:var(--f-disp);font-size:26px;line-height:1.35;margin:12px 0 10px;color:var(--gold-l)}
+.game-soon p{max-width:520px;margin:0 auto;color:var(--mist);font-size:14px;line-height:1.9}
+.game-soon .gs-bar{display:flex;align-items:center;gap:16px;max-width:420px;margin:30px auto 0;
+  font-family:var(--f-disp);font-size:11px;letter-spacing:.22em;color:var(--gold)}
+.game-soon .gs-bar i{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+@media(max-width:640px){.game-soon{padding:40px 20px 34px}.game-soon h3{font-size:20px}}
