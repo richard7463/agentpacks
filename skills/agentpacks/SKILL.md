@@ -57,8 +57,11 @@ Processor / circuit NFT: `0xAdfDB520db78C252382E4bCdf62692fAD453035a`.
 Core: `0xEE7928436a480af5F93c3558a8Ef27588C511d7b`.
 
 1. `ownerOf(tokenId)` — selector `0x6352211e` + 32-byte tokenId → current owner.
-2. `netlist(tokenId)` — selector `0x3fc4be56` + 32-byte tokenId → raw netlist bytes.
-   `gates = (byteLength of returned bytes) / 7`.
+2. `netlist(tokenId)` — selector `0x3fc4be56` + 32-byte tokenId → ABI-encoded `bytes`.
+   Decode `bytes`: the first 32-byte word is the offset (usually `0x20`), the second
+   is the byte length, and the actual netlist follows. Compare **actual bytes**,
+   not the whole return blob. `gates = byteLength / 7` (e.g. 28 bytes → 4 gates,
+   252 bytes → 36 gates).
 3. For `i = 0..11`, call `HOUSE_NETLIST(i)` on Core — selector `0x44eda2fa` +
    32-byte i. The `i` whose bytes **exactly equal** the netlist is the rule id.
    Only `0 / 2 / 7 / 11` are open for public tapeout; anything else is a legacy card.
@@ -82,7 +85,9 @@ rule attached to that NFT*. Follow this order, and stop as soon as a step works.
    - **Raw RPC `eth_getLogs`:** `address = 0xAdfDB520db78C252382E4bCdf62692fAD453035a`, `topic0 = 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef` (ERC-721 Transfer), `topic2 = 0x` + 24 zero bytes + the 40-hex wallet address, `fromBlock = 0x0`, `toBlock = latest`. Each log's `topic3` is a token ID owned/received by that wallet; verify current `ownerOf(tokenId)` before using it.
    - **Multicall3 `ownerOf` scan:** batch `ownerOf(1), ownerOf(2), … ownerOf(N)` via `0xcA11bde05977b3631167028862bE2a173976CA11` and keep IDs whose return equals the wallet address (case-insensitive).
 3. **Read the rule for each discovered token ID:**
-   - Try `https://agentid.cards/api/circuit/<tokenId>.json` → use `token.ruleText`, `token.gates`, `guard`.
+   - **First derive on-chain** with "On-chain rule identification" below — that works for any token ID.
+     Static `https://agentid.cards/api/circuit/<tokenId>.json` is an OPTIONAL convenience;
+     a 404 is normal and must NOT cause fail-closed. Never try static first.
    - If no static file exists, use the JSON copied from the site's `#meCopyVerify`, or read on-chain `eval` / `netlist` **only if you can encode the inputs correctly**. Never guess bytes.
    - Never assume token `#2` means rule `t2`. Token ID and rule ID are unrelated.
 4. **Apply the guard policy** from that token's `guard` object to every proposed payment.
