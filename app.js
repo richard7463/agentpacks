@@ -417,16 +417,16 @@ function ruleDerived(c){
   if(c.kind===1){const p=S.pool[c.ref];return{t:12,p1:p?p.name:'—',p2:0}}
   // 规则参数与稀有度/星级无关：所有卡同规则同默认值，数字由用户自己调
   const mult=100,t=cardRule(c);let p1=0,p2=0;
-  if(t===0)p1=2000*mult/100;
+  if(t===0)p1=5200; // $52 默认，所有稀有度一致
   else if(t===1)p1=5000*mult/100;
   else if(t===3){p1=3000*mult/100;p2=2}
-  else if(t===4)p1=3+Math.floor(c.r/2)+c.star;
+  else if(t===4)p1=3;
   else if(t===5)p1=500*mult/100;
   else if(t===6)p1=10000*mult/100;
   else if(t===7)p1=3600;
   else if(t===8)p1=7200*mult/100;                                   // 封控：锁 2 小时 × mult
   else if(t===9)p1=5000*mult/100;                                    // 双签：基准 $50
-  else if(t===10){p1=5000*mult/100;p2=2+Math.floor(c.star/2)}        // 会签：M = 2 + star/2
+  else if(t===10){p1=5000;p2=2}        // 会签：M = 2
   else if(t===11)p1=12*3600*mult/100;                                // 委托：窗口 12h × mult
   return{t,p1,p2};
 }
