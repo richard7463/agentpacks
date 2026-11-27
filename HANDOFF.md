@@ -12,6 +12,7 @@
 | PublicTapeOut (v114) | `0xf86a0d9164554957bc59c91cfa46b818ebda1cee` | 公开流片 + `getMeta(tokenId)` 全量元数据 |
 | RuleConfig | `0xc02722543e54f2e5fe049e6f3696c75e28b72910` | 用户签名的数字参数 `setOverride(rule,value)` |
 | GuardVault | `0xa0fb1d7f76d4b1bc55a8060cdbcf773c1d8d8d3d` | 链上金库（当前未接主流程） |
+| KalingGiveaway | `0xfb081ca40a7bdd1842767591475f341cf55b9c45` | .ai 持有者电路卡赠送，活动 #1 已创建（rule t0，rarity 传说，10 名额）。`giveaway.html` 可扫描 |
 | BEM | `0x5ce033B2bFCa3Af30b3e8C8457DeaF776A8b695a` | NAND 支付代币 |
 
 `forge test` 76/76；新增 fork 实测：circuit #3 流片后 `getMeta(3).rarity = 4` ✅

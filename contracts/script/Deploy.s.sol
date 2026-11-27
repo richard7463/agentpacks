@@ -7,6 +7,7 @@ import {AgentPackCore} from "../src/AgentPackCore.sol";
 import {GuardVault} from "../src/GuardVault.sol";
 import {PublicTapeOut} from "../src/PublicTapeOut.sol";
 import {RuleConfig} from "../src/RuleConfig.sol";
+import {KalingGiveaway} from "../src/KalingGiveaway.sol";
 import {MockAgentIdRegistry} from "../test/AgentPackCore.t.sol";
 
 /// @notice 本地 Anvil / BSC 测试网：先部署 Mock 注册表，再部署主合约 + 金库
@@ -60,6 +61,17 @@ contract DeployMainnet is Script {
         vm.startBroadcast();
         core = new AgentPackCore(registry, prize, proc, 0x5ce033B2bFCa3Af30b3e8C8457DeaF776A8b695a);
         vault = new GuardVault(address(core));
+        vm.stopBroadcast();
+    }
+}
+
+/// @notice .ai 持有者电路卡赠送活动（链上可扫描）
+contract DeployKalingGiveaway is Script {
+    address constant AGENT_ID = 0x60B9262456dE011F7d15a54CdD8c48bAaa8B022F;
+
+    function run() external returns (KalingGiveaway g) {
+        vm.startBroadcast(vm.envUint("DEPLOY_PK"));
+        g = new KalingGiveaway(AGENT_ID);
         vm.stopBroadcast();
     }
 }

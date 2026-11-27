@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>电路卡赠送 · 链上可扫描 · 卡灵战争</title>
+<link rel="icon" href="/favicon.ico?v=119" sizes="any">
+<link rel="stylesheet" href="ui.css?v=119">
+<style>
+  .gw-wrap{max-width:900px;margin:0 auto;padding:52px 22px 100px}
+  .gw-hero,.gw-card{padding:28px;border-radius:18px;background:var(--ink2);box-shadow:inset 0 0 0 1px var(--line2)}
+  .gw-hero h1{font-size:30px;margin:10px 0 12px}
+  .gw-hero p{color:var(--mist);line-height:1.85;max-width:680px}
+  .gw-card{margin-top:18px}
+  .gw-card h3{margin:0 0 12px;font-size:18px;color:var(--gold-l)}
+  .gw-kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px}
+  .gw-kv div{padding:14px;border-radius:10px;background:var(--ink);box-shadow:inset 0 0 0 1px var(--line2)}
+  .gw-kv span{display:block;font-size:11px;color:var(--mist2);margin-bottom:6px}
+  .gw-kv b{font-family:var(--f-disp);font-size:20px;color:var(--gold)}
+  .gw-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .gw-row input{flex:1 1 300px}
+  .gw-list{margin-top:16px}
+  .gw-item{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;border-radius:10px;background:var(--ink);margin-bottom:8px;font-size:12.5px}
+  .gw-item .who{font-family:monospace;color:var(--paper2);word-break:break-all}
+  .gw-item a{color:var(--gold);text-decoration:none}
+  .gw-out{margin-top:12px;padding:14px;border-radius:10px;background:var(--ink);font-size:12.5px;line-height:1.8;color:var(--mist)}
+  .gw-code{padding:12px;border-radius:10px;background:var(--ink);font-size:11.5px;word-break:break-all;color:var(--paper2);margin-top:12px}
+  @media(max-width:640px){.gw-hero h1{font-size:23px}}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><div class="bg-glow"></div><div class="bg-noise"></div></div>
+<header class="topbar"><div class="tb">
+  <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"><i>卡</i></span><span class="brand-txt">卡灵战争<em>Agent Packs</em></span></a>
+  <nav class="tabs"><a class="tab" href="/">返回游戏</a><a class="tab on" href="giveaway.html">赠送核验</a></nav>
+</div></header>
+
+<main class="gw-wrap">
+  <div class="gw-hero">
+    <span class="eyebrow" style="margin:0">ON-CHAIN GIVEAWAY · 链上可扫描</span>
+    <h1>.ai 持有者专属电路卡 — 赠送核验</h1>
+    <p>活动规则、领取资格、领取记录和交付的电路 NFT 全部写在 BSC 链上。任何人都可以通过合约地址独立扫描，不需要相信我们的口头说明。</p>
+    <div class="gw-code">KalingGiveaway 合约：<span id="gwAddr">0xfb081ca40a7bdd1842767591475f341cf55b9c45</span><br>
+      BscScan：<a id="gwScan" href="https://bscscan.com/address/0xfb081ca40a7bdd1842767591475f341cf55b9c45" target="_blank" style="color:var(--gold)">查看合约 ↗</a></div>
+  </div>
+
+  <div class="gw-card">
+    <h3>活动 #1 状态</h3>
+    <div class="gw-kv" id="gwKv"><div><span>读取中…</span></div></div>
+    <p class="gw-note" style="color:var(--mist2);font-size:12px;line-height:1.8">规则：持有 Binance Agent ID 的地址才能领取，每个地址限一次。我们流片后把 circuit token id 写回合约。</p>
+  </div>
+
+  <div class="gw-card">
+    <h3>查我的资格 / 领取记录</h3>
+    <div class="gw-row"><input class="inp mono" id="gwInput" placeholder="输入 BSC 地址 0x…"><button class="btn primary" id="gwCheck">查询</button></div>
+    <div class="gw-out" id="gwOut">输入地址后点击查询。</div>
+  </div>
+
+  <div class="gw-card">
+    <h3>已领取名单（链上实时）</h3>
+    <div class="gw-list" id="gwList">读取中…</div>
+  </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script>
+(function(){
+  const ADDR='0xfb081ca40a7bdd1842767591475f341cf55b9c45';
+  const ABI=[
+    'function campaigns(uint256) view returns (uint8 rule,uint8 rarity,uint32 max,uint32 claimed,bool active)',
+    'function isEligible(address who) view returns (bool)',
+    'function getClaim(uint256 id,address who) view returns (uint256 circuitId,uint64 at,bool fulfilled)',
+    'function getClaimants(uint256 id) view returns (address[])'
+  ];
+  const p=new ethers.providers.JsonRpcProvider('https://bsc-dataseed1.bnbchain.org');
+  const c=new ethers.Contract(ADDR,ABI,p);
+  const RAR=['普通','精良','稀有','史诗','传说','神话','至尊'];
+  const RULES={0:'止损电路',2:'白名单电路',7:'钻石手电路',11:'委托电路'};
+  const short=a=>a.slice(0,8)+'…'+a.slice(-6);
+  async function load(){
+    try{
+      const cm=await c.campaigns(1);
+      document.getElementById('gwKv').innerHTML=`
+        <div><span>规则</span><b>${RULES[cm.rule]||('t'+cm.rule)}</b></div>
+        <div><span>稀有度</span><b>${RAR[cm.rarity]||cm.rarity}</b></div>
+        <div><span>名额</span><b>${cm.max}</b></div>
+        <div><span>已领取</span><b>${cm.claimed}</b></div>
+        <div><span>状态</span><b>${cm.active?'开放中':'已关闭'}</b></div>`;
+      const list=await c.getClaimants(1);
+      const rows=[];
+      for(const who of list){
+        const cl=await c.getClaim(1,who);
+        rows.push(`<div class="gw-item"><span class="who">${short(who)}</span>
+          <span>${new Date(cl.at.toNumber()*1000).toLocaleString()}</span>
+          <span>${cl.fulfilled?`<a href="https://bscscan.com/token/0xAdfDB520db78C252382E4bCdf62692fAD453035a?a=${cl.circuitId}" target="_blank">circuit #${cl.circuitId} ↗</a>`:'待流片交付'}</span></div>`);
+      }
+      document.getElementById('gwList').innerHTML=rows.join('')||'还没有人领取。';
+    }catch(e){document.getElementById('gwList').textContent='链上读取失败：'+e.message}
+  }
+  document.getElementById('gwCheck').onclick=async()=>{
+    const v=document.getElementById('gwInput').value.trim(),out=document.getElementById('gwOut');
+    if(!ethers.utils.isAddress(v)){out.textContent='地址格式不对';return}
+    try{
+      const ok=await c.isEligible(v),cl=await c.getClaim(1,v);
+      out.innerHTML='Agent ID 资格：<b style="color:'+(ok?'var(--pass)':'var(--fail)')+'">'+(ok?'✅ 持有':'❌ 未持有')+'</b><br>'
+        +(cl.at.toNumber()?'领取时间：'+new Date(cl.at.toNumber()*1000).toLocaleString()+'<br>交付：'+(cl.fulfilled?'circuit #'+cl.circuitId:'待流片'):'尚未领取');
+    }catch(e){out.textContent='查询失败：'+e.message}
+  };
+  load();
+})();
+</script>
+</body>
+</html>
